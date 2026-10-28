@@ -1161,8 +1161,10 @@ async function playRound() {
     ? { title: 'あなたは先攻です', text: `ラウンド${G.round}　ドラフトで先に取れます`, style: 'first' }
     : { title: 'あなたは後攻です', text: `ラウンド${G.round}　先攻と同じ種類を伏せれば予言成功`, style: 'second' };
   await announce({ title: '', text: '', per: [roleText(0), roleText(1)] }, ROUND_ANN_MS);
-  if (dealHopeDespair()) await sleep(ANN_MS);
+  // 希望と絶望が配られたら、すぐ画面に出して（お知らせと、札が手札へ飛ぶ動き）、読み終わるまで待ってからドラフトへ
+  const dealt = dealHopeDespair();
   render();
+  if (dealt) await sleep(ANN_MS);
 
   // 1. ドラフト
   await announce({ title: '🛒 ドラフトターン', text: '市場から1枚ずつ取る（先攻 → 後攻 → 後攻 → 先攻）', style: 'draft' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
