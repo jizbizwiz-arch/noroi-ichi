@@ -1,0 +1,2311 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>呪い市 試作版</title>
+<!-- スマホのホーム画面に追加したとき、アプリのように全画面で開く（ファイルを直接開いたときは読み込めないが、遊ぶのには影響しない） -->
+<meta name="theme-color" content="#1c1a17">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="呪い市">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<style>
+:root {
+  --bg: #f3efe6; --panel: #fffcf6; --ink: #2b2622; --muted: #7a7066; --line: #d9d1c4;
+  --fire: #c23a35; --water: #5157c9; --wind: #3b8f3a; --earth: #2a8a96; --curse: #6a3f8f;
+  --opp: #c4552f; --me: #2f6fbf; --felt: #2f8a5f;
+  --battle: #e0563b; --fuse: #3473c9; --accent: #c99a1e; --back: #3d2f4f;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1c1a17; --panel: #29251f; --ink: #ece6dc; --muted: #a59c90; --line: #3f392f; --back: #4a3a60; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif; font-size: 14px; }
+header { display: flex; align-items: center; gap: 12px; padding: 6px 16px; border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap; }
+header h1 { font-size: 18px; margin: 0; }
+header .info { color: var(--muted); }
+header .spacer { flex: 1; }
+button { font: inherit; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #1c1a17; font-weight: 700; }
+button:disabled { opacity: .4; cursor: default; }
+main { display: grid; grid-template-columns: 1fr 280px; gap: 10px; padding: 8px 16px; max-width: 1600px; margin: 0 auto; width: 100%; }
+/* 横幅に余裕があれば市場と場を横に並べ、足りなければ縦に並べる */
+.mid { display: flex; flex-wrap: wrap; gap: 0 8px; }
+.mid > #marketSec { flex: 0 1 auto; }
+.mid > #fieldSec { flex: 1 1 460px; }
+.mid:not(.stacked) > #fieldSec { order: -1; }
+#marketSec, #fieldSec { min-height: 250px; }
+#marketSec .row { padding-top: 14px; }
+@media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 7px 12px; margin-bottom: 8px; }
+section h2 { font-size: 13px; color: var(--muted); margin: 0 0 5px; font-weight: 600; display: flex; gap: 10px; flex-wrap: wrap; }
+section h2 b { color: var(--ink); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; min-height: 40px; }
+.card { width: 78px; height: 108px; border-radius: 8px; border: 3px solid var(--c, var(--line)); background: var(--panel); position: relative; padding: 4px 5px; display: flex; flex-direction: column; flex-shrink: 0; transition: transform .12s; user-select: none; }
+.card .num { font-size: 26px; font-weight: 800; line-height: 1; color: var(--c); }
+.card .icon { position: absolute; top: 4px; right: 5px; font-size: 18px; }
+.card .nm { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.card .eff { font-size: 10.5px; margin-top: auto; line-height: 1.35; }
+.card .eff span { display: inline-block; min-width: 14px; font-weight: 700; color: #fff; background: var(--c); border-radius: 3px; text-align: center; margin-right: 2px; font-size: 9.5px; padding: 0 2px; }
+.card .eff .off { opacity: .35; }
+.card.back { background: repeating-linear-gradient(45deg, var(--back), var(--back) 6px, #2c2238 6px, #2c2238 12px); border-color: var(--back); align-items: center; justify-content: center; color: #d9c9f0; font-size: 12px; font-weight: 700; }
+.card.small { width: 70px; height: 98px; }
+.card.small .num { font-size: 22px; }
+.card.small .eff { font-size: 9px; }
+.card.known { opacity: .9; }
+.card.empty { border-style: dashed; border-color: var(--line); background: transparent; }
+.card[data-attr=fire] { --c: var(--fire); }
+.card[data-attr=water] { --c: var(--water); }
+.card[data-attr=wind] { --c: var(--wind); }
+.card[data-attr=earth] { --c: var(--earth); }
+.card[data-attr=hope] { --c: var(--accent); background: color-mix(in srgb, var(--accent) 22%, var(--panel)); }
+.card[data-attr=despair] { --c: #6b6b6b; background: color-mix(in srgb, #000 30%, var(--panel)); }
+.card[data-attr=curse] { --c: var(--curse); background: color-mix(in srgb, var(--curse) 14%, var(--panel)); }
+.clickable { cursor: pointer; }
+.clickable .card:hover, .card.clickable:hover { transform: translateY(-4px); }
+.dim { opacity: .35; pointer-events: none; }
+.sel-battle { transform: translateY(-10px); box-shadow: 0 0 0 3px var(--battle); }
+.card .seen { position: absolute; top: -9px; right: -6px; }
+.seen { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
+.seen.open { background: var(--water); color: #fff; }
+.seen.secret { background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
+#tip { position: fixed; z-index: 50; width: 340px; max-width: calc(100vw - 16px); pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; line-height: 1.65; box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+#tip .tip-head { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 16px; padding-bottom: 6px; margin-bottom: 6px; border-bottom: 3px solid var(--c, var(--line)); }
+#tip .tip-head[data-attr=fire] { --c: var(--fire); } #tip .tip-head[data-attr=water] { --c: var(--water); }
+#tip .tip-head[data-attr=wind] { --c: var(--wind); } #tip .tip-head[data-attr=earth] { --c: var(--earth); } #tip .tip-head[data-attr=curse] { --c: var(--curse); }
+#tip .tip-num { font-size: 24px; color: var(--c); min-width: 1.2em; }
+#tip .tip-role { margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+#tip .tip-sec { margin-top: 6px; }
+#tip .tip-label { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12.5px; color: var(--muted); }
+#tip .tip-chip { display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 5px; color: #fff; font-size: 12px; }
+#tip .tip-chip.win { background: var(--accent); color: #1c1a17; }
+#tip .tip-head[data-attr=hope] { --c: var(--accent); } #tip .tip-head[data-attr=despair] { --c: #8a8a8a; }
+#tip .tip-chip.lose { background: var(--battle); } #tip .tip-chip.fuse { background: var(--fuse); } #tip .tip-chip.warn { background: var(--curse); }
+#tip .tip-times { margin-left: auto; font-size: 15px; color: var(--ink); }
+#tip .tip-body { padding-left: 26px; }
+#tip .tip-body b, #tip .tip-special b { color: var(--accent); }
+#tip .tip-none { color: var(--muted); }
+#tip .tip-special { margin-top: 6px; padding: 6px 8px; border: 2px solid var(--accent); border-radius: 8px; background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
+#tip .tip-special .tip-sec { margin-top: 0; }
+#tip .tip-note { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line); color: var(--muted); font-size: 11.5px; line-height: 1.6; }
+.flip { perspective: 700px; }
+.flip-inner { position: relative; transform-style: preserve-3d; animation: flip var(--flip-ms, 750ms) cubic-bezier(.3,.7,.3,1.2) both; }
+.flip-inner .card { backface-visibility: hidden; }
+.flip-back { position: absolute; inset: 0; transform: rotateY(180deg); backface-visibility: hidden; }
+@keyframes flip {
+  0% { transform: rotateY(180deg) scale(1); }
+  50% { transform: rotateY(90deg) scale(1.12); }
+  100% { transform: rotateY(0deg) scale(1); }
+}
+section.zone { border-left: 6px solid var(--zc); background: color-mix(in srgb, var(--zc) 7%, var(--panel)); }
+#opp { --zc: var(--opp); } #marketSec { --zc: var(--accent); } #fieldSec { --zc: var(--felt); } #me { --zc: var(--me); }
+.zone-tag { display: inline-flex; align-items: center; background: var(--zc); color: #fff; font-weight: 700; font-size: 12.5px; padding: 2px 10px; border-radius: 999px; }
+.board .side-opp { color: var(--opp); }
+.board .side-me { color: var(--me); }
+.pile-btn { padding: 1px 8px; font-size: 12.5px; border-radius: 999px; }
+.pile-btn b { font-size: 14px; }
+#pile { max-width: 760px; }
+.pile-list { display: flex; flex-wrap: wrap; gap: 10px 8px; max-height: 60vh; overflow-y: auto; padding: 10px 4px; }
+.pile-item { width: 74px; text-align: center; }
+.pile-item .card { margin: 0 auto; }
+.pile-note { font-size: 10px; color: var(--muted); line-height: 1.3; margin-top: 3px; }
+#lobby { max-width: 900px; }
+.lobby-cols { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 760px) { .lobby-cols { grid-template-columns: 1fr; } }
+.quick { border: 2px solid var(--accent); border-radius: 12px; padding: 10px 14px; background: color-mix(in srgb, var(--accent) 7%, var(--panel)); margin-bottom: 10px; }
+.quick-title { font-weight: 900; font-size: 16px; margin-bottom: 6px; }
+.quick-goal { margin: 0 0 8px; line-height: 1.6; }
+.quick-goal span { font-size: 12px; color: var(--muted); }
+.quick-steps { margin: 0 0 8px; padding-left: 1.4em; line-height: 1.5; }
+.quick-steps li { margin-bottom: 6px; }
+.quick-steps li b { display: block; }
+.quick-steps li span { font-size: 12.5px; color: var(--muted); }
+.quick em, .quick-tip em { font-style: normal; font-weight: 800; color: var(--accent); }
+.quick-tip { margin: 0 0 4px; padding: 6px 10px; border-radius: 8px; background: color-mix(in srgb, var(--accent) 16%, var(--panel)); }
+.quick-more { margin: 0; font-size: 12px; color: var(--muted); }
+#lobby h4 { margin: 0 0 6px; }
+.lobby-box.invite { border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
+.invite-share { margin-top: 8px; }
+.invite-link { font-size: 11.5px; color: var(--muted); word-break: break-all; margin-top: 4px; }
+.install-hint { font-size: 12.5px; line-height: 1.6; padding: 8px 10px; border-radius: 10px; border: 1px dashed var(--line); color: var(--muted); }
+.install-hint b { color: var(--ink); }
+.install-hint button { margin-top: 6px; }
+.lobby-name { display: block; margin-bottom: 12px; font-weight: 600; }
+.lobby-box { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+.lobby-row { display: flex; gap: 8px; margin-top: 6px; }
+#lobby input { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+#roomCode { width: 9em; text-transform: uppercase; letter-spacing: .15em; }
+.room-code { font-size: 26px; letter-spacing: .2em; color: var(--accent); }
+.role { display: inline-flex; align-items: center; font-weight: 800; font-size: 14px; padding: 2px 12px; border-radius: 999px; white-space: nowrap; }
+.role.first { background: var(--accent); color: #1c1a17; }
+.role.second { background: var(--curse); color: #fff; }
+.role-hint { font-size: 11.5px; color: var(--muted); font-weight: 400; }
+section h2 .pstats { display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap; }
+.pstats-main { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; flex: 1; min-width: 240px; }
+.pstats-sub { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; width: 100%; font-size: 13px; color: var(--muted); }
+.score-box { display: flex; flex-direction: column; padding: 2px 12px; max-width: 230px; border: 2px solid var(--zc); border-radius: 10px; background: var(--panel); }
+.score-label { font-size: 11px; color: var(--muted); }
+.score-line { display: flex; align-items: baseline; gap: 3px; }
+.score-total { font-size: 24px; font-weight: 800; color: var(--ink); line-height: 1.1; }
+.score-unit { font-size: 13px; color: var(--ink); }
+.score-calc { font-size: 10.5px; color: var(--muted); line-height: 1.35; }
+#board { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+#board b { font-size: 20px; }
+.board-side { display: inline-flex; align-items: center; gap: 6px; }
+.board-side.me { color: var(--me); font-weight: 700; }
+.board-side.opp { color: var(--opp); font-weight: 700; }
+.board-vs { color: var(--muted); }
+.prompt-role { margin-top: 4px; font-weight: 400; font-size: 13px; }
+.picked-box { border: 2px dashed var(--wind); border-radius: 10px; padding: 2px 6px 6px; background: color-mix(in srgb, var(--wind) 8%, transparent); }
+.picked-label { font-size: 11.5px; font-weight: 700; color: var(--wind); margin-bottom: 4px; white-space: nowrap; }
+.picked-label small { font-weight: 400; color: var(--muted); }
+.picked-cards { display: flex; gap: 8px; padding-top: 6px; }
+.deck { display: flex; flex-direction: column; align-items: center; margin-right: 10px; padding-right: 14px; border-right: 2px dashed var(--line); }
+.deck-stack { position: relative; }
+.deck-stack .card.back { box-shadow: 3px 3px 0 var(--back), 6px 6px 0 #2c2238; }
+.deck-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 2px; color: #fff; font-size: 13px; text-shadow: 0 1px 3px #000; }
+.deck-count b { font-size: 30px; }
+.deck-label { font-weight: 700; font-size: 13px; margin-top: 8px; }
+.deck-rounds { font-size: 11px; color: var(--muted); }
+.deck.low .deck-label, .deck.low .deck-rounds { color: var(--battle); font-weight: 700; }
+.deck.low .deck-stack .card.back { border-color: var(--battle); box-shadow: 0 0 0 3px var(--battle), 3px 3px 0 var(--back), 6px 6px 0 #2c2238; }
+.deck-pill { display: inline-flex; align-items: baseline; gap: 2px; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); }
+.deck-pill b { font-size: 17px; }
+.deck-pill.low { border-color: var(--battle); color: var(--battle); font-weight: 700; }
+.prophecy-pill { display: inline-flex; align-items: baseline; gap: 2px; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 12.5px; }
+.prophecy-pill b { font-size: 15px; }
+.prophecy-pill.on { border-color: var(--curse); background: color-mix(in srgb, var(--curse) 22%, var(--panel)); color: var(--ink); font-weight: 700; }
+.prophecy-pill.reversal.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 24%, var(--panel)); }
+.board-prophecy { font-size: 12px; font-weight: 700; }
+.phase-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 12px; margin-bottom: 8px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; }
+.ph-round { font-weight: 700; margin-right: 6px; }
+.ph-step { padding: 1px 9px; border-radius: 999px; color: var(--muted); }
+.ph-step.done { opacity: .5; }
+.ph-step.now { background: var(--accent); color: #1c1a17; font-weight: 800; }
+.ph-arrow { color: var(--muted); }
+.ph-label { margin-left: 6px; color: var(--muted); }
+.ph-who { margin-left: auto; font-weight: 800; padding: 2px 12px; border-radius: 999px; }
+.ph-who.mine { background: var(--me); color: #fff; animation: blink 1.4s ease-in-out infinite; }
+.ph-who.opp { background: var(--opp); color: #fff; }
+section.zone.turn-active { box-shadow: 0 0 0 3px var(--zc), 0 0 18px color-mix(in srgb, var(--zc) 55%, transparent); }
+#prompt.your-turn { animation: your-turn 1.2s ease-out 2; }
+@keyframes your-turn { 0% { background: color-mix(in srgb, var(--me) 45%, var(--panel)); } 100% { background: var(--panel); } }
+.score-box.score-up { background: color-mix(in srgb, var(--wind) 35%, var(--panel)); }
+.score-box.score-down { background: color-mix(in srgb, var(--battle) 35%, var(--panel)); }
+.score-box { position: relative; }
+.score-delta { align-self: center; margin-left: 10px; padding: 1px 12px; border-radius: 999px; font-size: 26px; line-height: 1.2; font-weight: 900; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.score-delta.up { background: #2fae64; } .score-delta.down { background: #e0453a; }
+.score-delta.pop { animation: delta-pop .5s ease-out; }
+@keyframes delta-pop { 0% { transform: scale(.4); } 60% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.round-score { margin-left: auto; font-size: 12.5px; color: var(--ink); }
+.round-score .up { color: #3ccf7a; } .round-score .down { color: #ff5a4a; }
+#marketSec.pick-now { box-shadow: 0 0 0 3px var(--accent), 0 0 22px color-mix(in srgb, var(--accent) 60%, transparent); }
+.pick-banner { font-size: 15px; font-weight: 900; color: var(--accent); animation: blink 1.2s ease-in-out infinite; }
+#marketSec.pick-now .slot.clickable .card { animation: pick-bob 1.4s ease-in-out infinite; }
+#marketSec.pick-now .slot.clickable:nth-child(odd) .card { animation-delay: .2s; }
+#marketSec.pick-now .slot.clickable .card:hover { animation: none; transform: translateY(-6px); box-shadow: 0 0 0 3px var(--accent); }
+@keyframes pick-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.board { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.brow { display: flex; align-items: flex-end; gap: 8px; }
+.brow > .lbl { width: 4.5em; align-self: center; font-weight: 700; font-size: 12.5px; }
+.board .vs { align-self: stretch; text-align: left; padding: 2px 0 2px 4.5em; font-size: 15px; font-weight: 800; }
+.fcell .lbl { font-size: 11.5px; color: var(--muted); text-align: center; }
+.fcell.battle .lbl { color: var(--battle); font-weight: 700; } .fcell.fuse .lbl { color: var(--fuse); font-weight: 700; }
+.brow.me .fcell.battle .card:not(.empty) { box-shadow: 0 0 0 3px var(--battle); }
+.brow.me .fcell.fuse .card:not(.empty) { box-shadow: 0 0 0 3px var(--fuse); }
+.set-hint { display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; color: var(--muted); border-width: 2px; }
+.fcell.battle .set-hint { border-color: var(--battle); } .fcell.fuse .set-hint { border-color: var(--fuse); }
+.card.placed { animation: place-in .25s ease-out; }
+@keyframes place-in { 0% { transform: translateY(24px) scale(.9); opacity: .3; } 100% { transform: none; opacity: 1; } }
+/* スマホなど幅の狭い画面では、場のカードを少し小さくする */
+@media (max-width: 860px) {
+  .board .card { width: 58px; height: 82px; padding: 3px 4px; }
+  .board .card .num { font-size: 19px; }
+  .board .card .eff { font-size: 8.5px; }
+}
+.pick-item { cursor: pointer; border-radius: 10px; padding: 4px 2px; }
+.pick-item:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); box-shadow: 0 0 0 2px var(--accent); }
+.fx-ghost { position: fixed; left: 0; top: 0; z-index: 70; pointer-events: none; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); }
+.card.gone { opacity: .25; }
+.fcell { position: relative; }
+.fcell.fx-on { z-index: 6; }  /* 効果名が隣の札の下に隠れないように */
+.fcell.fx-on .card.gone { opacity: 1; }  /* 効果を発動している札は、場から出ていても目立たせる */
+.fcell.fx-on .card { box-shadow: 0 0 0 3px var(--accent), 0 0 20px var(--accent) !important; animation: fx-glow 1s ease-in-out infinite; }
+@keyframes fx-glow { 50% { box-shadow: 0 0 0 3px var(--accent), 0 0 6px var(--accent); } }
+/* 効果名は、発動している札の上に重ねて出す（場の他の文字と重ならないように） */
+.fx-label { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-6deg); z-index: 5; white-space: nowrap; background: var(--accent); color: #1c1a17; font-weight: 900; font-size: 20px; padding: 3px 14px; border-radius: 999px; box-shadow: 0 3px 10px rgba(0,0,0,.4); animation: delta-pop .4s ease-out; }
+.announce { position: fixed; left: 50%; top: 42%; z-index: 80; transform: translate(-50%, -50%); text-align: center; pointer-events: none;
+  background: #e8c000; color: #1c1a17; padding: 14px 28px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,.5); animation: announce 2.6s ease-out forwards; }
+.announce-title { font-size: 40px; font-weight: 900; letter-spacing: .05em; }
+.announce-text { font-size: 15px; font-weight: 700; margin-top: 4px; }
+/* ラウンド開始（先攻・後攻）は大きく、フェーズの切り替わりは少し小さく、フェーズごとの色で */
+.announce.ann-first { background: var(--accent); padding: 20px 44px; }
+.announce.ann-second { background: var(--curse); color: #fff; padding: 20px 44px; }
+.announce.ann-first .announce-title, .announce.ann-second .announce-title { font-size: 48px; }
+.announce.ann-draft, .announce.ann-play, .announce.ann-battle, .announce.ann-fuse { color: #fff; padding: 10px 26px; }
+.announce.ann-draft .announce-title, .announce.ann-play .announce-title, .announce.ann-battle .announce-title, .announce.ann-fuse .announce-title { font-size: 32px; }
+.announce.ann-draft { background: var(--wind); }
+.announce.ann-play { background: var(--back); }
+.announce.ann-battle { background: var(--battle); }
+.announce.ann-fuse { background: var(--fuse); }
+@media (max-width: 600px) { .announce { width: calc(100% - 32px); padding-left: 12px; padding-right: 12px; } .announce .announce-title { font-size: 30px !important; } .announce-text { font-size: 13px; } }
+@keyframes announce { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.6); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); } 20% { transform: translate(-50%, -50%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; } }
+.legend { align-self: center; line-height: 2; margin-left: 4px; font-size: 12px; color: var(--muted); }
+.sel-blow { transform: translateY(-6px); box-shadow: 0 0 0 3px var(--wind); opacity: .75; }
+.sel-fuse { transform: translateY(-10px); box-shadow: 0 0 0 3px var(--fuse); }
+.badge { position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: #fff; padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
+.badge.b { background: var(--battle); } .badge.f { background: var(--fuse); }
+.slot { position: relative; }
+.curse-tag { position: absolute; top: -8px; left: -6px; background: var(--curse); color: #fff; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 8px; }
+.field-wrap { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
+.events { flex: 1; min-width: 240px; max-height: 200px; min-height: 140px; overflow-y: auto; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--accent) 8%, var(--panel)); font-size: 13px; line-height: 1.7; }
+.events .ev-title { font-weight: 700; color: var(--muted); font-size: 12px; margin-top: 4px; }
+.events .hl { font-weight: 700; color: var(--battle); }
+#fieldSec.waiting { cursor: pointer; box-shadow: 0 0 0 2px var(--accent); }
+.next-hint { margin-top: 8px; text-align: center; font-weight: 700; color: var(--accent); animation: blink 1.4s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: .35; } }
+.shield { font-size: 12px; background: color-mix(in srgb, var(--earth) 20%, var(--panel)); border: 1px solid var(--earth); border-radius: 8px; padding: 2px 8px; }
+#prompt { flex-shrink: 0; background: var(--panel); border-top: 2px solid var(--accent); padding: 10px 16px; display: flex; gap: 12px 28px; align-items: center; justify-content: center; flex-wrap: wrap; z-index: 5; }
+#prompt .txt { flex: 0 1 620px; min-width: 200px; font-weight: 600; text-align: right; }
+#prompt .txt:only-child { flex: 0 1 auto; text-align: center; }
+#prompt .txt.play-txt { flex: 0 1 auto; }
+@media (min-width: 861px) { #prompt .play-txt > div { white-space: nowrap; } }
+/* 主なボタン（決定・めくる・次へ など）は中央寄りに大きく、補助のボタン（やめる・使わない など）は控えめに */
+#prompt .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+#prompt .actions button.primary { font-size: 17px; font-weight: 800; padding: 10px 30px; min-width: 190px; border-radius: 12px; box-shadow: 0 3px 0 color-mix(in srgb, var(--accent) 60%, #000); }
+#prompt .actions button.primary:not(:disabled):hover { filter: brightness(1.08); transform: translateY(-1px); }
+#prompt .actions button:not(.primary) { font-size: 14px; padding: 8px 16px; background: transparent; color: var(--muted); }
+@media (max-width: 860px) { #prompt .txt { text-align: left; flex-basis: 100%; } }
+#log { flex: 1; min-height: 0; overflow-y: auto; font-size: 12.5px; line-height: 1.6; }
+#logSec { display: flex; flex-direction: column; min-height: 0; margin-bottom: 0; }
+/* 画面の高さに収まるよう、--fit の倍率で全体を縮小する（倍率は fitScreen() が計算する） */
+html, body { height: 100%; }
+body { overflow: hidden; }
+#app { position: fixed; top: 0; left: 0; width: calc(100vw / var(--fit, 1)); height: calc(100vh / var(--fit, 1));
+       transform: scale(var(--fit, 1)); transform-origin: 0 0; display: flex; flex-direction: column; }
+#app main { flex: 1; min-height: 0; overflow-y: auto; }
+/* スマホなど幅の狭い画面では、縮小すると文字が読めないので、これまでどおりスクロールする */
+@media (max-width: 860px) {
+  body { overflow: auto; }
+  #app { position: static; width: auto; height: auto; transform: none; display: block; }
+  #app main { overflow: visible; }
+  #log { height: 260px; flex: none; }
+  #prompt { position: sticky; bottom: 0; z-index: 5; }
+}
+/* ===== スマホ（幅600px以下）=====
+   画面を1枚に収める：ヘッダーは1行、相手は細い帯、市場は横1列、自分の手札は画面の下に固定、ログはボタンで開く */
+.sp-only { display: none; }
+@media (max-width: 600px) {
+  .sp-only { display: revert; }
+  .pc-only { display: none !important; }
+  body { overflow: hidden; }
+  #app { position: fixed; inset: 0; width: auto; height: 100dvh; display: flex; flex-direction: column; }
+  header { flex-wrap: nowrap; gap: 5px; padding: 4px 8px; }
+  header h1, header .spacer { display: none; }
+  header .info { font-size: 12px; white-space: nowrap; }
+  header button { padding: 4px 9px; font-size: 13px; }
+  #board { margin: 0 auto; gap: 5px; font-size: 12px; white-space: nowrap; }
+  #board b { font-size: 18px; }
+  #app main { flex: 1; min-height: 0; overflow-y: auto; display: block; padding: 6px 8px 0; }
+  #app main > div:first-child { min-height: 100%; display: flex; flex-direction: column; }
+  #logSec { display: none; }
+  section { padding: 5px 8px; margin-bottom: 6px; }
+  section.zone { border-left-width: 4px; }
+  /* 今の場面だけを1行で */
+  .phase-bar { padding: 3px 8px; margin-bottom: 6px; font-size: 12px; flex-wrap: nowrap; }
+  .phase-bar .ph-round, .phase-bar .ph-arrow, .phase-bar .ph-step:not(.now) { display: none; }
+  .ph-who { padding: 1px 10px; }
+  /* カードは一回り小さく（効果は長押しで読める） */
+  /* 種類の名前は色とアイコンでわかるので省き、効果の文字が札からはみ出さないようにする */
+  .card { width: 56px; height: 84px; padding: 3px 3px; border-width: 2px; }
+  .card .num { font-size: 19px; }
+  .card .icon { font-size: 14px; top: 3px; right: 3px; }
+  .card .nm { display: none; }
+  .card .eff { font-size: 8px; line-height: 1.3; }
+  .card .eff span { font-size: 7.5px; min-width: 11px; padding: 0 1px; margin-right: 1px; }
+  .card.small { width: 50px; height: 74px; }
+  .card.small .num { font-size: 16px; }
+  .card.small .eff { font-size: 7.5px; }
+  .card.back { font-size: 10px; }
+  .card { -webkit-touch-callout: none; }
+  /* 相手・自分の情報は1行に */
+  .pstats.compact { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; width: 100%; font-size: 12px; color: var(--ink); font-weight: 600; }
+  .pstats.compact .zone-tag { max-width: 6.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 1px 8px; font-size: 12px; }
+  .pstats.compact .role { font-size: 12px; padding: 1px 8px; }
+  .pstats.compact .mini { white-space: nowrap; }
+  .pstats.compact .info-btn { padding: 1px 6px; border-radius: 999px; font: inherit; font-weight: 600; }
+  #opp .card.back.small { width: 34px; height: 50px; }
+  .pstats.compact .mini b { font-size: 14px; }
+  .pstats.compact .pile-btn { white-space: nowrap; }
+  .pstats.compact .shield { font-size: 11px; padding: 0 5px; white-space: nowrap; }
+  .score-box.mini { margin-left: auto; flex-direction: row; align-items: center; padding: 0 8px; border-width: 2px; cursor: pointer; }
+  .score-box.mini .score-total { font-size: 18px; }
+  .score-box.mini .score-unit { font-size: 11px; }
+  .score-box.mini .score-delta { font-size: 14px; margin-left: 5px; padding: 0 7px; }
+  #opp .row { min-height: 0; padding-top: 0; }
+  #opp .row:not(:empty) { margin-top: 8px; }
+  /* 市場は横1列（はみ出す分は横にスクロール）。山札は小さく */
+  #marketSec, #fieldSec { min-height: 0; }
+  .mid > #marketSec, .mid > #fieldSec { flex: 1 1 100%; min-width: 0; }
+  #marketSec { padding-left: 6px; padding-right: 6px; }
+  #marketSec .row { flex-wrap: nowrap; overflow-x: auto; gap: 4px; padding: 12px 2px 6px; }
+  .deck { margin-right: 0; padding-right: 4px; border-right-width: 1px; }
+  .deck .card { width: 28px; height: 56px; }
+  .deck-stack .card.back { box-shadow: 2px 2px 0 var(--back); }
+  .deck-count { flex-direction: column; font-size: 9px; }
+  .deck-count b { font-size: 14px; }
+  .deck-label, .deck-rounds { display: none; }
+  .pick-banner { font-size: 13px; }
+  /* 場：ドラフト中は細い1行。伏せる・勝負の場面で開く */
+  .board .card { width: 56px; height: 84px; }
+  .brow > .lbl { width: 3.6em; font-size: 11.5px; }
+  .board .vs { padding-left: 3.6em; font-size: 13px; }
+  .events { min-width: 0; flex-basis: 100%; max-height: 96px; min-height: 0; font-size: 12px; line-height: 1.55; padding: 5px 8px; }
+  .field-wrap { gap: 6px; }
+  .next-hint { margin-top: 4px; }
+  /* 自分の手札は画面の下に固定（横にスクロール） */
+  #me { position: sticky; bottom: 0; z-index: 4; margin: auto 0 0; padding: 5px 8px 4px; box-shadow: 0 -6px 14px rgba(0,0,0,.3); border-radius: 12px 12px 0 0; }
+  #me .row { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 11px 2px 4px !important; min-height: 0; }
+  .picked-box { flex-shrink: 0; }
+  .picked-label small { display: none; }
+  /* 画面下のナビ */
+  /* 文とボタンを横に並べて、低くする（ボタンが多くて入らないときは折り返す） */
+  #prompt { position: static; padding: 6px 10px 8px; gap: 6px 10px; font-size: 13px; }
+  #prompt .txt, #prompt .txt.play-txt { flex: 1 1 180px; min-width: 0; text-align: left; }
+  #prompt .txt:only-child { text-align: center; }
+  .prompt-role { font-size: 12px; }
+  #prompt .actions button.primary { font-size: 15px; padding: 8px 14px; min-width: 96px; }
+  #prompt .actions button:not(.primary) { font-size: 13px; padding: 6px 12px; }
+  /* カードの説明は、指で隠れない画面の上か下に、横幅いっぱいで出す */
+  #tip.sheet { left: 8px !important; right: 8px; width: auto; max-width: none; pointer-events: auto; font-size: 13px; }
+}
+dialog.sheet { margin: auto 0 0; width: 100%; max-width: 100%; max-height: 72dvh; border-radius: 16px 16px 0 0; padding: 10px 14px 14px; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.sheet-log { font-size: 13px; line-height: 1.6; max-height: calc(72dvh - 70px); overflow-y: auto; }
+.sheet-log div { padding: 1px 0; border-bottom: 1px dotted var(--line); }
+.sheet-log .round { font-weight: 700; color: var(--accent); border: none; margin-top: 6px; }
+.sheet-log .hl { font-weight: 700; color: var(--battle); }
+.menu-items { display: flex; flex-direction: column; gap: 8px; }
+.menu-items button { padding: 10px; font-size: 15px; }
+.menu-note { font-size: 12.5px; color: var(--muted); line-height: 1.7; margin: 10px 0 0; }
+#log div { padding: 1px 0; border-bottom: 1px dotted var(--line); }
+#log .round { font-weight: 700; color: var(--accent); border: none; margin-top: 6px; }
+#log .hl { font-weight: 700; color: var(--battle); }
+dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); max-width: 640px; width: calc(100% - 32px); }
+dialog::backdrop { background: rgba(0,0,0,.45); }
+dialog table { border-collapse: collapse; width: 100%; font-size: 13px; }
+dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-align: left; vertical-align: top; }
+/* くわしいルール */
+.rl-h3 { margin: 14px 0 6px; }
+.rl-toc { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.rl-toc button { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; }
+.rl-h4 { font-size: 15px; margin: 18px 0 6px; padding-bottom: 3px; border-bottom: 2px solid var(--line); scroll-margin-top: 8px; }
+#rules p, .rl-list, .rl-sub, .rl-steps { line-height: 1.6; }
+#rules p { margin: 4px 0; }
+.rl-formula { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-weight: 800; margin: 6px 0; }
+.rl-chip { font-weight: 700; padding: 2px 10px; border-radius: 8px; border: 1px solid var(--line); background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }
+.rl-chip.minus { background: color-mix(in srgb, var(--curse) 18%, var(--panel)); }
+.rl-list { margin: 4px 0; padding-left: 1.3em; }
+.rl-note { font-size: 13px; color: var(--muted); }
+.rl-times { max-width: 360px; margin-top: 4px; }
+#rules th.lose { color: var(--battle); } #rules th.fuse { color: var(--fuse); }
+#rules .lose-t { color: var(--battle); }
+.rl-steps { list-style: none; counter-reset: step; padding: 0; margin: 0; }
+.rl-steps > li { counter-increment: step; position: relative; padding: 6px 10px 6px 40px; margin-bottom: 6px; border: 1px solid var(--line); border-radius: 10px; }
+.rl-steps > li::before { content: counter(step); position: absolute; left: 10px; top: 7px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #1c1a17; font-weight: 900; font-size: 13px; display: grid; place-items: center; }
+.rl-steps > li > b { display: block; font-size: 14.5px; }
+.rl-sub { margin: 3px 0 0; padding-left: 1.2em; font-size: 13px; color: var(--muted); }
+.rl-sub b { color: var(--ink); }
+.rl-box { border: 1px solid var(--curse); border-left-width: 5px; border-radius: 10px; padding: 6px 10px; margin-bottom: 8px; background: color-mix(in srgb, var(--curse) 7%, var(--panel)); }
+.rl-box-title { font-weight: 800; font-size: 14.5px; }
+.rl-box-title span { font-weight: 400; font-size: 12px; color: var(--muted); }
+.rl-box .rl-sub { color: var(--ink); }
+.rl-effects td { line-height: 1.5; }
+.rl-effects tr[data-attr] td:first-child { white-space: nowrap; font-weight: 700; border-left: 5px solid var(--c); }
+.rl-effects tr[data-attr=fire] { --c: var(--fire); } .rl-effects tr[data-attr=water] { --c: var(--water); }
+.rl-effects tr[data-attr=wind] { --c: var(--wind); } .rl-effects tr[data-attr=earth] { --c: var(--earth); } .rl-effects tr[data-attr=curse] { --c: var(--curse); }
+.rl-close { position: sticky; bottom: -1em; text-align: right; padding: 8px 0 4px; margin-top: 10px; background: var(--panel); border-top: 1px solid var(--line); }
+.stats { font-size: 13px; }
+.stats b { font-size: 15px; }
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <h1>呪い市 <small style="font-weight:400;color:var(--muted)">試作版</small></h1>
+  <span class="info" id="round"></span>
+  <span class="spacer"></span>
+  <span id="board"></span>
+  <span class="spacer"></span>
+  <button id="btnLog" class="sp-only" title="ログ">📜</button>
+  <button id="btnRules">ルール</button>
+  <button id="btnNew" class="pc-only">新しいゲーム</button>
+  <button id="btnMenu" class="sp-only" title="メニュー">≡</button>
+</header>
+<main>
+  <div>
+    <div id="phaseBar"></div>
+    <section id="opp" class="zone"></section>
+    <div class="mid">
+      <section id="marketSec" class="zone"></section>
+      <section id="fieldSec" class="zone"></section>
+    </div>
+    <section id="me" class="zone"></section>
+  </div>
+  <section id="logSec"><h2>ログ</h2><div id="log"></div></section>
+</main>
+<div id="prompt"></div>
+</div>
+
+<!-- 1分でわかるルール（最初の画面と「ルール」の画面の両方に出す） -->
+<template id="quickRules">
+  <div class="quick">
+    <div class="quick-title">⏱ 1分でわかるルール</div>
+    <p class="quick-goal">🏆 <b>得点山のカードを多く集めた方の勝ち。</b>山札がなくなったら終わり。<br><span>（予言成功は+1点、手札に残った💀呪いは1枚−3点）</span></p>
+    <ol class="quick-steps">
+      <li><b>🛒 市場からカードを取る</b><span>順番に1枚ずつ</span></li>
+      <li><b>🂠 手札から「勝負札」と「伏せ札」を1枚ずつ出す</b><span>2人同時に、裏向きで</span></li>
+      <li><b>⚔ 勝負札の数字が大きい方の勝ち</b><span>勝者は2枚とも得点山へ。<em>負けた方は「敗北効果」が発動</em>（数字が小さい札ほど強い）</span></li>
+      <li><b>🔮 伏せ札をめくって「伏せ効果」</b><span>後攻は、先攻と<em>同じ種類</em>を伏せていたら「予言成功」+1点</span></li>
+    </ol>
+    <p class="quick-tip">💡 <b>コツ：</b>弱い札で<em>わざと負けて</em>、強い敗北効果を使うのもアリ。</p>
+    <p class="quick-more">カードにマウスを合わせると（スマホは長押し）、そのカードの効果が見られます。</p>
+  </div>
+</template>
+<dialog id="rules">
+  <div class="quick-rules-slot"></div>
+  <h3 class="rl-h3">くわしいルール</h3>
+  <nav class="rl-toc">
+    <button data-jump="rl-win">🏆 勝ち方</button>
+    <button data-jump="rl-cards">🃏 カード</button>
+    <button data-jump="rl-flow">🔄 1ラウンドの流れ</button>
+    <button data-jump="rl-special">✨ 特別なルール</button>
+    <button data-jump="rl-effects">📖 効果一覧</button>
+  </nav>
+
+  <h4 class="rl-h4" id="rl-win">🏆 勝ち方</h4>
+  <p>山札が尽きたラウンドの終わりにゲーム終了。点数が多い方の勝ち。</p>
+  <div class="rl-formula">
+    <span class="rl-chip">得点山の枚数</span>＋<span class="rl-chip">予言ボーナス</span>＋<span class="rl-chip">呪い返しの点</span>−<span class="rl-chip minus">手札の💀呪い × 3</span>
+  </div>
+
+  <h4 class="rl-h4" id="rl-cards">🃏 カード（46枚）</h4>
+  <ul class="rl-list">
+    <li><b>行動カード 40枚</b>：4種類（🗡️盗賊・🪄呪術師・💰商人・📿僧侶）× 数字1〜10</li>
+    <li><b>💀呪い 6枚</b>：数字0。ゲーム終了時に手札にあると1枚 −3点</li>
+  </ul>
+  <p class="rl-note">数字が<b>小さいほど敗北効果が多く</b>、<b>大きいほど伏せ効果が多い</b>。</p>
+  <table class="rl-times">
+    <tr><th>数字</th><th class="lose">敗北効果</th><th class="fuse">伏せ効果</th></tr>
+    <tr><td>1〜3</td><td>2回</td><td>1回</td></tr>
+    <tr><td>4〜6</td><td>1回</td><td>1回</td></tr>
+    <tr><td>7〜10</td><td>なし</td><td>2回</td></tr>
+  </table>
+
+  <h4 class="rl-h4" id="rl-flow">🔄 1ラウンドの流れ</h4>
+  <ol class="rl-steps">
+    <li><b>🛒 ドラフト</b>
+      <div>先攻 → 後攻 → 後攻 → 先攻 の順に、市場から1枚ずつ取る。呪いが付いたカードは呪いごと取る。</div>
+      <ul class="rl-sub">
+        <li>手札が6枚以上ならパス（直前のラウンドに「拾う」「蘇らせる」で手に入れたカードは数えない）</li>
+        <li>市場に呪いがめくれたら、呪いが付いていないカードのうち一番大きい数字のカードに付く（1枚に1つまで）</li>
+      </ul>
+    </li>
+    <li><b>🂠 伏せる</b>
+      <div>勝負札と伏せ札を1枚ずつ、2人同時に裏向きで出す。</div>
+    </li>
+    <li><b>⚔ 勝負</b>
+      <div>勝負札の数字が大きい方の勝ち。勝者は2枚とも得点山へ。<b class="lose-t">負けた方の敗北効果</b>が発動。</div>
+      <ul class="rl-sub">
+        <li>同じ数字なら両方の敗北効果が発動し、2枚とも捨て札</li>
+        <li>💀呪いは数字0。負けた呪いは勝者の手札に入る</li>
+      </ul>
+    </li>
+    <li><b>🔮 伏せ札オープン</b>
+      <div>2人の伏せ札が<b>同じ種類</b>なら、<b>後攻の予言成功</b>：</div>
+      <ul class="rl-sub">
+        <li>後攻 +1点、後攻の伏せ効果 +1回</li>
+        <li>先攻の伏せ札は無効（手札に戻る）</li>
+      </ul>
+    </li>
+    <li><b>✨ 伏せ効果</b>
+      <div>呪術師の逆流 → 後攻 → 先攻 の順。使うかどうかは自分で選べる。<b>使ったら捨て札、使わなければ手札に戻す</b>。</div>
+      <ul class="rl-sub">
+        <li>僧侶の結界は、次のラウンドの終わりまで場に残してから捨て札</li>
+        <li>💀呪いは必ず送り込む（突き返されたり防がれたりしたら自分の手札に戻る）</li>
+      </ul>
+    </li>
+    <li><b>🔁 交代</b>
+      <div>先攻と後攻を入れ替えて、次のラウンドへ。</div>
+    </li>
+  </ol>
+
+  <h4 class="rl-h4" id="rl-special">✨ 特別なルール</h4>
+  <div class="rl-box">
+    <div class="rl-box-title">💀 呪いと 10</div>
+    <ul class="rl-sub">
+      <li>勝負で呪いと10がぶつかったら、<b>呪いを出した側の勝ち</b>。呪いは出した人の手札に戻り、10は勝者の得点山へ</li>
+      <li>負けた10は、伏せ札をめくった後に敗北効果<b>「呪い返し」</b>：互いの伏せ札の数字の差を得点として得る</li>
+    </ul>
+  </div>
+  <div class="rl-box">
+    <div class="rl-box-title">🌟 希望と 🌑 絶望 <span>（終盤に1回）</span></div>
+    <ul class="rl-sub">
+      <li><b>いつ</b>：山札が残り10枚を切ったラウンドの初めに、<b>本当の点数</b>（秘密の手札の呪いも含む）で負けている側に希望、勝っている側に絶望が配られる。正確な点数は知らされない。同点なら次のラウンドで改めて判定</li>
+      <li><b>🌟希望</b>：絶望以外のすべてに勝ち、<b>相手の敗北効果を無効</b>にする。さらに手札の呪い1枚を市場の好きなカードに付けられる</li>
+      <li><b>🌑絶望</b>：希望に勝ち、希望の効果を打ち消す。さらに<b>捨て札から1枚</b>（打ち消した希望も可）を手札に加えられる。希望以外には数字0</li>
+      <li>どちらも<b>勝負札専用</b>。使ったら捨て札（得点山には入らない）。持っていても減点なし。僧侶の「蘇らせる」で拾い直せる</li>
+    </ul>
+  </div>
+
+  <h4 class="rl-h4" id="rl-effects">📖 効果一覧</h4>
+  <table class="rl-effects">
+    <tr><th>種類</th><th class="lose">敗北効果（負けたとき）</th><th class="fuse">伏せ効果（めくったとき）</th></tr>
+    <tr data-attr="fire"><td>🗡️盗賊</td><td><b>奪う</b>：勝者の得点山から1枚奪う</td><td><b>追撃</b>：勝負に勝っていたら、山札の上から1枚を得点山へ（呪いは山札の一番下に戻して次のカード）</td></tr>
+    <tr data-attr="water"><td>🪄呪術師</td><td><b>流す</b>：手札の呪い1枚を相手へ</td><td><b>逆流</b>：相手の伏せ札が呪いなら突き返す（2回目以降は手札の呪い1枚を相手へ）</td></tr>
+    <tr data-attr="wind"><td>💰商人</td><td><b>拾う</b>：市場から1枚取る</td><td><b>吹き払い</b>：市場のカードを1〜6なら1枚、7〜10なら2枚まで捨てて補充。予言成功なら補充を見てからもう1回。付いていた呪いは補充後に付け直す</td></tr>
+    <tr data-attr="earth"><td>📿僧侶</td><td><b>蘇らせる</b>：捨て札から好きなカード1枚を手札に加える（呪いも選べる）</td><td><b>結界</b>：次のラウンド、自分への敗北効果・呪いの送り込みを防ぐ</td></tr>
+    <tr data-attr="curse"><td>💀呪い</td><td>（勝負札なら数字0）</td><td><b>送り込み</b>：相手の手札へ。防がれたら自分の手札に戻る</td></tr>
+  </table>
+
+  <div class="rl-close"><button onclick="this.closest('dialog').close()">閉じる</button></div>
+</dialog>
+
+<dialog id="result"></dialog>
+<div id="tip" hidden></div>
+<!-- スマホ用：ログとメニューは、画面の下から出す -->
+<dialog id="logSheet" class="sheet">
+  <div class="sheet-head"><b>📜 ログ</b><button onclick="this.closest('dialog').close()">閉じる</button></div>
+  <div class="sheet-log"></div>
+</dialog>
+<dialog id="menuSheet" class="sheet">
+  <div class="sheet-head"><b>≡ メニュー</b><button onclick="this.closest('dialog').close()">閉じる</button></div>
+  <div class="menu-items">
+    <button id="menuNew">🔄 新しいゲーム</button>
+  </div>
+  <p class="menu-note">手札の札の印：<span class="seen open">👁 公開</span> 相手に見えている／<span class="seen secret">🔒 秘密</span> 相手が知らない</p>
+  <p class="menu-note">カードを長押しすると効果の説明が出ます。点数をタップすると内訳が出ます。</p>
+</dialog>
+<dialog id="pile"></dialog>
+<dialog id="choose"></dialog>
+<dialog id="lobby">
+  <h3>呪い市 <small style="font-weight:400;color:var(--muted)">試作版</small></h3>
+  <!-- 招待リンク（?room=コード）から開いたときだけ出す -->
+  <div id="inviteBox" class="lobby-box invite" hidden>
+    <h4>📨 部屋 <b class="room-code" id="inviteCode"></b> に招待されています</h4>
+    <div class="lobby-row"><button class="primary" id="btnInviteJoin">この部屋に入る</button></div>
+  </div>
+  <div class="lobby-cols">
+  <div class="quick-rules-slot"></div>
+  <div class="lobby-play">
+  <label class="lobby-name">あなたの名前 <input id="myName" maxlength="10" placeholder="例：けい"></label>
+  <div class="lobby-box">
+    <h4>ひとりで遊ぶ</h4>
+    <button class="primary" id="btnCpu">CPUと対戦</button>
+  </div>
+  <div class="lobby-box">
+    <h4>ふたりで通信対戦</h4>
+    <p class="info">片方が「部屋を作る」を押して部屋コードを相手に伝え、もう片方がそのコードで「部屋に入る」を押します。</p>
+    <div class="lobby-row"><button id="btnHost">部屋を作る</button></div>
+    <div class="lobby-row"><input id="roomCode" maxlength="5" placeholder="部屋コード" autocomplete="off"><button id="btnJoin">部屋に入る</button></div>
+  </div>
+  <p id="lobbyStatus"></p>
+  <!-- スマホのブラウザで開いているときだけ出す -->
+  <div id="installHint" class="install-hint" hidden>
+    📱 <b>ホーム画面に追加</b>すると、次からアイコンをタップするだけで、アプリのように全画面で遊べます。
+    <div id="installSteps"></div>
+  </div>
+  </div>
+  </div>
+</dialog>
+
+<!-- 通信対戦用（読み込めなくても CPU 対戦は遊べる） -->
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<script>
+// ===== カードデータ =====
+const ATTRS = {
+  // 4つの種類は職業として表す（属性どうしの相性はないので、炎・水などの自然の属性はやめた）。内部の名前（fire など）は変えていない
+  fire:  { name: '盗賊',   icon: '🗡️', lose: '奪う',     fuse: '追撃' },
+  water: { name: '呪術師', icon: '🪄', lose: '流す',     fuse: '逆流' },
+  wind:  { name: '商人',   icon: '💰', lose: '拾う',     fuse: '吹き払い' },
+  earth: { name: '僧侶',   icon: '📿', lose: '蘇らせる', fuse: '結界' },
+  curse: { name: '呪い', icon: '💀', lose: '—',     fuse: '送り込み' },
+  hope:    { name: '希望', icon: '🌟', lose: '—', fuse: '—' },
+  despair: { name: '絶望', icon: '🌑', lose: '—', fuse: '—' },
+};
+const HAND_LIMIT = 6;
+const CURSE_PENALTY = 3;
+const CURSE_COUNT = 6;
+const BLOW_MAX = 2; // 吹き払い1回で流せる上限
+const INITIAL_HAND = 4;
+const MARKET_SIZE = 5;
+const CPU_DELAY = 550;
+// 効果の処理を、何が起きたか目で追えるようゆっくり見せる
+const FX_FLY_MS = 1100;   // 効果で札が飛ぶ時間
+const FX_STAGGER = 350;   // 複数の札が動くときの、2枚目以降の出発の遅れ
+const FX_STEP = 1500;     // 効果を1回処理するごとの間（札が着地してから次へ進む）
+const FLIP_MS = 750; // 札をめくるアニメーションの長さ
+
+// 希望・絶望：山札が残り HOPE_DECK 枚を切ったとき、本当の点数で負けている側に希望、勝っている側に絶望が配られる。
+// どちらも勝負札にしか出せない。希望は11（絶望以外に勝つ）、絶望は0として扱う
+const HOPE_DECK = 10;
+const isSpecial = c => c && (c.attr === 'hope' || c.attr === 'despair');
+const loseTimes = c => !c || c.attr === 'curse' || isSpecial(c) ? 0 : c.num <= 3 ? 2 : c.num <= 6 ? 1 : 0;
+const fuseTimes = c => c.attr === 'curse' ? 1 : c.num <= 6 ? 1 : 2;
+const cardName = c => !c ? '（なし）' : c.attr === 'curse' || isSpecial(c) ? `${ATTRS[c.attr].icon}${ATTRS[c.attr].name}` : `${ATTRS[c.attr].icon}${ATTRS[c.attr].name}${c.num}`;
+
+let G = null;
+// 通信まわり。mode：'cpu'（CPU対戦）/ 'host'（部屋を作った側。ゲームの進行を担当）/ 'guest'（部屋に入った側）
+// me：この画面で操作しているプレイヤーの番号（ホストとCPU対戦は0、ゲストは1）
+const NET = { mode: 'cpu', me: 0, peer: null, conn: null, myName: '', guestName: '', dead: false, relay: false, sentLog: 0, lastSeen: 0 };
+let V = null;                    // 今この画面に描いている「自分から見た」状態
+const resolvers = [null, null];  // プレイヤーごとの入力待ち
+let uiSeq = 0;
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+const sleep = ms => G.headless ? Promise.resolve() : new Promise(r => setTimeout(r, ms));
+
+function mkPlayer(name, cpu) {
+  // known: 相手に存在がバレている手札のカードID（公開された経路で手に入れたもの）
+  // bonus：予言的中の回数（1回1点）、reversal / reversalCount：10の敗北効果「呪い返し」で得た点と回数
+  return { name, cpu, hand: [], score: [], bonus: 0, reversal: 0, reversalCount: 0, known: new Set(),
+           shield: 0, shieldCard: null, shieldNext: 0, shieldCardNext: null,
+           // pickedUp: 商人の「拾う」・僧侶の「蘇らせる」で手に入れたカードID。次のドラフトの手札枚数には数えない
+           pickedUp: new Set() };
+}
+
+function newGame(opts = {}) {
+  const deck = [];
+  let id = 0;
+  for (const a of ['fire', 'water', 'wind', 'earth']) for (let n = 1; n <= 10; n++) deck.push({ id: id++, attr: a, num: n });
+  for (let i = 0; i < CURSE_COUNT; i++) deck.push({ id: id++, attr: 'curse', num: 0 });
+  shuffle(deck);
+  // hopeDealt：希望と絶望を配ったか。moves / moveSeq：札の移動の記録（画面で飛ばして見せる）。fx：今発動している効果。announce：画面中央に大きく知らせる出来事
+  G = { deck, market: [], discard: [], round: 0, hopeDealt: false, moves: [], moveSeq: 0, fx: null, announce: null, first: Math.random() < .5 ? 0 : 1, log: [], over: false,
+        field: null, uis: [null, null], result: null, headless: !!opts.headless,
+        // phase：今の場面（step）と手番のプレイヤー（actor。2人同時なら null）。画面の「今だれが何をしているか」に使う
+        phase: { step: 'draft', actor: null, label: '' },
+        players: opts.names ? opts.names.map(n => mkPlayer(n, false))
+          : [mkPlayer(opts.cpuBoth ? 'CPU-A' : 'あなた', !!opts.cpuBoth), mkPlayer(opts.cpuBoth ? 'CPU-B' : 'CPU', true)] };
+  // 初期手札は非公開で配る（全部ドラフトだと相手の手札が完全に読めてしまうため）
+  for (let i = 0; i < INITIAL_HAND; i++) for (const p of G.players) p.hand.push(G.deck.pop());
+  refillMarket();
+}
+
+function log(text, cls = '') { G.log.push({ text, cls }); }
+
+// ===== 基本操作 =====
+function refillMarket(carried = []) {
+  // carried：吹き払いで流したカードに付いていた呪い。補充後に付け直す
+  const pending = [...carried];
+  while (G.market.length < MARKET_SIZE && G.deck.length) {
+    const c = G.deck.pop();
+    if (c.attr === 'curse') pending.push(c); else G.market.push({ card: c, curses: [] });
+  }
+  // 呪いは「まだ呪いが付いていないカード」の中で一番数字の大きいカードに1枚だけ付く
+  for (const c of pending) {
+    const free = G.market.filter(s => !s.curses.length);
+    if (!free.length) {
+      // 付けられるカードがないときは山札の一番下へ（山札もなければ捨て札）
+      if (G.deck.length) { G.deck.unshift(c); log('市場に呪いが出たが、付けられるカードがない → 山札の一番下へ'); }
+      else toDiscard(c, '市場の呪い（付け先なし）');
+      continue;
+    }
+    const best = free.reduce((a, b) => b.card.num > a.card.num ? b : a);
+    best.curses.push(c);
+    log(`市場に呪いが出た → ${cardName(best.card)} に取り付いた`);
+  }
+}
+
+// 得点山・捨て札に入れるときは、あとで確認できるよう「何ラウンド目に・なぜ」を記録する
+function toScore(p, c, why) { c.at = G.round; c.why = why; p.score.push(c); }
+function toDiscard(c, why) { c.at = G.round; c.why = why; G.discard.push(c); }
+
+// 札の移動を記録する。場所：{ z: 'field', pi, kind } / { z: 'hand', pi } / { z: 'score', pi } / { z: 'discard' } / { z: 'deck' } / { z: 'market' }
+function moved(c, from, to) {
+  G.moves.push({ seq: ++G.moveSeq, cid: c.id, card: { id: c.id, attr: c.attr, num: c.num }, from, to });
+  if (G.moves.length > 40) G.moves.shift();
+  // 場から出ていった札は、場では薄く表示する
+  if (from.z === 'field' && G.field) G.field.gone = [...(G.field.gone || []), c.id];
+}
+const Z = {
+  field: (pi, kind) => ({ z: 'field', pi, kind }), hand: pi => ({ z: 'hand', pi }), score: pi => ({ z: 'score', pi }),
+  discard: { z: 'discard' }, deck: { z: 'deck' }, market: { z: 'market' },
+};
+
+function addToHand(p, c) { p.hand.push(c); p.known.add(c.id); }
+function removeFromHand(p, c) { p.hand.splice(p.hand.indexOf(c), 1); p.known.delete(c.id); return c; }
+const findCurse = p => p.hand.find(c => c.attr === 'curse');
+const countCurses = p => p.hand.filter(c => c.attr === 'curse').length;
+
+function takeSlot(pi, idx) {
+  const p = G.players[pi];
+  const s = G.market.splice(idx, 1)[0];
+  addToHand(p, s.card);
+  s.curses.forEach(c => addToHand(p, c));
+  log(`${p.name}：${cardName(s.card)} を取った${s.curses.length ? `（💀呪い×${s.curses.length} 付き）` : ''}`);
+  refillMarket();
+  return [s.card, ...s.curses];
+}
+
+// ドラフトの手札上限チェック用の枚数（直前に「拾う」「蘇らせる」で手に入れたカードは数えない）
+const draftHandCount = p => p.hand.filter(c => !p.pickedUp.has(c.id)).length;
+
+// 結界チェック。防いだら true
+function blocked(ti) {
+  const t = G.players[ti];
+  if (t.shield > 0) { t.shield--; log(`📿${t.name}の結界が防いだ`, 'hl'); return true; }
+  return false;
+}
+
+function sendCurse(pi, c, from) {
+  const me = G.players[pi], opp = G.players[1 - pi];
+  if (blocked(1 - pi)) { addToHand(me, c); moved(c, from, Z.hand(pi)); log(`呪いは${me.name}の手札に戻った`); }
+  else { addToHand(opp, c); moved(c, from, Z.hand(1 - pi)); log(`💀${me.name}が${opp.name}に呪いを送り込んだ`, 'hl'); }
+}
+
+function blowAway(pi, idxs) {
+  const me = G.players[pi];
+  const gone = idxs.map(i => G.market[i]);
+  G.market = G.market.filter(s => !gone.includes(s));
+  const curses = [];
+  for (const s of gone) { toDiscard(s.card, `${me.name}の吹き払い`); moved(s.card, Z.market, Z.discard); curses.push(...s.curses); }
+  log(`💰${me.name}は市場の ${gone.map(s => cardName(s.card)).join('、')} を吹き払った`, 'hl');
+  refillMarket(curses);
+}
+
+// ===== 人間の入力待ち =====
+// プレイヤー pi に選択を求める。ゲストへの問い合わせも、画面の状態として送られる
+function ask(pi, ui) {
+  ui.id = ++uiSeq;
+  G.uis[pi] = ui;
+  render();
+  return new Promise(r => { resolvers[pi] = v => { G.uis[pi] = null; resolvers[pi] = null; render(); r(v); }; });
+}
+
+// 答えを受け取る（ホスト側）。古い問い合わせへの答えは無視する
+function answerFrom(pi, id, value) {
+  const ui = G.uis[pi];
+  if (!ui || ui.id !== id || !resolvers[pi]) return;
+  resolvers[pi](value);
+}
+
+// この画面での操作の答え。ゲストはホストに送る
+function answer(value) {
+  const ui = V.ui;
+  if (ui.type === 'next') clearScoreDeltas();
+  if (NET.mode === 'guest') { V.ui = null; renderView(V); NET.conn.send({ t: 'answer', id: ui.id, value }); }
+  else answerFrom(NET.me, ui.id, value);
+}
+
+// 通信で届いた答えが不正でも止まらないよう、市場の番号を確かめる
+const validSlot = i => Number.isInteger(i) && i >= 0 && i < G.market.length;
+
+async function decide(pi, text, cpuValue) {
+  if (G.players[pi].cpu) return cpuValue;
+  return ask(pi, { type: 'confirm', text, options: [{ label: '使う', value: true, primary: true }, { label: '使わず手札に戻す', value: false }] });
+}
+
+// ===== CPU の思考 =====
+const cardValue = c => c.attr === 'curse' ? -6 : c.attr === 'hope' ? 6 : c.attr === 'despair' ? 0 : c.num >= 7 ? c.num * 0.5 : c.num <= 3 ? 3 : 2;
+const slotValue = s => cardValue(s.card) - 3.5 * s.curses.length;
+
+// 蘇らせる：捨て札から一番価値の高いカードを選ぶ（呪いは選ばない）
+function cpuPickDiscard() {
+  let best = -1, bv = -1e9;
+  for (const i of revivable()) { const v = cardValue(G.discard[i]) + Math.random() * 0.5; if (v > bv) { bv = v; best = i; } }
+  return best;
+}
+
+function cpuPickMarket() {
+  let best = 0, bv = -1e9;
+  G.market.forEach((s, i) => { const v = slotValue(s) + Math.random() * 0.8; if (v > bv) { bv = v; best = i; } });
+  return best;
+}
+
+// 吹き払いで流す市場カード：呪い付きと、価値の低いカード
+function cpuBlowPicks(max) {
+  const idxs = [];
+  G.market.forEach((s, i) => { if (s.curses.length || slotValue(s) < 2.2) idxs.push(i); });
+  return idxs.sort((a, b) => slotValue(G.market[a]) - slotValue(G.market[b])).slice(0, max);
+}
+
+function cpuPlay(pi) {
+  const me = G.players[pi], opp = G.players[1 - pi];
+  const second = pi !== G.first;
+  // 公開情報から相手の伏せ札の属性を予想（後攻のときだけ使う）
+  const counts = {};
+  opp.hand.filter(c => opp.known.has(c.id)).forEach(c => counts[c.attr] = (counts[c.attr] || 0) + 1);
+  const predicted = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+  const myCurses = countCurses(me);
+  const oppKnown = opp.hand.filter(c => opp.known.has(c.id));
+  const oppHas10 = oppKnown.some(c => c.num === 10), oppHasCurse = oppKnown.some(c => c.attr === 'curse');
+  const oppHasHope = oppKnown.some(c => c.attr === 'hope'), oppHasDespair = oppKnown.some(c => c.attr === 'despair');
+  const freeSlot = G.market.some(sl => !sl.curses.length);
+
+  const loseVal = c => {
+    const t = loseTimes(c);
+    switch (c.attr) {
+      case 'fire': return t * (opp.score.length ? 1.2 : 0.3);
+      case 'water': return t * (myCurses ? 2.5 : 0);
+      case 'wind': return t * 1.2;
+      case 'earth': return t * (G.discard.some(c => cardValue(c) >= 3) ? 1.5 : 0.2);
+      default: return 0;
+    }
+  };
+  const fuseVal = (f, pw) => {
+    const t = fuseTimes(f);
+    switch (f.attr) {
+      case 'curse': return 3.5;
+      case 'fire': return pw * t * 1.1 - cardValue(f) * 0.15;
+      case 'water': return 0.5 + (t - 1) * (myCurses ? 2 : 0) - cardValue(f) * 0.15;
+      case 'wind': return 0.6 - cardValue(f) * 0.15;
+      case 'earth': return 0.7 * t - cardValue(f) * 0.15;
+      default: return 0;
+    }
+  };
+  const evalPair = (b, f) => {
+    let v0 = 0;
+    // 希望：相手が絶望を持っていなければ確実に勝ち、手札の呪いを市場に付けて手放せる
+    if (b.attr === 'hope') v0 = (oppHasDespair ? 0.4 : 1) * (2 + (myCurses && freeSlot ? 3 : 0)) + 1;
+    // 絶望：相手の希望を打ち消せるときだけ価値がある。それ以外は効果のない0の札
+    if (b.attr === 'despair') v0 = oppHasHope ? 3 : -0.3;
+    if (isSpecial(b)) return v0 + (f ? fuseVal(f, b.attr === 'hope' ? 1 : 0) : 0) + Math.random() * 1.2;
+    const pw = b.attr === 'curse' ? 0 : Math.min(0.95, (b.num - 0.5) / 10);
+    let v = pw * 2 + (1 - pw) * loseVal(b) - cardValue(b) * 0.25;
+    // 呪いと10がぶつかると、負けた10の「呪い返し」で10を出した側が平均5点ほど得るので、
+    // 相手が10を持っていそうなら呪いは出しにくく、相手が呪いを持っていそうなら10を出しやすくする
+    if (b.attr === 'curse') v += 2.5 - (oppHas10 ? 2.5 : 0);
+    if (b.num === 10 && oppHasCurse) v += 1.5;
+    if (f) { v += fuseVal(f, pw); if (second && f.attr === predicted) v += 2.5; }
+    return v + Math.random() * 1.2;
+  };
+
+  if (me.hand.length === 1) return { battle: me.hand[0], fuse: null };
+  let best = null, bv = -1e9;
+  for (const b of me.hand) for (const f of [...me.hand.filter(c => !isSpecial(c)), null]) {
+    if (b === f) continue;
+    // 伏せ札を出さないのは、出せる札がほかにないときだけ
+    if (!f && me.hand.some(c => c !== b && !isSpecial(c))) continue;
+    const v = evalPair(b, f);
+    if (v > bv) { bv = v; best = { battle: b, fuse: f }; }
+  }
+  return best;
+}
+
+// ===== ゲーム進行 =====
+async function draftPick(pi) {
+  const p = G.players[pi];
+  if (!G.market.length) return;
+  if (draftHandCount(p) >= HAND_LIMIT) { log(`${p.name}：手札が${HAND_LIMIT}枚以上なのでドラフトをパス`); return; }
+  let idx;
+  if (p.cpu) { await sleep(CPU_DELAY); idx = cpuPickMarket(); }
+  else idx = await ask(pi, { type: 'pickMarket', text: 'ドラフト：市場から1枚取ってください' });
+  takeSlot(pi, validSlot(idx) ? idx : 0);
+  render();
+}
+
+async function choosePlay(pi) {
+  const p = G.players[pi];
+  if (!p.hand.length) return { battle: null, fuse: null };
+  let r;
+  if (p.cpu) r = cpuPlay(pi);
+  else {
+    const sel = await ask(pi, { type: 'play', sel: { battle: null, fuse: null } }) || {};
+    const battle = p.hand.find(c => c.id === sel.battle) || p.hand[0];
+    const canFuse = c => c !== battle && !isSpecial(c);  // 希望・絶望は伏せ札にできない
+    const fuse = p.hand.find(c => c.id === sel.fuse && canFuse(c)) || p.hand.find(canFuse) || null;
+    r = { battle, fuse };
+  }
+  removeFromHand(p, r.battle);
+  if (r.fuse) removeFromHand(p, r.fuse);
+  return r;
+}
+
+async function loseEffect(pi, c) {
+  const t = loseTimes(c);
+  if (!t) return;
+  const me = G.players[pi], opp = G.players[1 - pi], A = ATTRS[c.attr];
+  setPhase('battle', pi, '敗北効果');
+  G.fx = { pi, kind: 'battle', label: `${A.icon}${A.lose}${t > 1 ? ' ×' + t : ''}` };
+  log(`${me.name}の敗北効果：${A.icon}${A.lose}${t > 1 ? ' ×' + t : ''}`);
+  render();
+  await sleep(FX_STEP * 0.6);
+  for (let i = 0; i < t; i++) {
+    switch (c.attr) {
+      case 'fire':
+        if (!opp.score.length) { log('奪える得点がない'); break; }
+        if (blocked(1 - pi)) break;
+        const stolen = opp.score.pop();
+        toScore(me, stolen, `${opp.name}から奪った`);
+        moved(stolen, Z.score(1 - pi), Z.score(pi));
+        log(`${me.name}は${opp.name}の得点を1枚奪った`);
+        break;
+      case 'water': {
+        const cu = findCurse(me);
+        if (!cu) { log('流す呪いがない'); break; }
+        if (blocked(1 - pi)) break;
+        removeFromHand(me, cu); addToHand(opp, cu);
+        moved(cu, Z.hand(pi), Z.hand(1 - pi));
+        log(`💀${me.name}は呪いを${opp.name}に押し付けた`, 'hl');
+        break;
+      }
+      case 'wind': {
+        if (!G.market.length) break;
+        const idx = me.cpu ? cpuPickMarket() : await ask(pi, { type: 'pickMarket', text: '💰拾う：市場から1枚取ってください（次のドラフトでは手札の枚数に数えません）' });
+        takeSlot(pi, validSlot(idx) ? idx : 0).forEach(c => me.pickedUp.add(c.id));
+        break;
+      }
+      case 'earth':
+        await reviveFromDiscard(pi, '📿蘇らせる');
+        break;
+    }
+    render();
+    await sleep(FX_STEP);
+  }
+  G.fx = null;
+}
+
+async function fuseEffect(pi, c, times, pre, won) {
+  const me = G.players[pi], opp = G.players[1 - pi], A = ATTRS[c.attr];
+  setPhase('effect', pi, '伏せ効果');
+  let used = pre > 0;
+  const tag = `${A.icon}${A.fuse}${times > 1 ? ' ×' + times : ''}`;
+  G.fx = { pi, kind: 'fuse', label: tag };
+  render();
+  await sleep(FX_STEP * 0.6);
+  switch (c.attr) {
+    case 'curse': {
+      used = true;
+      log(`${me.name}の伏せ効果：${tag}`);
+      sendCurse(pi, c, Z.field(pi, 'fuse'));
+      for (let k = 1; k < times; k++) {
+        const cu = findCurse(me);
+        if (!cu) break;
+        removeFromHand(me, cu);
+        sendCurse(pi, cu, Z.hand(pi));
+      }
+      break;
+    }
+    case 'fire': {
+      // 呪いは得点にしない：めくれた呪いは山札の一番下に戻し、次のカードを取る
+      const n = Math.min(times, G.deck.filter(x => x.attr !== 'curse').length);
+      if (won && n > 0 && await decide(pi, `伏せ効果 ${tag}：山札から${n}枚を得点山へ。使う？`, true)) {
+        used = true;
+        for (let k = 0; k < n;) {
+          const top = G.deck.pop();
+          if (top.attr === 'curse') { G.deck.unshift(top); log('追撃で呪いがめくれた → 山札の一番下へ'); continue; }
+          toScore(me, top, '追撃（山札から）');
+          moved(top, Z.deck, Z.score(pi));
+          k++;
+        }
+        log(`${me.name}の伏せ効果：${tag} → +${n}点`, 'hl');
+      }
+      break;
+    }
+    case 'water': {
+      const n = Math.min(times - pre, countCurses(me));
+      if (n > 0 && await decide(pi, `伏せ効果 ${tag}：手札の呪い${n}枚を相手に送る。使う？`, true)) {
+        used = true;
+        log(`${me.name}の伏せ効果：${tag}`);
+        for (let k = 0; k < n; k++) {
+          if (blocked(1 - pi)) continue;
+          const cu = findCurse(me);
+          removeFromHand(me, cu); addToHand(opp, cu);
+          moved(cu, Z.hand(pi), Z.hand(1 - pi));
+          log(`💀${me.name}は呪いを${opp.name}に押し付けた`, 'hl');
+        }
+      }
+      break;
+    }
+    case 'wind': {
+      // 1回に流せる枚数は1〜6なら1枚、7〜10なら2枚。予言成功なら吹き払いを2回できる
+      const perBlow = Math.min(fuseTimes(c), BLOW_MAX);
+      const blows = times > fuseTimes(c) ? 2 : 1;
+      for (let k = 0; k < blows; k++) {
+        const max = Math.min(perBlow, G.market.length);
+        if (!max) break;
+        const reply = me.cpu ? cpuBlowPicks(max) : await ask(pi, {
+          type: 'multiMarket', sel: [], max, skip: 'やめる',
+          text: `伏せ効果 ${tag}${blows > 1 ? `（${k + 1}/${blows}回目）` : ''}：流す市場のカードを最大${max}枚クリックして「流す」`
+            + (used ? '' : '。1枚も流さなければ、この札は手札に戻ります'),
+        });
+        const picks = [...new Set(Array.isArray(reply) ? reply : [])].filter(validSlot).slice(0, max);
+        if (!picks.length) break;
+        if (!used) log(`${me.name}の伏せ効果：${tag}`);
+        used = true;
+        blowAway(pi, picks);
+        render();
+        await sleep(FX_STEP);
+      }
+      break;
+    }
+    case 'earth': {
+      if (await decide(pi, `伏せ効果 ${tag}：次のラウンド、自分への攻撃を${times}回防ぐ。使う？`, true)) {
+        used = true;
+        me.shieldNext += times;
+        me.shieldCardNext = c;
+        log(`${me.name}の伏せ効果：${tag} → 次のラウンドに結界`);
+      }
+      break;
+    }
+  }
+  if (used) {
+    if (c.attr !== 'curse' && c.attr !== 'earth') { toDiscard(c, `${me.name}の伏せ札（効果を使用）`); moved(c, Z.field(pi, 'fuse'), Z.discard); }
+  } else { addToHand(me, c); moved(c, Z.field(pi, 'fuse'), Z.hand(pi)); log(`${me.name}は伏せ札 ${cardName(c)} を手札に戻した`); }
+  render();
+  await sleep(FX_STEP);
+  G.fx = null;
+}
+
+// 山札が残り HOPE_DECK 枚を切ったら、本当の点数（秘密の手札の呪いも含めた、ゲーム終了時と同じ計算）で
+// 負けている側に希望、勝っている側に絶望を配る。同点なら次のラウンドで改めて判定する。1ゲームに1回だけ。
+// 配られ方から相手の秘密の呪いを推測できる＝読み合いの材料にする。ただし正確な点数はお知らせに出さない
+function dealHopeDespair() {
+  if (G.hopeDealt || G.deck.length >= HOPE_DECK) return;
+  const P = G.players;
+  const pts = P.map(p => finalScore(p).total);
+  if (pts[0] === pts[1]) {
+    log(`山札が${HOPE_DECK}枚を切った！ ただし本当の点数が同点なので、希望と絶望は次のラウンドで改めて判定`, 'hl');
+    return;
+  }
+  const lo = pts[0] < pts[1] ? 0 : 1;
+  G.hopeDealt = true;
+  const hope = { id: 1000, attr: 'hope', num: 11 }, despair = { id: 1001, attr: 'despair', num: 0 };
+  addToHand(P[lo], hope);
+  addToHand(P[1 - lo], despair);
+  moved(hope, Z.deck, Z.hand(lo));
+  moved(despair, Z.deck, Z.hand(1 - lo));
+  G.announce = { seq: (G.announce?.seq || 0) + 1, title: '🌟希望と🌑絶望', ms: ANN_MS,
+                 text: `本当の点数で負けている${P[lo].name}に希望、勝っている${P[1 - lo].name}に絶望が配られた` };
+  log(`山札が${HOPE_DECK}枚を切った！ 本当の点数で負けている${P[lo].name}に🌟希望、勝っている${P[1 - lo].name}に🌑絶望が配られた`, 'hl');
+  return true;
+}
+
+// 捨て札から好きなカードを1枚選んで手札に加える（僧侶の「蘇らせる」、絶望の追加効果）。
+// 呪い・希望・絶望も含めて、どのカードでも選べる（絶望は打ち消した希望を奪える。僧侶は使い終わった希望・絶望を拾える＝隠れた逆転の手段）。
+// 加えたカードは、商人の「拾う」と同じく次のドラフトでは手札の枚数に数えない
+const revivable = () => G.discard.map((c, i) => i);
+async function reviveFromDiscard(pi, title) {
+  const me = G.players[pi];
+  const allowed = revivable();
+  if (!allowed.length) { log(`${title}：手札に加えられるカードが捨て札にない`); return; }
+  const idx = me.cpu ? cpuPickDiscard() : await ask(pi, { type: 'pickDiscard', title, allowed,
+    text: `${title}：捨て札から手札に加えるカードを1枚選んでください（次のドラフトでは手札の枚数に数えません）` });
+  const c = G.discard.splice(allowed.includes(idx) ? idx : allowed[allowed.length - 1], 1)[0];
+  delete c.at; delete c.why;
+  addToHand(me, c);
+  moved(c, Z.discard, Z.hand(pi));
+  me.pickedUp.add(c.id);
+  log(`${title}：${me.name}は捨て札から ${cardName(c)} を手札に加えた`, 'hl');
+}
+
+// 絶望で希望を打ち消したとき：追加で、捨て札から1枚手札に加えられる
+async function despairEffect(pi) {
+  G.fx = { pi, kind: 'battle', label: '🌑絶望：捨て札から1枚' };
+  render();
+  await sleep(FX_STEP * 0.6);
+  await reviveFromDiscard(pi, '🌑絶望');
+  render();
+  await sleep(FX_STEP);
+  G.fx = null;
+}
+
+// 希望で勝ったとき：手札の呪いを1枚、市場の好きなカード（まだ呪いが付いていないもの）に付けられる
+async function hopeEffect(pi) {
+  const me = G.players[pi], opp = G.players[1 - pi];
+  const cu = findCurse(me);
+  const free = G.market.map((sl, i) => sl.curses.length ? -1 : i).filter(i => i >= 0);
+  if (!cu) { log(`🌟${me.name}の希望：手札に呪いがないので、付け替えはなし`); return; }
+  if (!free.length) { log(`🌟${me.name}の希望：呪いを付けられる市場のカードがない`); return; }
+  let idx;
+  if (me.cpu) idx = free.reduce((a, b) => slotValue(G.market[b]) > slotValue(G.market[a]) ? b : a);
+  else idx = await ask(pi, { type: 'pickMarket', allowed: free, skip: '付けない', banner: '呪いを付けるカードを選んでください',
+                             text: '🌟希望：手札の呪いを付ける市場のカードを選んでください（呪いが付いていないカードだけ選べます）' });
+  if (!free.includes(idx)) { log(`🌟${me.name}は呪いを付けなかった`); return; }
+  removeFromHand(me, cu);
+  G.market[idx].curses.push(cu);
+  moved(cu, Z.hand(pi), Z.market);
+  log(`🌟${me.name}は手札の呪いを、市場の ${cardName(G.market[idx].card)} に付けた`, 'hl');
+}
+
+function setPhase(step, actor, label) { G.phase = { step, actor, label }; }
+
+// 画面の中央に大きく知らせて、読めるだけの時間を待つ。
+// a.per（プレイヤー番号順の配列）があれば、それぞれの画面に違う文面を出す
+const ANN_MS = 2600, ROUND_ANN_MS = 2000, PHASE_ANN_MS = 1300;
+async function announce(a, ms, wait = ms) {
+  G.announce = { seq: (G.announce?.seq || 0) + 1, ms, ...a };
+  render();
+  await sleep(wait);
+}
+
+async function playRound() {
+  G.round++;
+  const f = G.first, s = 1 - f;
+  const P = G.players;
+  G.field = null;
+  for (const p of P) { p.shield = p.shieldNext; p.shieldCard = p.shieldCardNext; p.shieldNext = 0; p.shieldCardNext = null; }
+  setPhase('draft', null, 'ラウンド開始');
+  log(`ラウンド${G.round}（先攻：${P[f].name}）`, 'round');
+  // ラウンドの初めに「あなたは先攻です」を大きく出す（通信対戦では、それぞれの画面に自分の立場を出す）
+  const roleText = pi => pi === f
+    ? { title: 'あなたは先攻です', text: `ラウンド${G.round}　ドラフトで先に取れます`, style: 'first' }
+    : { title: 'あなたは後攻です', text: `ラウンド${G.round}　先攻と同じ種類を伏せれば予言成功`, style: 'second' };
+  await announce({ title: '', text: '', per: [roleText(0), roleText(1)] }, ROUND_ANN_MS);
+  if (dealHopeDespair()) await sleep(ANN_MS);
+  render();
+
+  // 1. ドラフト
+  await announce({ title: '🛒 ドラフトターン', text: '市場から1枚ずつ取る（先攻 → 後攻 → 後攻 → 先攻）', style: 'draft' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
+  for (const [k, pi] of [f, s, s, f].entries()) {
+    setPhase('draft', pi, `ドラフト ${k + 1}/4`);
+    await draftPick(pi);
+  }
+  // 「拾う」のカードを数えないのは、拾った直後のドラフト1回だけ
+  for (const p of P) p.pickedUp.clear();
+
+  // 2. 伏せる
+  // 2人とも同時に選ぶ（通信対戦では、お互いの選択を待つ）
+  setPhase('play', null, '勝負札と伏せ札を選ぶ');
+  await announce({ title: '🂠 伏せるターン', text: '勝負札と伏せ札を1枚ずつ、2人同時に伏せる', style: 'play' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
+  const plays = await Promise.all([choosePlay(0), choosePlay(1)]);
+  const b = [plays[0].battle, plays[1].battle];
+  const fz = [plays[0].fuse, plays[1].fuse];
+  // battleLog / fuseLog：場の欄に「このフェーズで起きたこと」を出すためのログ位置
+  // flip：今まさにめくっている札の種類（'battle' / 'fuse'）。そのときだけ裏返るアニメーションを付ける
+  G.field = { battle: b, fuse: fz, battleOpen: false, fuseOpen: false, flip: null, result: '', battleLog: G.log.length, fuseLog: null };
+  setPhase('battle', null, '勝負札をめくる');
+  render();
+  await waitNext('お互いの札が伏せられました。クリックで勝負札をめくります', '勝負札をめくる');
+  await announce({ title: '⚔ 勝負！', text: '数字が大きい方の勝ち。負けた方の敗北効果が発動', style: 'battle' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
+  await reveal('battle');
+
+  // 3. 勝負
+  const v = b.map(c => c ? c.num : -1);
+  let winner = v[0] > v[1] ? 0 : v[1] > v[0] ? 1 : -1;
+  log(`勝負：${P[0].name} ${cardName(b[0])} vs ${P[1].name} ${cardName(b[1])}`);
+  // 呪いと10がぶつかったら、勝敗が逆転して呪いを出した側の勝ち（負けた10は敗北効果「呪い返し」を得る）
+  const reversal = winner >= 0 && b[winner].num === 10 && b[1 - winner] && b[1 - winner].attr === 'curse';
+  if (reversal) winner = 1 - winner;
+  // 希望と絶望がぶつかったら、絶望が希望の効果を打ち消して絶望の勝ち
+  const hopeBlocked = b.some(c => c && c.attr === 'hope') && b.some(c => c && c.attr === 'despair');
+  if (hopeBlocked) winner = b.findIndex(c => c.attr === 'despair');
+  const won = [winner === 0, winner === 1];
+  if (reversal) {
+    const W = P[winner], L = P[1 - winner];
+    G.field.result = `${W.name}の勝ち（呪いと10で逆転）`;
+    log(`💀呪いと10がぶつかり、勝敗が逆転！ ${W.name}の勝ち`, 'hl');
+    addToHand(W, b[winner]);  // 勝負札に出した呪いは、出した人の手札に戻る
+    moved(b[winner], Z.field(winner, 'battle'), Z.hand(winner));
+    log(`${W.name}の呪いは手札に戻った`);
+    toScore(W, b[1 - winner], `${L.name}の勝負札（呪いに負け）`);
+    moved(b[1 - winner], Z.field(1 - winner, 'battle'), Z.score(winner));
+    render();
+    await sleep(FX_STEP);
+    // 10の敗北効果は伏せ札の数値を使うので、伏せ札をめくった後に処理する
+  } else if (winner < 0) {
+    G.field.result = '引き分け';
+    log('引き分け！ 両方の敗北効果が発動');
+    for (const pi of [0, 1]) {
+      const c = b[pi];
+      if (!c) continue;
+      if (c.attr === 'curse') { addToHand(P[pi], c); moved(c, Z.field(pi, 'battle'), Z.hand(pi)); }
+      else {
+        toDiscard(c, isSpecial(c) ? `${P[pi].name}の${ATTRS[c.attr].name}（使用済み）` : `${P[pi].name}の勝負札（引き分け）`);
+        moved(c, Z.field(pi, 'battle'), Z.discard);
+      }
+    }
+    render();
+    await sleep(FX_STEP);
+    for (const pi of [s, f]) await loseEffect(pi, b[pi]);
+  } else {
+    const W = P[winner];
+    const hopeWin = !hopeBlocked && b[winner].attr === 'hope';
+    G.field.result = hopeBlocked ? `${W.name}の勝ち（絶望が希望を打ち消した）` : hopeWin ? `${W.name}の勝ち（希望）` : `${W.name}の勝ち`;
+    log(hopeBlocked ? `🌑絶望が🌟希望を打ち消した！ ${W.name}の勝ち` : hopeWin ? `🌟希望の力で${W.name}の勝ち` : `${W.name}の勝ち`, 'hl');
+    for (const pi of [0, 1]) {
+      const c = b[pi];
+      if (!c) continue;
+      // 希望・絶望は得点山に入らず、使ったら捨て札になる
+      if (isSpecial(c)) { toDiscard(c, `${P[pi].name}の${ATTRS[c.attr].name}（使用済み）`); moved(c, Z.field(pi, 'battle'), Z.discard); }
+      else if (c.attr === 'curse') { addToHand(W, c); moved(c, Z.field(pi, 'battle'), Z.hand(winner)); if (pi !== winner) log(`${W.name}は呪いを引き取った`); }
+      else { toScore(W, c, `${P[pi].name}の勝負札（${pi === winner ? '勝ち' : '負け'}）`); moved(c, Z.field(pi, 'battle'), Z.score(winner)); }
+    }
+    render();
+    await sleep(FX_STEP);
+    if (hopeWin && loseTimes(b[1 - winner])) {
+      // 希望は、負けた相手の敗北効果を無効にする
+      G.fx = { pi: 1 - winner, kind: 'battle', label: '🌟希望：敗北効果は無効' };
+      log(`🌟希望の力で、${P[1 - winner].name}の敗北効果（${ATTRS[b[1 - winner].attr].icon}${ATTRS[b[1 - winner].attr].lose}）は無効`, 'hl');
+      render();
+      await sleep(FX_STEP);
+      G.fx = null;
+    } else await loseEffect(1 - winner, b[1 - winner]);
+    if (hopeWin) await hopeEffect(winner);
+    if (hopeBlocked) await despairEffect(winner);
+  }
+  setPhase('battle', null, '勝負の結果');
+  await waitNext('勝負の結果を確認したら、クリックで伏せ札をめくります', '伏せ札をめくる');
+
+  // 4. 伏せ札オープンと予言判定
+  setPhase('fuse', null, '伏せ札をめくる・予言判定');
+  G.field.fuseLog = G.log.length;
+  await announce({ title: '🔮 伏せ札オープン', text: '同じ種類なら後攻の予言成功。そのあと伏せ効果', style: 'fuse' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
+  await reveal('fuse');
+  log(`伏せ札オープン：${P[0].name} ${cardName(fz[0])} / ${P[1].name} ${cardName(fz[1])}`);
+  if (reversal) {
+    // 10の敗北効果：互いの伏せ札の数値の差の絶対値を得点として得る（呪い・伏せ札なしは0）
+    const L = P[1 - winner], n = c => c ? c.num : 0;
+    const diff = Math.abs(n(fz[0]) - n(fz[1]));
+    G.fx = { pi: 1 - winner, kind: 'battle', label: `🔟呪い返し +${diff}点` };
+    L.reversal += diff;
+    L.reversalCount++;
+    log(`🔟${L.name}の10の敗北効果「呪い返し」：伏せ札の差 |${n(fz[0])} − ${n(fz[1])}| ＝ +${diff}点`, 'hl');
+    render();
+    await sleep(FX_STEP * 1.5);
+    G.fx = null;
+  }
+  const active = [!!fz[0], !!fz[1]], extra = [0, 0], pre = [0, 0];
+  if (fz[0] && fz[1] && fz[0].attr === fz[1].attr) {
+    log(`予言成功！ ${P[s].name}（後攻）が伏せ札を読み切った（+1点）`, 'hl');
+    G.field.prophecy = true;
+    P[s].bonus++;
+    // まず当てた後攻の伏せ札に「予言成功！」を出し、そのあと無効になった先攻の伏せ札を手札へ戻す
+    G.fx = { pi: s, kind: 'fuse', label: '🔮予言成功！ +1点' };
+    render();
+    await sleep(FX_STEP * 1.5);
+    active[f] = false;
+    addToHand(P[f], fz[f]);
+    moved(fz[f], Z.field(f, 'fuse'), Z.hand(f));
+    log(`${P[f].name}の伏せ札は無効 → 手札に戻る`);
+    extra[s] = 1;
+    render();
+    await sleep(FX_STEP);
+    G.fx = null;
+  }
+  render();
+  await sleep(CPU_DELAY);
+
+  // 5. 伏せ効果（呪術師の逆流が割り込み → 後攻 → 先攻）
+  for (const pi of [s, f]) {
+    if (active[pi] && fz[pi].attr === 'water' && active[1 - pi] && fz[1 - pi].attr === 'curse') {
+      log(`🪄逆流！ ${P[pi].name}が呪いを突き返した`, 'hl');
+      G.fx = { pi, kind: 'fuse', label: '🪄逆流！' };
+      active[1 - pi] = false;
+      addToHand(P[1 - pi], fz[1 - pi]);
+      moved(fz[1 - pi], Z.field(1 - pi, 'fuse'), Z.hand(1 - pi));
+      pre[pi] = 1;
+      render();
+      await sleep(FX_STEP);
+      G.fx = null;
+    }
+  }
+  for (const pi of [s, f]) if (active[pi]) await fuseEffect(pi, fz[pi], fuseTimes(fz[pi]) + extra[pi], pre[pi], won[pi]);
+
+  // ラウンド終了
+  const over = !G.deck.length || P.every(p => !p.hand.length);
+  setPhase('end', null, 'ラウンド終了');
+  await waitNext('伏せ札の結果を確認したら、クリックで次へ進みます', over ? '結果を見る' : '次のラウンドへ');
+  for (const p of P) { if (p.shieldCard) { toDiscard(p.shieldCard, `${p.name}の結界（期限切れ）`); p.shieldCard = null; } p.shield = 0; }
+  G.first = s;
+  G.over = over;
+  render();
+}
+
+// 場の札をめくる（アニメーションが終わるまで待つ）
+async function reveal(kind) {
+  G.field[kind + 'Open'] = true;
+  G.field.flip = kind;
+  render();
+  await sleep(FLIP_MS);
+  G.field.flip = null;
+}
+
+// 人間が遊んでいるときだけ、クリックされるまで進行を止める（通信対戦では2人ともクリックするまで待つ）
+async function waitNext(text, label) {
+  if (G.headless) return;
+  const humans = [0, 1].filter(pi => !G.players[pi].cpu);
+  await Promise.all(humans.map(pi => ask(pi, { type: 'next', text, options: [{ label, value: true, primary: true }] })));
+}
+
+function finalScore(p) {
+  const curses = countCurses(p);
+  return { cards: p.score.length, bonus: p.bonus, reversal: p.reversal, curses,
+           total: p.score.length + p.bonus + p.reversal - curses * CURSE_PENALTY };
+}
+
+async function gameLoop() {
+  while (!G.over) {
+    await playRound();
+    if (!G.over && !G.players.some(p => p.cpu === false)) continue;
+    await sleep(CPU_DELAY);
+  }
+  const s = G.players.map(finalScore);
+  log(`ゲーム終了：${G.players[0].name} ${s[0].total}点 / ${G.players[1].name} ${s[1].total}点`, 'round');
+  G.result = { scores: s, key: `${Date.now()}-${Math.random()}` };
+  render();
+  return s;
+}
+
+// ===== 描画 =====
+function cardHTML(c, o = {}) {
+  if (o.back) return `<div class="card back ${o.small ? 'small' : ''}">${o.blank ? '' : '呪い市'}</div>`;
+  if (!c) return `<div class="card empty ${o.small ? 'small' : ''}"></div>`;
+  const cls = ['card', o.small && 'small', o.known && 'known', o.cls].filter(Boolean).join(' ');
+  const data = (o.action ? `data-action="${o.action}" data-id="${c.id}"` : '') + ` data-cid="${c.id}"`;
+  const badge = (o.badge ? `<div class="badge ${o.badge[0]}">${o.badge[1]}</div>` : '')
+    + (o.seen ? `<div class="seen ${o.seen}">${o.seen === 'open' ? '👁 公開' : '🔒 秘密'}</div>` : '');
+  if (isSpecial(c)) {
+    const A = ATTRS[c.attr];
+    return `<div class="${cls}" data-attr="${c.attr}" data-tip="${c.attr}:${c.num}" ${data}><div class="num">${c.attr === 'hope' ? '★' : '✖'}</div><div class="icon">${A.icon}</div><div class="nm">${A.name}</div>
+      <div class="eff"><b>勝負札専用</b><br>${c.attr === 'hope' ? '絶望以外に勝ち<br>＋敗北無効' : '希望を消す<br>＋捨て札1枚'}</div>${badge}</div>`;
+  }
+  if (c.attr === 'curse') {
+    return `<div class="${cls}" data-attr="curse" data-tip="curse:0" ${data}><div class="num">0</div><div class="icon">💀</div><div class="nm">呪い</div>
+      <div class="eff"><b>終了時 −${CURSE_PENALTY}</b><br><span>伏</span>送り込み</div>${badge}</div>`;
+  }
+  const A = ATTRS[c.attr], lt = loseTimes(c), ft = fuseTimes(c);
+  return `<div class="${cls}" data-attr="${c.attr}" data-tip="${c.attr}:${c.num}" ${data}><div class="num">${c.num}</div><div class="icon">${A.icon}</div><div class="nm">${A.name}</div>
+    <div class="eff">${c.num === 10 ? '<div><span>敗</span>呪い返し</div>' : `<div class="${lt ? '' : 'off'}"><span>敗</span>${A.lose}${lt ? '×' + lt : ''}</div>`}<div><span>伏</span>${A.fuse}×${ft}</div></div>${badge}</div>`;
+}
+
+// マウスを合わせたときに出す、カード効果の説明
+// 説明欄の部品：「いつ発動するか」の見出しと本文の組
+const tipSec = (kind, when, name, times, body) => `<div class="tip-sec ${kind}">
+  <div class="tip-label"><span class="tip-chip ${kind}">${{ lose: '敗', fuse: '伏', win: '勝' }[kind] || '!'}</span>${when}${name ? `「${name}」` : ''}${times ? `<span class="tip-times">×${times}</span>` : ''}</div>
+  <div class="tip-body">${body}</div></div>`;
+const ROLES = { fire: '得点を稼ぐ・奪う', water: '呪いを押し付ける・跳ね返す', wind: '市場を操る', earth: '捨て札から取り戻す・守る' };
+
+function cardTipHTML(attr, num) {
+  if (attr === 'hope') {
+    return `<div class="tip-head" data-attr="hope"><span class="tip-num">★</span>🌟 希望<span class="tip-role">負けている側の切り札</span></div>
+      ${tipSec('warn', '配られるとき', '', 0, `山札が残り <b>${HOPE_DECK}枚</b> を切ったとき、<b>本当の点数</b>（秘密の手札の呪いも含む）で<b>負けている側</b>に配られる`)}
+      ${tipSec('win', '勝負札にすると', '', 0, `<b>絶望以外のすべての札に勝つ</b>。さらに<b>相手の敗北効果を無効</b>にし、手札の呪いを <b>1枚</b>、市場の好きなカード（呪いが付いていないもの）に付けられる`)}
+      <div class="tip-special"><b>相手の勝負札が絶望のとき</b>：希望の効果は打ち消されて負ける。捨て札に入った希望は、絶望側に<b>奪われる</b>ことがある</div>
+      <div class="tip-note">・勝負札専用（伏せ札にはできない）<br>・使ったら捨て札になる（得点山には入らない）。僧侶の「蘇らせる」で拾い直せる</div>`;
+  }
+  if (attr === 'despair') {
+    return `<div class="tip-head" data-attr="despair"><span class="tip-num">✖</span>🌑 絶望<span class="tip-role">勝っている側の守り</span></div>
+      ${tipSec('warn', '配られるとき', '', 0, `山札が残り <b>${HOPE_DECK}枚</b> を切ったとき、<b>本当の点数</b>（秘密の手札の呪いも含む）で<b>勝っている側</b>に配られる`)}
+      ${tipSec('win', '勝負札にすると', '', 0, `数字 <b>0</b> として扱われる（効果はない）`)}
+      <div class="tip-special"><b>相手の勝負札が希望のとき</b>：希望の効果を打ち消して<b>勝つ</b>。さらに捨て札から好きなカードを <b>1枚</b> 手札に加えられる（打ち消した<b>希望も選べる</b>。次のドラフトでは手札の枚数に数えない）</div>
+      <div class="tip-note">・勝負札専用（伏せ札にはできない）<br>・持っていても減点はない。使ったら捨て札になる（得点山には入らない）。僧侶の「蘇らせる」で拾い直せる</div>`;
+  }
+  if (attr === 'curse') {
+    return `<div class="tip-head" data-attr="curse"><span class="tip-num">0</span>💀 呪い<span class="tip-role">持っていると減点</span></div>
+      ${tipSec('warn', '持っていると', '', 0, `ゲーム終了時に手札にあると、1枚につき <b>−${CURSE_PENALTY}点</b>`)}
+      ${tipSec('lose', '勝負札にすると', '', 0, `数字0で負け。この呪いは<b>勝った相手の手札</b>に入る`)}
+      <div class="tip-special"><b>相手の勝負札が10のとき</b>：相手の10の「呪い返し」が発動する。勝負は<b>自分の勝ち</b>（相手の10は自分の得点山へ）、出した呪いは<b>自分の手札に返される</b>。相手は伏せ札の数値の差を得点として得る</div>
+      ${tipSec('fuse', '伏せ札にすると', '送り込み', 0, `相手の手札に送り込む。呪術師の逆流で突き返されたり、結界で防がれたりすると自分の手札に戻る`)}`;
+  }
+  const c = { attr, num: +num }, A = ATTRS[attr], lt = loseTimes(c), ft = fuseTimes(c);
+  const lose = {
+    fire: `勝った相手の得点山から <b>${lt}枚</b> 奪う`,
+    water: `手札の呪いを <b>${lt}枚</b>、相手の手札に押し付ける`,
+    wind: `市場から <b>${lt}枚</b> 取る（次のドラフトでは手札の枚数に数えない）`,
+    earth: `捨て札から好きなカードを <b>${lt}枚</b> 選んで手札に加える（呪いも選べる。次のドラフトでは手札の枚数に数えない）`,
+  }[attr];
+  const fuse = {
+    fire: `このラウンドの勝負に<b>勝っていたら</b>、山札の上から <b>${ft}枚</b> を得点山に入れる（呪いがめくれたら山札の一番下に戻して次のカードを取る）`,
+    water: ft === 1 ? '相手の伏せ札が呪いなら、相手の手札に<b>突き返す</b>。呪いでなければ、手札の呪いを <b>1枚</b> 相手に送る'
+                    : '相手の伏せ札が呪いなら<b>突き返し</b>、さらに手札の呪いを <b>1枚</b> 相手に送る。呪いでなければ、手札の呪いを <b>2枚まで</b> 相手に送る',
+    wind: `市場のカードを <b>${Math.min(ft, BLOW_MAX)}枚まで</b> 捨てて、山札から補充する。付いていた呪いは補充後に付け直す`,
+    earth: `この札を場に残し、次のラウンド、自分への敗北効果・呪いの送り込みを <b>${ft}回</b> 防ぐ`,
+  }[attr];
+  const loseSec = +num === 10
+    ? `<div class="tip-special">${tipSec('lose', '勝負に負けたとき', '呪い返し', 0,
+        '種類に関係なく10共通。勝負札で<b>呪いとぶつかると10は負け</b>になり、互いの伏せ札の数値の差を<b>得点として得る</b>（呪い・伏せ札なしは0）。負けた10は呪いを出した側の得点山に入る')}</div>`
+    : tipSec('lose', '勝負に負けたとき', A.lose, lt, lt ? lose : '<span class="tip-none">なし（7〜9は敗北効果がない）</span>');
+  return `<div class="tip-head" data-attr="${attr}"><span class="tip-num">${num}</span>${A.icon} ${A.name}<span class="tip-role">${ROLES[attr]}</span></div>
+    ${loseSec}
+    ${tipSec('fuse', '伏せ札をめくったとき', A.fuse, ft, fuse)}
+    <div class="tip-note">・伏せ効果を使ったら捨て札、使わなければ手札に戻る${attr === 'earth' ? '（結界は次ラウンドの終わりまで場に残る）' : ''}<br>
+      ・予言成功（後攻）なら、${attr === 'wind' ? '補充を見てから吹き払いをもう1回できる' : '伏せ効果がもう1回発動する'}</div>`;
+}
+
+// 先攻・後攻の札。先攻はドラフトで先に取れ、後攻は予言（伏せ札の属性当て）ができる
+const roleBadge = first => `<span class="role ${first ? 'first' : 'second'}">${first ? '⚔ 先攻' : '🔮 後攻'}</span>`;
+const roleHint = first => first ? 'ドラフトで先に取れる。伏せ札の種類を後攻に読まれると無効になる'
+                                : '予言ができる：先攻と同じ種類の伏せ札を出すと +1点、相手の伏せ効果を無効にし、自分の伏せ効果を強化';
+
+// 点数。自分は手札の呪いまで含めた正確な点数、相手は見えている情報だけで計算する（未判明の呪いは数えない）
+function scoreOf(p, isMe) {
+  const curses = isMe ? p.curses : p.knownCurses;
+  return { total: p.score.length + p.bonus + p.reversal - curses * CURSE_PENALTY, curses };
+}
+
+// 予言的中の回数（1回につき+1点）。後攻のときに先攻と同じ種類の伏せ札を出すと的中する
+// 10の敗北効果「呪い返し」で得た点。予言的中と同じく、点数に直結するので目立たせる
+const reversalPill = (count, pts) => `<span class="prophecy-pill reversal ${count ? 'on' : ''}" title="勝負札の10が呪いとぶつかって負けると「呪い返し」が発動し、互いの伏せ札の数値の差を得点として得る">🔟 呪い返し <b>${count}</b>回（+${pts}点）</span>`;
+const prophecyPill = n => `<span class="prophecy-pill ${n ? 'on' : ''}" title="後攻のとき、先攻と同じ種類の伏せ札を出すと予言的中。1回につき+1点">🔮 予言的中 <b>${n}</b>回（+${n}点）</span>`;
+
+function playerStats(p, isMe, idx) {
+  const shield = p.shield ? `<span class="shield">📿結界 残り${p.shield}</span>` : '';
+  const shieldNext = p.shieldNext ? `<span class="shield">📿次ラウンド結界 ×${p.shieldNext}</span>` : '';
+  const sc = scoreOf(p, isMe);
+  const picked = p.hand.filter(c => c && c.picked).length;
+  const calc = `得点山 ${p.score.length} ＋ 予言 ${p.bonus}${p.reversal ? ` ＋ 呪い返し ${p.reversal}` : ''} − ${isMe ? '' : '判明している'}呪い ${sc.curses}×${CURSE_PENALTY}`;
+  // スマホでは1行にまとめる（点数・予言・呪い返しは、タップすると詳しい説明が出る）
+  const who = isMe ? 'あなた' : p.name;
+  if (isPhone()) return `<div class="pstats compact">
+    <span class="zone-tag">${isMe ? '🙂' : '👤'} ${p.name}</span>${roleBadge(p.first)}
+    <button class="pile-btn" data-pile="score:${idx}" title="得点山">🏆<b>${p.score.length}</b>▸</button>
+    <button class="mini info-btn" data-info="🔮 予言ボーナス|${who}の予言的中：<b>${p.bonus}回</b>（<b>+${p.bonus}点</b>）<br>後攻のとき、先攻と同じ種類の伏せ札を出すと予言成功。1回につき+1点（さらに先攻の伏せ札は無効になり、後攻の伏せ効果は+1回）">🔮<b>${p.bonus}</b></button>${p.reversalCount ? `<button class="mini info-btn" data-info="🔟 呪い返し|${who}の呪い返し：<b>${p.reversalCount}回</b>（<b>+${p.reversal}点</b>）<br>勝負札の10が呪いとぶつかって負けると発動。伏せ札をめくった後、互いの伏せ札の数字の差を得点として得る">🔟<b>+${p.reversal}</b></button>` : ''}
+    <span class="mini" title="手札">🂠<b>${p.hand.length}</b>${picked ? `<small>(${p.hand.length - picked})</small>` : ''}</span>
+    ${p.shield ? `<span class="shield">📿${p.shield}</span>` : ''}${p.shieldNext ? `<span class="shield">📿次${p.shieldNext}</span>` : ''}
+    <div class="score-box mini" data-info="🧮 点数の内訳|${isMe ? '現在の点数' : '見えている点数（未判明の呪いは含まない）'}<br>${calc}"><span class="score-line"><span class="score-total">${sc.total}</span><span class="score-unit">点</span></span></div>
+  </div>`;
+  return `<div class="pstats">
+    <div class="pstats-main">
+      <span class="zone-tag">${isMe ? '🙂' : '👤'} ${p.name}</span>
+      <span title="${roleHint(p.first)}">${roleBadge(p.first)}</span>
+      ${isMe ? `<span class="role-hint">${roleHint(p.first)}</span>` : ''}
+      <div class="pstats-sub">
+        <button class="pile-btn" data-pile="score:${idx}">🏆 得点山 <b>${p.score.length}</b>枚 ▸</button>
+        ${prophecyPill(p.bonus)}
+        ${reversalPill(p.reversalCount, p.reversal)}
+        <span class="stats">手札 ${p.hand.length}枚${picked ? `（ドラフトでは ${p.hand.length - picked}枚として数える）` : ''}</span> ${shield} ${shieldNext}
+      </div>
+    </div>
+    <div class="score-box" title="${calc}">
+      <span class="score-label">${isMe ? '現在の点数' : '見えている点数'}</span>
+      <span class="score-line"><span class="score-total">${sc.total}</span><span class="score-unit">点</span></span>
+      <span class="score-calc">${calc}${isMe ? '' : '（未判明の呪いは含まない）'}</span>
+    </div>
+  </div>`;
+}
+
+// 画面は「プレイヤー pi から見える情報」（view）だけを元に描く。
+// 通信対戦では、ホストがゲストの view を作って送る。相手に見えないカードの中身は view に入れない
+function makeView(pi) {
+  const pub = (p, i) => {
+    const self = i === pi;
+    const sc = p.shieldCard || p.shieldCardNext;
+    return {
+      name: p.name, bonus: p.bonus, reversal: p.reversal, reversalCount: p.reversalCount, score: p.score, first: G.first === i,
+      shield: p.shield, shieldNext: p.shieldNext, shieldCard: sc ? cardName(sc) : null,
+      hand: p.hand.map(c => self || p.known.has(c.id) ? { ...c, known: p.known.has(c.id), picked: p.pickedUp.has(c.id) } : null),
+      knownCurses: p.hand.filter(c => c.attr === 'curse' && p.known.has(c.id)).length,
+      curses: self ? countCurses(p) : null,
+    };
+  };
+  const F = G.field;
+  const hide = (cards, open) => cards.map(c => !c ? null : open ? c : { back: true });
+  return {
+    phase: G.phase,
+    moves: G.moves, fx: G.fx, announce: G.announce && (G.announce.per ? { ...G.announce, ...G.announce.per[pi], per: null } : G.announce),
+    me: pi, round: G.round, deck: G.deck.length, discard: G.discard, market: G.market, log: G.log, over: G.over,
+    online: NET.mode !== 'cpu', result: G.result, ui: G.uis[pi], players: G.players.map(pub),
+    field: F && { ...F, battle: hide(F.battle, F.battleOpen), fuse: hide(F.fuse, F.fuseOpen) },
+  };
+}
+
+// ゲームの状態が変わったら呼ぶ。自分の画面を描き、ホストならゲストにも送る
+function render() {
+  if (typeof document === 'undefined' || G.headless) return;
+  V = makeView(NET.me);
+  renderView(V);
+  if (NET.mode === 'host' && NET.conn && NET.conn.open) sendView();
+}
+
+// スマホ（幅600px以下）では、画面を1枚に収める並べ方にする
+const isPhone = () => typeof matchMedia !== 'undefined' && matchMedia('(max-width: 600px)').matches;
+let scrolledUi = null, shownResult = null, scrolledPick = null;
+let placedMemo = { battle: null, fuse: null };  // 前回描いたときに場へ置いていた札（新しく置いた札だけ動かすため）
+// 商人の「拾う」・僧侶の「蘇らせる」で手に入れた札の別枠。次のドラフトでは手札の枚数に数えないので、ほかの手札と分けて見せる
+const pickedBox = cards => !cards.length ? '' : `<div class="picked-box" title="商人の「拾う」・僧侶の「蘇らせる」で手に入れた札。次のドラフトでは手札の枚数に数えない（ドラフトが終わると普通の手札に戻る）">
+  <div class="picked-label">💰📿 拾った・蘇らせた札 <small>次のドラフトでは数えない</small></div><div class="picked-cards">${cards.join('')}</div></div>`;
+
+// 山札。尽きたラウンドでゲームが終わるので、残りが少なくなったら目立たせる
+// （ドラフトをパスすると補充されず減らないので、残りラウンド数は正確に見積もれない。目安の表示はしない）
+const deckLow = n => n <= 8;
+function deckHTML(n) {
+  return `<div class="deck ${deckLow(n) ? 'low' : ''}" title="山札が尽きたラウンドの終わりにゲーム終了。ドラフトで取った分だけ市場に補充されて減っていきます">
+    <div class="deck-stack">${n ? cardHTML(null, { back: true, blank: true }) : cardHTML(null)}<div class="deck-count"><b>${n}</b>枚</div></div>
+    <div class="deck-label">山札</div>
+    <div class="deck-rounds">${!n ? '最終ラウンド' : deckLow(n) ? '残りわずか！' : '尽きたラウンドで終了'}</div>
+  </div>`;
+}
+
+function renderView(v) {
+  const me = v.players[v.me], opp = v.players[1 - v.me];
+  const ui = v.ui || {};
+  const turn = turnOf(v, ui);
+  const marketRects = rememberMarketRects();
+  const before = snapshotPlaces();
+  const phone = isPhone();
+  document.getElementById('round').innerHTML = phone
+    ? `${v.online ? '🌐' : ''}R${v.round} <span class="deck-pill ${deckLow(v.deck) ? 'low' : ''}" title="山札">🂠<b>${v.deck}</b></span> <button class="pile-btn" data-pile="discard" title="捨て札">🗑<b>${v.discard.length}</b></button>`
+    : `${v.online ? '🌐 通信対戦　' : ''}ラウンド ${v.round}　<span class="deck-pill ${deckLow(v.deck) ? 'low' : ''}">🂠 山札 <b>${v.deck}</b>枚</span>　<button class="pile-btn" data-pile="discard">🗑 捨て札 <b>${v.discard.length}</b>枚 ▸</button>`;
+  document.getElementById('board').innerHTML = !v.round ? '' : phone ? `
+    <span class="board-side me">🙂<b>${scoreOf(me, true).total}</b></span><span class="board-vs">vs</span><span class="board-side opp"><b>${scoreOf(opp, false).total}</b>👤</span>` : `
+    <span class="board-side me">🙂 ${me.name} ${roleBadge(me.first)} <b>${scoreOf(me, true).total}</b>点 <span class="board-prophecy" title="予言的中の回数">🔮${me.bonus}</span>${me.reversal ? ` <span class="board-prophecy" title="呪い返しで得た点">🔟+${me.reversal}</span>` : ''}</span>
+    <span class="board-vs">vs</span>
+    <span class="board-side opp">${opp.reversal ? `<span class="board-prophecy" title="呪い返しで得た点">🔟+${opp.reversal}</span> ` : ''}<span class="board-prophecy" title="予言的中の回数">🔮${opp.bonus}</span> <b>${scoreOf(opp, false).total}</b>点 ${roleBadge(opp.first)} ${opp.name} 👤</span>`;
+
+  // 相手
+  // スマホでは、中身の見えない札は小さな裏向きの札にして、相手に知られた札と並べる
+  document.getElementById('opp').innerHTML = `<h2>${playerStats(opp, false, 1 - v.me)}</h2>
+    <div class="row" data-hand="${1 - v.me}">${opp.hand.filter(c => !c || !c.picked).map(c => c ? cardHTML(c, { small: true, known: true }) : cardHTML(null, { back: true, small: true, blank: phone })).join('')}
+      ${pickedBox(opp.hand.filter(c => c && c.picked).map(c => cardHTML(c, { small: true, known: true })))}</div>`;
+
+  // 市場
+  const pickM = ui.type === 'pickMarket' || ui.type === 'multiMarket';
+  const msel = ui.type === 'multiMarket' ? ui.sel : [];
+  const msec = document.getElementById('marketSec');
+  msec.classList.toggle('pick-now', pickM);
+  msec.innerHTML = `<h2><span class="zone-tag">🛒 市場</span> ${pickM
+      ? `<span class="pick-banner">▼ ${ui.banner || (ui.type === 'multiMarket' ? '流すカードをここから選んでください' : 'ここから1枚選んでください')}</span>`
+      : '<span class="pc-only">みんなで取り合うカード（強いカードには呪いが取り付く）</span>'}</h2>
+    <div class="row">${deckHTML(v.deck)}${v.market.map((s, i) => `<div class="slot ${!pickM ? '' : ui.allowed && !ui.allowed.includes(i) ? 'dim' : 'clickable'}" data-action="market" data-i="${i}">${cardHTML(s.card, msel.includes(i) ? { cls: 'sel-blow', badge: ['b', '流す'] } : {})}${s.curses.length ? `<div class="curse-tag">💀×${s.curses.length}</div>` : ''}</div>`).join('') || '<span class="info">（空）</span>'}</div>`;
+
+  // スマホでは、市場から選ぶ番になったら市場が見えるところまで動かす
+  if (phone && pickM && scrolledPick !== ui.id) { scrolledPick = ui.id; msec.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+
+  // 場
+  const F = v.field;
+  let fieldHTML = phone ? '' : '<span style="color:var(--muted)">勝負札と伏せ札を選ぶと、ここで勝負します</span>';
+  // 場は、相手の勝負札・伏せ札を上（相手の手札側）、自分の札を下（自分の手札側）に置く
+  // pi：その場所のプレイヤー。札が飛ぶ動きの出発点・到着点として使う。発動中の効果の札は光らせて効果名を出す
+  const fxOn = (pi, kind) => v.fx && v.fx.pi === pi && v.fx.kind === kind;
+  const cell = (kind, label, inner, pi) => `<div class="fcell ${kind} ${fxOn(pi, kind) ? 'fx-on' : ''}" ${pi != null ? `data-slot="${pi}:${kind}"` : ''}>
+    ${fxOn(pi, kind) ? `<div class="fx-label">${v.fx.label}</div>` : ''}<div class="lbl">${label}</div>${inner}</div>`;
+  const board = (mine, theirs, center) => `<div class="board">
+    <div class="brow opp"><span class="lbl side-opp">👤 ${opp.name}</span>${theirs}</div>
+    <div class="vs">${center}</div>
+    <div class="brow me"><span class="lbl side-me">🙂 ${me.name}</span>${mine}</div>
+  </div>`;
+  if (ui.type === 'play') {
+    // 札を選んでいる間は、選んだ札が自分の側の枠に置かれる（クリックすると手札に戻る）
+    const sel = ui.sel;
+    const setSlot = kind => {
+      const c = me.hand.find(h => h.id === sel[kind]);
+      const fresh = c && placedMemo[kind] !== c.id;
+      return c ? cardHTML(c, { action: 'slot', cls: `clickable ${fresh ? 'placed' : ''}` })
+               : `<div class="card empty set-hint">${kind === 'battle' ? '勝負札' : '伏せ札'}を<br>選んでください</div>`;
+    };
+    fieldHTML = board(cell('battle', '勝負札', setSlot('battle'), v.me) + cell('fuse', '伏せ札', setSlot('fuse'), v.me),
+                      cell('', '勝負', cardHTML(null)) + cell('', '伏せ', cardHTML(null)), 'VS');
+    placedMemo = { battle: sel.battle, fuse: sel.fuse };
+  } else if (F) {
+    const slot = (kind, i) => {
+      const c = F[kind][i];
+      if (!c) return cardHTML(null);
+      if (c.back) return cardHTML(null, { back: true });
+      if (F.flip !== kind) return cardHTML(c, { cls: (F.gone || []).includes(c.id) ? 'gone' : '' });
+      return `<div class="flip"><div class="flip-inner">${cardHTML(c)}<div class="flip-back">${cardHTML(null, { back: true })}</div></div></div>`;
+    };
+    const o = 1 - v.me, m = v.me;
+    fieldHTML = board(cell('battle', '勝負', slot('battle', m), m) + cell('fuse', '伏せ', slot('fuse', m), m),
+                      cell('battle', '勝負', slot('battle', o), o) + cell('fuse', '伏せ', slot('fuse', o), o),
+                      `${F.result || 'VS'}${F.prophecy ? '　<span style="color:var(--battle)">予言成功！</span>' : ''}`);
+    // このフェーズで起きたこと
+    const lines = (from, to) => v.log.slice(from, to).map(l => `<div class="${l.cls}">${l.text}</div>`).join('');
+    fieldHTML = `<div class="field-wrap">${fieldHTML}<div class="events"><div class="ev-title">⚔️ 勝負</div>${lines(F.battleLog, F.fuseLog ?? undefined)}`
+      + (F.fuseLog != null ? `<div class="ev-title">🂠 伏せ札</div>${lines(F.fuseLog)}` : '') + '</div></div>';
+  }
+  const shields = v.players.filter(p => p.shieldCard).map(p => `<span class="shield">${p.name}の結界：${p.shieldCard}</span>`).join(' ');
+  const sec = document.getElementById('fieldSec');
+  const tap = phone ? 'タップ' : 'クリック';
+  sec.innerHTML = `<h2><span class="zone-tag">⚔️ 場</span> <span class="pc-only">このラウンド、あなたは ${roleBadge(me.first)}</span>${phone && !fieldHTML ? '<span>伏せるターンで札を出します</span>' : ''} ${shields}<span id="roundScore" class="round-score"></span></h2>${fieldHTML}`
+    + (ui.type === 'next' ? `<div class="next-hint">▶ ${tap}して${ui.options[0].label}</div>` : '');
+  const ev = sec.querySelector('.events');
+  if (ev) ev.scrollTop = ev.scrollHeight;
+  sec.classList.toggle('waiting', ui.type === 'next');
+  if (ui.type === 'next') sec.dataset.action = 'next'; else delete sec.dataset.action;
+  // 場が見えるところまで動かす（クリックで進む場面。スマホでは、札を選ぶ場面と、場に札が出たときも）
+  const scrollKey = ui.type === 'next' || (phone && ui.type === 'play') ? ui.id : phone && F ? `field-${v.round}` : null;
+  if (scrollKey && scrolledUi !== scrollKey) {
+    scrolledUi = scrollKey;
+    // スマホでは場が手札（画面の下に固定）のすぐ上に来るよう、一番下まで動かす
+    // （画面下のナビの高さが決まってから動かすため、描き終わった後にする）
+    if (phone) setTimeout(() => { const m = document.querySelector('#app main'); m.scrollTo({ top: m.scrollHeight, behavior: 'smooth' }); });
+    else sec.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+
+  // 自分
+  const sel = ui.sel || {};
+  const handCard = c => {
+    let cls = '', badge = null;
+    if (ui.type === 'play') {
+      cls = 'clickable';
+    }
+    return cardHTML(c, { action: 'hand', cls, badge, seen: c.known ? 'open' : 'secret' });
+  };
+  // 勝負札・伏せ札に選んだ札は、手札から場の枠へ移ったように見せる
+  const inHand = me.hand.filter(c => ui.type !== 'play' || (c.id !== sel.battle && c.id !== sel.fuse));
+  const handHTML = inHand.filter(c => !c.picked).map(handCard).join('')
+    + pickedBox(inHand.filter(c => c.picked).map(handCard));
+  document.getElementById('me').innerHTML = `<h2>${playerStats(me, true, v.me)}</h2>
+    <div class="row" style="padding-top:10px" data-hand="${v.me}">${handHTML}
+      <div class="legend pc-only"><span class="seen open">👁 公開</span> 相手に見えている<br><span class="seen secret">🔒 秘密</span> 相手が知らない</div></div>`;
+
+  // プロンプト
+  const pr = document.getElementById('prompt');
+  const uiText = phone && ui.text ? ui.text.replace(/クリック/g, 'タップ') : ui.text;
+  if (NET.dead) {
+    pr.innerHTML = '<div class="txt" style="color:var(--battle)">通信が切れました。ページを再読み込みして、部屋を作り直してください。</div>';
+  } else if (ui.type === 'play') {
+    // 伏せ札は、伏せ札にできる札（希望・絶望以外）が勝負札のほかにあるときだけ必要
+    const needFuse = me.hand.some(c => c.id !== sel.battle && !isSpecial(c));
+    const ok = sel.battle != null && (sel.fuse != null || !needFuse);
+    const hasSpecial = me.hand.some(isSpecial);
+    // 1行ずつ短くして、横幅があるときは折り返さずに見せる
+    pr.innerHTML = `<div class="txt play-txt"><div>手札を${tap}で <span style="color:var(--battle)">勝負札</span> → <span style="color:var(--fuse)">伏せ札</span> の順に場へ置く（場の札を${tap}で戻す）</div>
+      <div class="prompt-role">あなたは ${roleBadge(me.first)} ${me.first ? '伏せ札の種類を相手に読まれないように' : '先攻と同じ種類を伏せると予言成功'}${hasSpecial ? '　※希望・絶望は勝負札専用' : ''}</div></div>
+      <div class="actions"><button class="primary" data-action="confirmPlay" ${ok ? '' : 'disabled'}>決定</button></div>`;
+  } else if (ui.type === 'multiMarket') {
+    pr.innerHTML = `<div class="txt">${uiText}</div>
+      <div class="actions"><button class="primary" data-action="confirmMulti" ${ui.sel.length ? '' : 'disabled'}>流す（${ui.sel.length}枚）</button><button data-action="skip">${ui.skip}</button></div>`;
+  } else if (ui.type) {
+    const opts = (ui.options || []).map((o, i) => `<button class="${o.primary ? 'primary' : ''}" data-action="opt" data-i="${i}">${o.label}</button>`).join('');
+    const buttons = opts + (ui.skip ? `<button data-action="skip">${ui.skip}</button>` : '');
+    pr.innerHTML = `<div class="txt">${uiText}</div>${buttons ? `<div class="actions">${buttons}</div>` : ''}`;
+  } else {
+    pr.innerHTML = `<div class="txt" style="color:var(--muted)">${v.over ? 'ゲーム終了' : turn.oppActing ? `👤 ${opp.name}が考えています…` : '処理中…'}</div>`;
+  }
+
+  // ログ
+  const lg = document.getElementById('log');
+  lg.innerHTML = v.log.map(l => `<div class="${l.cls}">${l.text}</div>`).join('');
+  lg.scrollTop = lg.scrollHeight;
+  if (document.getElementById('logSheet').open) fillLogSheet();
+
+  // 結果
+  const rd = document.getElementById('result');
+  if (v.result && shownResult !== v.result.key) { shownResult = v.result.key; showResult(v); }
+  if (!v.result && rd.open) rd.close();
+
+  // 今の場面と手番
+  document.getElementById('phaseBar').innerHTML = phaseBarHTML(v, turn, opp);
+  document.getElementById('me').classList.toggle('turn-active', turn.mine);
+  document.getElementById('opp').classList.toggle('turn-active', turn.oppActing);
+  // 自分の番になった瞬間に、画面下のバーを光らせて知らせる
+  if (ui.id && ui.id !== flashedUi) {
+    flashedUi = ui.id;
+    pr.classList.remove('your-turn');
+    void pr.offsetWidth;
+    pr.classList.add('your-turn');
+  }
+
+  // 僧侶の「蘇らせる」：捨て札の一覧から選ぶ
+  const cd = document.getElementById('choose');
+  if (ui.type === 'pickDiscard') {
+    cd.innerHTML = `<h3>${ui.title || '📿蘇らせる'}：捨て札から1枚選んでください</h3>
+      <p class="info" style="margin:0 0 8px">選んだカードは手札に加わります（次のドラフトでは手札の枚数に数えません）。左から古い順。</p>
+      <div class="pile-list">${v.discard.map((c, i) => `<div class="pile-item ${!ui.allowed || ui.allowed.includes(i) ? 'pick-item" data-action="discardPick' : 'dim'}" data-i="${i}">${cardHTML(c, { small: true })}
+        <div class="pile-note">R${c.at ?? '-'}<br>${c.why ?? ''}</div></div>`).join('')}</div>`;
+    if (!cd.open) cd.showModal();
+  } else if (cd.open) cd.close();
+
+  showScoreChanges(v, me, opp);
+  fitScreen();
+  flyFromMarket(marketRects);
+  playMoves(v, before);
+  showAnnounce(v.announce);
+}
+
+// スマホ用のログ（画面の下から出す）
+function fillLogSheet() {
+  const el = document.querySelector('#logSheet .sheet-log');
+  el.innerHTML = V ? V.log.map(l => `<div class="${l.cls}">${l.text}</div>`).join('') : '';
+  el.scrollTop = el.scrollHeight;
+}
+
+// 革命・革命返しなど、場全体のルールが変わる出来事を、画面の中央に大きく知らせる
+let announced = 0;
+function showAnnounce(a) {
+  if (!a || a.seq <= announced) { if (!a) announced = 0; return; }
+  announced = a.seq;
+  // 前のお知らせが残っていたら、重ならないように消してから出す
+  document.querySelectorAll('.announce').forEach(e => e.remove());
+  const ms = a.ms || 2600;
+  const el = document.createElement('div');
+  el.className = 'announce' + (a.style ? ' ann-' + a.style : '');
+  el.style.animationDuration = ms + 'ms';
+  el.innerHTML = `<div class="announce-title">${a.title}</div><div class="announce-text">${a.text}</div>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), ms);
+}
+
+// ===== 効果で札が動く様子 =====
+// 描き直す前に、札や置き場所（場の枠・手札・得点山・捨て札・山札）の位置を覚えておき、
+// 描き直した後に、新しく記録された札の移動を「移動元 → 移動先」へ飛ぶ動きで見せる
+let lastMoveSeq = 0;
+const landing = new Map();  // 手札に着地するまで隠しておく札（カードID → 着地する時刻）
+function snapshotPlaces() {
+  const rect = sel => { const el = document.querySelector(sel); return el && el.getBoundingClientRect(); };
+  const cards = new Map();
+  document.querySelectorAll('#app [data-cid]').forEach(el => cards.set(el.dataset.cid, el.getBoundingClientRect()));
+  return { cards, rect };
+}
+function placeRect(snap, at) {
+  switch (at.z) {
+    case 'field': return snap.rect(`[data-slot="${at.pi}:${at.kind}"] .card`);
+    case 'hand': return snap.rect(`[data-hand="${at.pi}"]`);
+    case 'score': return snap.rect(`[data-pile="score:${at.pi}"]`);
+    case 'discard': return snap.rect('[data-pile="discard"]');
+    case 'deck': return snap.rect('.deck-stack');
+    case 'market': return snap.rect('#marketSec .row');
+  }
+}
+function playMoves(v, before) {
+  const moves = v.moves || [];
+  const top = moves.length ? moves[moves.length - 1].seq : 0;
+  if (top < lastMoveSeq) lastMoveSeq = 0;  // 新しいゲーム
+  const fresh = moves.filter(m => m.seq > lastMoveSeq);
+  lastMoveSeq = Math.max(lastMoveSeq, top);
+  const after = snapshotPlaces();
+  const fit = +getComputedStyle(document.getElementById('app')).getPropertyValue('--fit') || 1;
+  fresh.forEach((m, i) => {
+    const from = before.cards.get(String(m.cid)) || placeRect(before, m.from);
+    const toCard = m.to.z === 'hand' && document.querySelector(`[data-hand="${m.to.pi}"] [data-cid="${m.cid}"]`);
+    const to = toCard ? toCard.getBoundingClientRect() : placeRect(after, m.to);
+    if (!from || !to) return;
+    const delay = i * FX_STAGGER, dur = FX_FLY_MS, landAt = performance.now() + delay + dur;
+    if (toCard) landing.set(String(m.cid), landAt);
+    flyGhost(m.card, from, to, { delay, dur, fit, shrink: !toCard, onEnd: () => {
+      landing.delete(String(m.cid));
+      document.querySelectorAll(`[data-hand] [data-cid="${m.cid}"]`).forEach(el => { el.style.visibility = ''; });
+      if (!toCard) pulsePlace(m.to);
+    } });
+  });
+  // 着地前の札は手札で隠しておく（途中で描き直されても隠したままにする）
+  for (const cid of landing.keys()) document.querySelectorAll(`[data-hand] [data-cid="${cid}"]`).forEach(el => { el.style.visibility = 'hidden'; });
+}
+function flyGhost(card, from, to, { delay, dur, fit, shrink, onEnd }) {
+  const g = document.createElement('div');
+  g.className = 'fx-ghost';
+  g.innerHTML = cardHTML(card);
+  document.body.appendChild(g);
+  const c = r => [r.left + r.width / 2, r.top + r.height / 2];
+  const [x0, y0] = c(from), [x1, y1] = c(to);
+  const mx = (x0 + x1) / 2, my = Math.min(y0, y1) - 60;  // 山なりに飛ばす
+  const pos = (x, y, sc, op = 1) => ({ transform: `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${sc})`, opacity: op });
+  const anim = g.animate([
+    pos(x0, y0, fit), pos(mx, my, fit * 1.15, 1), pos(x1, y1, shrink ? fit * 0.4 : fit, shrink ? 0.2 : 1),
+  ], { duration: dur, delay, easing: 'cubic-bezier(.35,.6,.3,1)', fill: 'both' });
+  anim.onfinish = () => { g.remove(); onEnd(); };
+}
+// 得点山・捨て札などに札が入ったときに、その置き場所をぽんと光らせる
+function pulsePlace(at) {
+  const sel = at.z === 'score' ? `[data-pile="score:${at.pi}"]` : at.z === 'discard' ? '[data-pile="discard"]' : at.z === 'hand' ? `[data-hand="${at.pi}"]` : null;
+  const el = sel && document.querySelector(sel);
+  if (el) el.animate([{ boxShadow: '0 0 0 0 var(--accent)' }, { boxShadow: '0 0 0 6px var(--accent)' }, { boxShadow: '0 0 0 0 var(--accent)' }], { duration: 500 });
+}
+
+// ===== 市場から手札へ飛ぶ動き =====
+// 描き直す前に市場のカードの位置を覚えておき、描き直した後に「市場にあったカードが新しく手札に入った」なら、
+// そのカードを市場の位置から手札の位置まで動かして見せる（ドラフト・商人の拾う。相手が取った札も、見えていれば動かす）。
+// 飛んでいる途中で画面が描き直されても（相手の番や、札を選ぶ場面への切り替わりなど）、続きから動かし直す
+const FLY_MS = 650;
+let handIds = new Set();
+const flights = new Map();  // カードID → { from: 市場での位置, start: 飛び始めた時刻 }
+function rememberMarketRects() {
+  const rects = new Map();
+  document.querySelectorAll('#marketSec [data-cid]').forEach(el => rects.set(el.dataset.cid, el.getBoundingClientRect()));
+  return rects;
+}
+function flyFromMarket(marketRects) {
+  const now = performance.now();
+  const cards = [...document.querySelectorAll('#me [data-cid], #opp [data-cid]')];
+  if (isPhone()) {
+    // スマホでは手札が横スクロールの枠に入っていて枠の外へは動かせないので、札の写しを画面の上で飛ばす（着地するまで本物は隠す）
+    for (const el of cards) {
+      const cid = el.dataset.cid, from = marketRects.get(cid);
+      if (!from || handIds.has(cid)) continue;
+      landing.set(cid, now + FLY_MS);
+      const g = document.createElement('div');
+      g.className = 'fx-ghost';
+      g.innerHTML = el.outerHTML;
+      document.body.appendChild(g);
+      const to = el.getBoundingClientRect();
+      const pos = (r, sc) => ({ transform: `translate(${r.left}px, ${r.top}px) scale(${sc})` });
+      const mid = { left: (from.left + to.left) / 2, top: Math.min(from.top, to.top) - 40 };
+      g.animate([pos(from, 1), pos(mid, 1.12), pos(to, 1)], { duration: FLY_MS, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'both' })
+        .onfinish = () => { g.remove(); landing.delete(cid); document.querySelectorAll(`[data-hand] [data-cid="${cid}"]`).forEach(e => { e.style.visibility = ''; }); };
+    }
+    handIds = new Set(cards.map(el => el.dataset.cid));
+    return;
+  }
+  for (const el of cards) {
+    const from = marketRects.get(el.dataset.cid);
+    if (from && !handIds.has(el.dataset.cid)) flights.set(el.dataset.cid, { from, start: now });
+  }
+  handIds = new Set(cards.map(el => el.dataset.cid));
+  const fit = +getComputedStyle(document.getElementById('app')).getPropertyValue('--fit') || 1;
+  for (const [cid, f] of flights) {
+    const elapsed = now - f.start;
+    const el = cards.find(c => c.dataset.cid === cid);
+    if (elapsed >= FLY_MS || !el) { flights.delete(cid); continue; }
+    const to = el.getBoundingClientRect();
+    // 画面全体を縮小しているので、画面上の移動量を縮小前の大きさに直して動かす
+    const dx = (f.from.left - to.left) / fit, dy = (f.from.top - to.top) / fit;
+    el.style.position = 'relative';
+    el.style.zIndex = 40;
+    const anim = el.animate([
+      { transform: `translate(${dx}px, ${dy}px)`, boxShadow: '0 0 0 3px var(--accent)' },
+      { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 30}px) scale(1.12)`, offset: 0.5 },
+      { transform: 'none' },
+    ], { duration: FLY_MS, easing: 'cubic-bezier(.3,.7,.3,1)' });
+    anim.currentTime = elapsed;  // 描き直された場合は、途中から続ける
+    anim.onfinish = () => { el.style.zIndex = ''; };
+  }
+}
+
+// ===== 今「誰が」「何を」している番か =====
+const STEPS = [['draft', 'ドラフト'], ['play', '伏せる'], ['battle', '勝負'], ['fuse', '伏せ札'], ['effect', '伏せ効果'], ['end', '終了']];
+let flashedUi = null;
+
+// 自分が操作する番か、相手が操作している（考えている）番か
+function turnOf(v, ui) {
+  const ph = v.phase || {};
+  const mine = !!ui.type;
+  const oppActing = !mine && !v.over && (ph.actor === 1 - v.me || ph.step === 'play'
+    || (ph.step === 'draft' && ph.actor == null));
+  return { mine, oppActing };
+}
+
+function phaseBarHTML(v, turn, opp) {
+  if (!v.round) return '';
+  const ph = v.phase || {};
+  const cur = STEPS.findIndex(([k]) => k === ph.step);
+  const steps = STEPS.map(([k, name], i) => `<span class="ph-step ${i < cur ? 'done' : i === cur ? 'now' : ''}">${name}</span>`).join('<span class="ph-arrow">›</span>');
+  const who = v.over ? '' : turn.mine ? `<span class="ph-who mine">${v.ui.type === 'next' ? '▶ クリックで進む' : '▶ あなたの番'}</span>`
+    : turn.oppActing ? `<span class="ph-who opp">👤 ${opp.name}の番</span>` : '';
+  return `<div class="phase-bar"><span class="ph-round">ラウンド ${v.round}</span>${steps}<span class="ph-label">${ph.label || ''}</span>${who}</div>`;
+}
+
+// ===== 得点の動き =====
+// 点数が変わったら、点数欄に「+2」「−3」を出し、点数欄を緑・赤にする。
+// 表示は、次にクリックで先へ進む（伏せ札をめくる・次のラウンドへ など）まで残し、その間の増減は足し合わせる。
+// 相手の点数は「見えている点数」で比べるので、秘密の手札の呪いによる変化は出ない
+const scoreMemo = { round: -1, start: null, last: null, pending: [0, 0] };
+const clearScoreDeltas = () => { scoreMemo.pending = [0, 0]; };
+function showScoreChanges(v, me, opp) {
+  const totals = [scoreOf(me, true).total, scoreOf(opp, false).total];
+  if (v.round < scoreMemo.round) { scoreMemo.last = null; clearScoreDeltas(); }  // 新しいゲーム
+  if (v.round !== scoreMemo.round) { scoreMemo.round = v.round; scoreMemo.start = totals.slice(); }
+  const boxes = [document.querySelector('#me .score-box'), document.querySelector('#opp .score-box')];
+  totals.forEach((t, k) => {
+    const d = scoreMemo.last ? t - scoreMemo.last[k] : 0;
+    scoreMemo.pending[k] += d;
+    const n = scoreMemo.pending[k];
+    if (!boxes[k] || !n) return;
+    boxes[k].classList.add(n > 0 ? 'score-up' : 'score-down');
+    // 変わった瞬間だけ、ぽんと弾ませる
+    boxes[k].querySelector('.score-line').insertAdjacentHTML('beforeend', `<span class="score-delta ${n > 0 ? 'up' : 'down'} ${d ? 'pop' : ''}">${n > 0 ? '+' : ''}${n}</span>`);
+  });
+  scoreMemo.last = totals;
+  // このラウンドの点数の増減のまとめ
+  const sum = document.getElementById('roundScore');
+  if (sum) {
+    const diff = totals.map((t, k) => t - scoreMemo.start[k]);
+    const fmt = n => n > 0 ? `<b class="up">+${n}</b>` : n < 0 ? `<b class="down">${n}</b>` : '±0';
+    sum.innerHTML = diff.some(Boolean) ? `このラウンドの点数：あなた ${fmt(diff[0])} ／ ${opp.name} ${fmt(diff[1])}` : '';
+  }
+}
+
+// 画面の高さに収まる倍率を計算して、全体を縮小する。小さくしすぎると読めないので FIT_MIN までにし、それでも収まらなければスクロールにする
+const FIT_MIN = 0.6;
+function fitScreen() {
+  const app = document.getElementById('app');
+  // 市場と場が横に並ぶときは場を左（手札の真上）に、縦に並ぶときは市場を上・場を下（手札のすぐ上）にする
+  const mid = app.querySelector('.mid');
+  const arrangeMid = () => {
+    mid.classList.remove('stacked');
+    const top = id => document.getElementById(id).getBoundingClientRect().top;
+    if (Math.abs(top('marketSec') - top('fieldSec')) > 5) mid.classList.add('stacked');
+  };
+  if (matchMedia('(max-width: 860px)').matches) { app.style.setProperty('--fit', 1); arrangeMid(); return; }
+  const main = app.querySelector('main');
+  // 倍率 f で表示したとき、中身が画面の高さに収まるか
+  // （縮小すると横幅が広がり、市場と場が横に並ぶなどして中身の高さも変わるので、実際に当てはめて確かめる）
+  const fits = f => {
+    app.style.setProperty('--fit', f);
+    return main.scrollHeight <= main.clientHeight + 1;
+  };
+  if (fits(1)) { arrangeMid(); return; }
+  // 収まる一番大きい倍率を二分探索で探す
+  let lo = FIT_MIN, hi = 1;
+  for (let i = 0; i < 8; i++) {
+    const mid = (lo + hi) / 2;
+    if (fits(mid)) lo = mid; else hi = mid;
+  }
+  app.style.setProperty('--fit', lo);
+  arrangeMid();
+}
+
+function openPile(kind) {
+  let title, cards;
+  if (kind === 'discard') { title = '🗑 捨て札'; cards = V.discard; }
+  else { const p = V.players[+kind.split(':')[1]]; title = `🏆 ${p.name}の得点山`; cards = p.score; }
+  const list = cards.map(c => `<div class="pile-item">${cardHTML(c, { small: true })}
+    <div class="pile-note">R${c.at ?? '-'}<br>${c.why ?? ''}</div></div>`).join('');
+  const d = document.getElementById('pile');
+  d.innerHTML = `<h3>${title}（${cards.length}枚）</h3>
+    <p class="info" style="margin:0 0 8px">左から古い順。カードにマウスを合わせると効果が見られます。</p>
+    <div class="pile-list">${list || '<span class="info">まだありません</span>'}</div>
+    <p style="text-align:right"><button onclick="this.closest('dialog').close()">閉じる</button></p>`;
+  d.showModal();
+}
+
+function showResult(v) {
+  const s = v.result.scores, P = v.players;
+  const row = i => `<tr><td>${P[i].name}</td><td>${s[i].cards}</td><td>${s[i].bonus}</td><td>${s[i].reversal}</td><td>${s[i].curses}（−${s[i].curses * CURSE_PENALTY}）</td><td><b>${s[i].total}</b></td></tr>`;
+  const mine = s[v.me].total, theirs = s[1 - v.me].total;
+  const msg = mine > theirs ? 'あなたの勝ち！' : mine < theirs ? `${P[1 - v.me].name}の勝ち…` : '引き分け';
+  const again = NET.mode === 'guest' ? '<span class="info">ホストが「もう一度」を押すと、次のゲームが始まります　</span>'
+                                     : '<button class="primary" id="btnAgain">もう一度</button>';
+  const d = document.getElementById('result');
+  d.innerHTML = `<h3>${msg}</h3><table><tr><th></th><th>得点山</th><th>予言</th><th>呪い返し</th><th>呪い</th><th>合計</th></tr>${row(0)}${row(1)}</table>
+    <p style="text-align:right">${again} <button onclick="this.closest('dialog').close()">閉じる</button></p>`;
+  if (!d.open) d.showModal();
+  const b = document.getElementById('btnAgain');
+  if (b) b.onclick = () => { d.close(); if (NET.mode === 'host') startHostGame(); else location.reload(); };
+}
+
+// ===== 通信対戦 =====
+// ブラウザ同士を直接つなぐ（PeerJS）。部屋コードは、PeerJS の公開サーバー上の接続先IDとして使う
+const PEER_PREFIX = 'noroi-ichi-room-';
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const randomCode = () => Array.from({ length: 5 }, () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]).join('');
+const lobbyStatus = html => { document.getElementById('lobbyStatus').innerHTML = html; };
+const lobbyError = text => lobbyStatus(`<span style="color:var(--battle)">${text}</span>`);
+const CONNECT_TIMEOUT = 20000;
+
+// 直接つながらないときに通信を中継してもらうサーバー（Metered の TURN）。
+// app：ダッシュボードの「○○.metered.live」の○○の部分、apiKey：TURN の資格情報を作ったときの API キー
+const TURN = { app: 'noroiichi', apiKey: '702e646d04996531c0ce4582ae9cf544d981' };
+
+// 中継サーバーの接続情報を取りに行く。設定がない・取得に失敗したときは PeerJS の標準設定で続ける
+async function peerOptions() {
+  if (!TURN.app || !TURN.apiKey) return {};
+  try {
+    const r = await fetch(`https://${TURN.app}.metered.live/api/v1/turn/credentials?apiKey=${encodeURIComponent(TURN.apiKey)}`);
+    if (!r.ok) throw new Error(r.status);
+    NET.relay = true;
+    return { config: { iceServers: await r.json() } };
+  } catch (e) {
+    console.warn('中継サーバーの情報を取得できませんでした', e);
+    return {};
+  }
+}
+
+const stuckMessage = () => '接続に時間がかかっています。ネットワークの制限で直接つながらない可能性があります。'
+  + (NET.relay ? '2人ともページを再読み込みして、部屋を作り直してみてください。' : '（中継サーバーが使えない状態です）');
+
+function peerAvailable() {
+  if (typeof Peer !== 'undefined') return true;
+  lobbyError('通信の準備ができませんでした。インターネットにつながっているか確認してください。');
+  return false;
+}
+
+async function hostRoom() {
+  if (!peerAvailable()) return;
+  lobbyStatus('部屋を作っています…');
+  const code = randomCode();
+  const peer = new Peer(PEER_PREFIX + code, await peerOptions());
+  NET.peer = peer;
+  peer.on('open', () => {
+    // ウェブで公開しているときは、部屋コード入りの招待リンクも作る（相手はタップするだけで入れる）
+    const link = /^https?:$/.test(location.protocol) ? `${location.origin}${location.pathname}?room=${code}` : null;
+    lobbyStatus(`部屋コード <b class="room-code">${code}</b><br>このコードを相手に伝えてください。相手が入ると、ゲームが始まります。`
+      + (link ? `<div class="invite-share"><button class="primary" id="btnShare">📨 招待リンクを送る</button><div class="invite-link">${link}</div></div>` : ''));
+    if (link) document.getElementById('btnShare').onclick = () => shareInvite(link, code);
+  });
+  peer.on('error', e => {
+    if (e.type === 'unavailable-id') { peer.destroy(); hostRoom(); return; }  // コードがたまたま使用中なら作り直す
+    lobbyError(`エラーが起きました（${e.type}）`);
+  });
+  peer.on('connection', conn => {
+    if (NET.conn) { conn.on('open', () => { conn.send({ t: 'full' }); setTimeout(() => conn.close(), 500); }); return; }
+    NET.conn = conn;
+    lobbyStatus(`部屋コード <b class="room-code">${code}</b><br>相手が見つかりました。接続しています…`);
+    setTimeout(() => { if (!conn.open) lobbyError(stuckMessage()); }, CONNECT_TIMEOUT);
+    conn.on('open', () => keepAlive(conn));
+    conn.on('data', msg => {
+      NET.lastSeen = Date.now();
+      if (msg.t === 'hello') {
+        NET.mode = 'host';
+        NET.guestName = String(msg.name || 'ゲスト').slice(0, 10);
+        if (NET.guestName === NET.myName) NET.guestName += '（2）';
+        document.getElementById('lobby').close();
+        startHostGame();
+      } else if (msg.t === 'answer') answerFrom(1, msg.id, msg.value);
+    });
+    conn.on('close', disconnected);
+  });
+}
+
+// 招待リンクを送る。スマホなら LINE などの送り先を選ぶ画面を出し、出せなければリンクをコピーする
+async function shareInvite(link, code) {
+  const text = `呪い市で対戦しよう！ リンクを開いて「この部屋に入る」を押してね（部屋コード ${code}）`;
+  if (navigator.share) {
+    try { await navigator.share({ title: '呪い市', text, url: link }); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  try {
+    await navigator.clipboard.writeText(`${text}\n${link}`);
+    document.getElementById('btnShare').textContent = '✅ リンクをコピーしました';
+  } catch (e) { prompt('このリンクを相手に送ってください', link); }
+}
+
+function startHostGame() {
+  NET.sentLog = 0;
+  newGame({ names: [NET.myName, NET.guestName] });
+  gameLoop();
+}
+
+// ホストからゲストへ画面の状態を送る。ログは毎回全部ではなく、前回から増えた分だけ送る
+function sendView() {
+  const view = makeView(1 - NET.me);
+  view.logStart = NET.sentLog;
+  view.log = view.log.slice(NET.sentLog);
+  NET.sentLog = G.log.length;
+  NET.conn.send({ t: 'view', view });
+}
+
+async function joinRoom(code) {
+  if (!peerAvailable()) return;
+  code = code.trim().toUpperCase();
+  if (!code) { lobbyStatus('部屋コードを入力してください'); return; }
+  lobbyStatus('通信の準備をしています…');
+  const peer = new Peer(await peerOptions());
+  NET.peer = peer;
+  let guestLog = [];
+  peer.on('open', () => {
+    lobbyStatus('部屋を探しています…');
+    const conn = peer.connect(PEER_PREFIX + code, { reliable: true, serialization: 'json' });
+    NET.conn = conn;
+    setTimeout(() => { if (!conn.open && NET.mode !== 'guest') lobbyError(stuckMessage()); }, CONNECT_TIMEOUT);
+    conn.on('open', () => { keepAlive(conn); conn.send({ t: 'hello', name: NET.myName }); lobbyStatus('接続しました。ゲームの開始を待っています…'); });
+    conn.on('data', msg => {
+      NET.lastSeen = Date.now();
+      if (msg.t === 'full') lobbyError('その部屋はもう満員です');
+      if (msg.t !== 'view') return;
+      if (NET.mode !== 'guest') { NET.mode = 'guest'; NET.me = 1; document.getElementById('lobby').close(); }
+      // ログは増えた分だけ届くので、手元のログにつなげる（新しいゲームでは0から）
+      guestLog = guestLog.slice(0, msg.view.logStart).concat(msg.view.log);
+      msg.view.log = guestLog;
+      // 選びかけの状態（勝負札の選択など）は、同じ問い合わせの間は手元のものを残す
+      if (V && V.ui && msg.view.ui && V.ui.id === msg.view.ui.id) msg.view.ui = V.ui;
+      V = msg.view;
+      renderView(V);
+    });
+    conn.on('close', disconnected);
+  });
+  peer.on('error', e => lobbyError(e.type === 'peer-unavailable' ? 'その部屋が見つかりません。コードを確かめてください' : `エラーが起きました（${e.type}）`));
+}
+
+// 相手がタブを閉じても切断の通知が来ないことがあるので、3秒ごとに合図を送り合い、30秒届かなければ切断とみなす
+// （相手が別のタブを見ている間はブラウザが合図を間引くことがあるため、余裕を持たせている）
+function keepAlive(conn) {
+  NET.lastSeen = Date.now();
+  const timer = setInterval(() => {
+    if (NET.dead) { clearInterval(timer); return; }
+    if (conn.open) conn.send({ t: 'ping' });
+    if (Date.now() - NET.lastSeen > 30000) { clearInterval(timer); disconnected(); }
+  }, 3000);
+}
+
+function disconnected() {
+  if (NET.dead) return;
+  if (NET.mode === 'cpu') { lobbyStatus('<span style="color:var(--battle)">接続が切れました</span>'); return; }
+  NET.dead = true;
+  if (V) renderView(V);
+}
+
+// 勝負札・伏せ札の置き場所（where：battle / fuse / hand）に札を置く
+function placeCard(id, where) {
+  const s = V.ui.sel;
+  if (where === 'battle') { if (s.fuse === id) s.fuse = s.battle; s.battle = id; }
+  else if (where === 'fuse') { if (s.battle === id) s.battle = s.fuse; s.fuse = id; }
+  else if (where === 'hand') { if (s.battle === id) s.battle = null; if (s.fuse === id) s.fuse = null; }
+  renderView(V);
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('click', e => {
+    const pile = e.target.closest('[data-pile]');
+    if (pile) { if (V) openPile(pile.dataset.pile); return; }
+    const el = e.target.closest('[data-action]');
+    if (!el || !V || !V.ui || NET.dead) return;
+    const ui = V.ui, a = el.dataset.action;
+    if (a === 'market' && ui.type === 'pickMarket') { if (!ui.allowed || ui.allowed.includes(+el.dataset.i)) answer(+el.dataset.i); }
+    else if (a === 'market' && ui.type === 'multiMarket') {
+      const i = +el.dataset.i;
+      if (ui.sel.includes(i)) ui.sel = ui.sel.filter(x => x !== i);
+      else if (ui.sel.length < ui.max) ui.sel = [...ui.sel, i];
+      renderView(V);
+    }
+    else if (a === 'confirmMulti') answer([...ui.sel]);
+    else if (a === 'discardPick' && ui.type === 'pickDiscard' && (!ui.allowed || ui.allowed.includes(+el.dataset.i))) answer(+el.dataset.i);
+    else if (a === 'slot' && ui.type === 'play') placeCard(+el.dataset.id, 'hand');
+    else if (a === 'hand' && ui.type === 'play') {
+      const id = +el.dataset.id, s = ui.sel;
+      const special = isSpecial(V.players[V.me].hand.find(c => c.id === id));
+      if (s.battle === id) s.battle = null;
+      else if (s.fuse === id) s.fuse = null;
+      else if (special) s.battle = id;  // 希望・絶望は勝負札にしか置けない
+      else if (s.battle == null) s.battle = id;
+      else if (s.fuse == null) s.fuse = id;
+      renderView(V);
+    }
+    else if (a === 'opt' || (a === 'next' && ui.type === 'next')) answer(ui.options[+(el.dataset.i || 0)].value);
+    else if (a === 'skip') answer(null);
+    else if (a === 'confirmPlay') answer({ ...ui.sel });
+  });
+  const tip = document.getElementById('tip');
+  let lastTouch = 0;
+  document.addEventListener('mouseover', e => {
+    if (Date.now() - lastTouch < 1000) return;  // タップしたときに出る「マウスが乗った」扱いでは、説明を出さない（長押しで出す）
+    const el = e.target.closest('[data-tip]');
+    if (!el) { tip.hidden = true; return; }
+    const host = el.closest('dialog') || document.body;
+    if (tip.parentNode !== host) host.appendChild(tip);
+    const [attr, num] = el.dataset.tip.split(':');
+    tip.innerHTML = cardTipHTML(attr, num);
+    tip.hidden = false;
+    placeTip(e);  // マウスを動かさなくても、出た瞬間にカーソルの近くへ置く
+  });
+  // 画面の端ではみ出さないよう、カーソルの反対側に出す
+  const placeTip = e => {
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    const x = e.clientX + 16 + w > innerWidth ? e.clientX - w - 12 : e.clientX + 16;
+    const y = e.clientY + 16 + h > innerHeight ? e.clientY - h - 12 : e.clientY + 16;
+    tip.style.left = Math.max(4, x) + 'px';
+    tip.style.top = Math.max(4, y) + 'px';
+  };
+  document.addEventListener('mousemove', e => { if (!tip.hidden) placeTip(e); });
+  document.addEventListener('mouseleave', () => { tip.hidden = true; });
+  // スマホ・タブレットはマウスを合わせられないので、カードを長押しすると説明欄を出す
+  // スマホでは、指で隠れないように画面の上か下（押した場所の反対側）に横幅いっぱいで出し、次に画面に触れるまで残す
+  const showTipAt = (html, host, y, x) => {
+    tip.innerHTML = html;
+    host.appendChild(tip);
+    tip.hidden = false;
+    const sheet = isPhone();
+    tip.classList.toggle('sheet', sheet);
+    if (sheet) {
+      tip.style.left = '8px';
+      tip.style.top = (y > innerHeight / 2 ? 8 : innerHeight - tip.offsetHeight - 8) + 'px';
+    } else {
+      tip.style.left = Math.max(8, Math.min(innerWidth - tip.offsetWidth - 8, x - tip.offsetWidth / 2)) + 'px';
+      tip.style.top = Math.max(8, y - tip.offsetHeight - 20) + 'px';
+    }
+  };
+  let pressTimer = null;
+  document.addEventListener('touchstart', e => {
+    lastTouch = Date.now();
+    const el = e.target.closest('[data-tip]');
+    clearTimeout(pressTimer);
+    tip.hidden = true;
+    if (!el) return;
+    const t = e.touches[0];
+    pressTimer = setTimeout(() => {
+      const [attr, num] = el.dataset.tip.split(':');
+      showTipAt(cardTipHTML(attr, num), el.closest('dialog') || document.body, t.clientY, t.clientX);
+    }, 450);
+  }, { passive: true });
+  document.addEventListener('touchend', () => {
+    clearTimeout(pressTimer);
+    if (!isPhone()) setTimeout(() => { tip.hidden = true; }, 1500);
+  });
+  // スマホ：点数・予言・呪い返しをタップすると、詳しい説明を出す（data-info は「見出し|本文」）
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-info]');
+    if (!el) return;
+    const [head, body] = el.dataset.info.split('|');
+    const r = el.getBoundingClientRect();
+    showTipAt(`<div class="tip-head">${head}</div>${body}`, document.body, r.top, r.left);
+  });
+  document.addEventListener('touchmove', () => clearTimeout(pressTimer), { passive: true });
+  document.getElementById('btnRules').onclick = () => {
+    const d = document.getElementById('rules');
+    d.showModal();
+    d.scrollTop = 0;   // 「閉じる」にフォーカスが当たって一番下まで流れるので、先頭（1分でわかるルール）から見せる
+  };
+  document.getElementById('btnNew').onclick = () => {
+    if (NET.mode !== 'cpu' && !confirm('通信対戦を終了して、最初の画面に戻りますか？')) return;
+    location.reload();
+  };
+  addEventListener('beforeunload', () => { if (NET.peer) NET.peer.destroy(); });
+  // スマホとそれ以外の並べ方が切り替わったら、描き直す
+  let wasPhone = isPhone();
+  addEventListener('resize', () => {
+    if (isPhone() !== wasPhone) { wasPhone = isPhone(); if (V) renderView(V); }
+    fitScreen();
+  });
+  document.getElementById('btnLog').onclick = () => { fillLogSheet(); document.getElementById('logSheet').showModal(); fillLogSheet(); };
+  document.getElementById('btnMenu').onclick = () => document.getElementById('menuSheet').showModal();
+  document.getElementById('menuNew').onclick = () => { document.getElementById('menuSheet').close(); document.getElementById('btnNew').click(); };
+  // 下から出す画面は、外側（暗いところ）をタップしても閉じる
+  document.querySelectorAll('dialog.sheet').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.close(); }));
+
+  // 1分でわかるルールを、最初の画面と「ルール」の画面に差し込む
+  document.querySelectorAll('#rules [data-jump]').forEach(b => b.onclick = () =>
+    document.getElementById(b.dataset.jump).scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  document.querySelectorAll('.quick-rules-slot').forEach(slot => slot.appendChild(document.getElementById('quickRules').content.cloneNode(true)));
+
+  // 最初の画面（遊び方を選ぶ）
+  const lobby = document.getElementById('lobby');
+  lobby.addEventListener('cancel', e => e.preventDefault());  // Esc で閉じないようにする
+  document.getElementById('choose').addEventListener('cancel', e => e.preventDefault());
+  // 名前は覚えておき、次に開いたときに入れておく（保存できないブラウザでは覚えないだけ）
+  const NAME_KEY = 'noroi-ichi-name';
+  const nameInput = document.getElementById('myName');
+  try { nameInput.value = localStorage.getItem(NAME_KEY) || ''; } catch (e) {}
+  const nameOf = fallback => {
+    const name = nameInput.value.trim();
+    try { if (name) localStorage.setItem(NAME_KEY, name); } catch (e) {}
+    return (name || fallback).slice(0, 10);
+  };
+  document.getElementById('btnCpu').onclick = () => { nameOf(''); lobby.close(); newGame(); gameLoop(); };
+  document.getElementById('btnHost').onclick = () => { NET.myName = nameOf('ホスト'); hostRoom(); };
+  document.getElementById('btnJoin').onclick = () => { NET.myName = nameOf('ゲスト'); joinRoom(document.getElementById('roomCode').value); };
+
+  // 招待リンク（?room=コード）から開いたら、その部屋に入るボタンを一番上に出す
+  const invited = (new URLSearchParams(location.search).get('room') || '').toUpperCase();
+  if (/^[A-Z0-9]{5}$/.test(invited)) {
+    document.getElementById('roomCode').value = invited;
+    document.getElementById('inviteCode').textContent = invited;
+    const box = document.getElementById('inviteBox');
+    box.hidden = false;
+    box.insertBefore(nameInput.closest('label'), box.querySelector('.lobby-row'));  // 名前もここで入れられるように
+    document.getElementById('btnInviteJoin').onclick = () => {
+      history.replaceState(null, '', location.pathname);  // 再読み込みしたときに、同じ部屋へ入り直さないように
+      NET.myName = nameOf('ゲスト');
+      joinRoom(invited);
+    };
+  }
+
+  // スマホのブラウザで開いているとき（ホーム画面から開いたのではないとき）は、ホーム画面への追加を案内する
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  if (/^https?:$/.test(location.protocol) && isPhone() && !standalone) {
+    document.getElementById('installHint').hidden = false;
+    document.getElementById('installSteps').innerHTML = ios
+      ? 'iPhone：Safari の共有ボタン（□に↑）→「ホーム画面に追加」'
+      : 'Android：Chrome のメニュー（︙）→「ホーム画面に追加」';
+  }
+  // Android の Chrome では、ボタン1つで追加できる
+  addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    if (document.getElementById('installHint').hidden) return;
+    document.getElementById('installSteps').innerHTML = '<button id="btnInstall">📲 ホーム画面に追加する</button>';
+    document.getElementById('btnInstall').onclick = () => e.prompt();
+  });
+  lobby.showModal();
+}
+</script>
+</body>
+</html>
