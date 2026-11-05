@@ -5,23 +5,38 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>呪い市 試作版</title>
 <!-- スマホのホーム画面に追加したとき、アプリのように全画面で開く（ファイルを直接開いたときは読み込めないが、遊ぶのには影響しない） -->
-<meta name="theme-color" content="#1c1a17">
+<meta name="theme-color" content="#efe6d2">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="呪い市">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<!-- 書体（筆文字と本文）。読み込めないとき（オフラインなど）は、手元の明朝・ゴシックで表示する -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yuji+Syuku&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #f3efe6; --panel: #fffcf6; --ink: #2b2622; --muted: #7a7066; --line: #d9d1c4;
-  --fire: #c23a35; --water: #5157c9; --wind: #3b8f3a; --earth: #2a8a96; --curse: #6a3f8f;
-  --opp: #c4552f; --me: #2f6fbf; --felt: #2f8a5f;
-  --battle: #e0563b; --fuse: #3473c9; --accent: #c99a1e; --back: #3d2f4f;
-}
-@media (prefers-color-scheme: dark) {
-  :root { --bg: #1c1a17; --panel: #29251f; --ink: #ece6dc; --muted: #a59c90; --line: #3f392f; --back: #4a3a60; }
+  /* 和紙と墨の絵巻：和紙の地に墨の文字、差し色は朱。職業の色は落ち着いた和の色（朱・藍・松葉・青磁） */
+  --bg: #efe6d2; --panel: #f8f2e4; --paper: #fbf7ee; --ink: #1d1a16; --muted: #6e6457; --line: #c9bca3;
+  --fire: #b8322b; --water: #2f3b6b; --wind: #4d6b2f; --earth: #2f6466; --curse: #1d1a16;
+  --opp: #9c3b24; --me: #2f4a78; --felt: #4d6b2f;
+  --battle: #c8372d; --fuse: #2f4a78; --accent: #c8372d; --back: #2a2621; --gold: #b8862a;
+  --brush: "Yuji Syuku", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  /* 和紙のざらつき */
+  --washi: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .28 0 0 0 .13 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* 使い込まれた古い木の座卓：年輪の木目・板の継ぎ目・節・手ずれの明るみ・縁の暗がり */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='460'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0045 0.085' numOctaves='4' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 .12  0 0 0 0 .07  0 0 0 0 .03  1.7 0 0 0 -.62'/%3E%3C/filter%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.95' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .09  0 0 0 0 .05  0 0 0 0 .02  1.2 0 0 0 -.58'/%3E%3C/filter%3E%3Cfilter id='s' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.3' numOctaves='3' seed='23'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 .86  0 0 0 0 .62  1.4 0 0 0 -.95'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+  --oldwood: radial-gradient(ellipse 26px 10px at 17% 31%, rgba(30,14,4,.6), rgba(30,14,4,.25) 55%, transparent 72%),
+             radial-gradient(ellipse 18px 7px at 71% 63%, rgba(30,14,4,.55), rgba(30,14,4,.2) 55%, transparent 72%),
+             radial-gradient(ellipse 14px 6px at 43% 88%, rgba(30,14,4,.5), transparent 70%),
+             repeating-linear-gradient(180deg, transparent 0 138px, rgba(15,7,2,.55) 138px 140px, rgba(255,220,170,.10) 140px 141px, transparent 141px 142px),
+             radial-gradient(ellipse at 50% 45%, rgba(255,215,160,.16), transparent 65%),
+             var(--grain) 0 0 / 900px 460px,
+             linear-gradient(180deg, #6f4a2a, #573821 55%, #4a2f1a);
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif; font-size: 14px; }
@@ -74,24 +89,24 @@ section h2 b { color: var(--ink); }
 .seen.open { background: var(--water); color: #fff; }
 .seen.secret { background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
 #tip { position: fixed; z-index: 50; width: 340px; max-width: calc(100vw - 16px); pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; line-height: 1.65; box-shadow: 0 8px 24px rgba(0,0,0,.3); }
-#tip .tip-head { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 16px; padding-bottom: 6px; margin-bottom: 6px; border-bottom: 3px solid var(--c, var(--line)); }
-#tip .tip-head[data-attr=fire] { --c: var(--fire); } #tip .tip-head[data-attr=water] { --c: var(--water); }
-#tip .tip-head[data-attr=wind] { --c: var(--wind); } #tip .tip-head[data-attr=earth] { --c: var(--earth); } #tip .tip-head[data-attr=curse] { --c: var(--curse); }
-#tip .tip-num { font-size: 24px; color: var(--c); min-width: 1.2em; }
-#tip .tip-role { margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--muted); }
-#tip .tip-sec { margin-top: 6px; }
-#tip .tip-label { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12.5px; color: var(--muted); }
-#tip .tip-chip { display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 5px; color: #fff; font-size: 12px; }
-#tip .tip-chip.win { background: var(--accent); color: #1c1a17; }
-#tip .tip-head[data-attr=hope] { --c: var(--accent); } #tip .tip-head[data-attr=despair] { --c: #8a8a8a; }
-#tip .tip-chip.lose { background: var(--battle); } #tip .tip-chip.fuse { background: var(--fuse); } #tip .tip-chip.warn { background: var(--curse); }
-#tip .tip-times { margin-left: auto; font-size: 15px; color: var(--ink); }
-#tip .tip-body { padding-left: 26px; }
-#tip .tip-body b, #tip .tip-special b { color: var(--accent); }
-#tip .tip-none { color: var(--muted); }
-#tip .tip-special { margin-top: 6px; padding: 6px 8px; border: 2px solid var(--accent); border-radius: 8px; background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
-#tip .tip-special .tip-sec { margin-top: 0; }
-#tip .tip-note { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line); color: var(--muted); font-size: 11.5px; line-height: 1.6; }
+:is(#tip, .tipbox) .tip-head { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 16px; padding-bottom: 6px; margin-bottom: 6px; border-bottom: 3px solid var(--c, var(--line)); }
+:is(#tip, .tipbox) .tip-head[data-attr=fire] { --c: var(--fire); } :is(#tip, .tipbox) .tip-head[data-attr=water] { --c: var(--water); }
+:is(#tip, .tipbox) .tip-head[data-attr=wind] { --c: var(--wind); } :is(#tip, .tipbox) .tip-head[data-attr=earth] { --c: var(--earth); } :is(#tip, .tipbox) .tip-head[data-attr=curse] { --c: var(--curse); }
+:is(#tip, .tipbox) .tip-num { font-size: 24px; color: var(--c); min-width: 1.2em; }
+:is(#tip, .tipbox) .tip-role { margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+:is(#tip, .tipbox) .tip-sec { margin-top: 6px; }
+:is(#tip, .tipbox) .tip-label { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12.5px; color: var(--muted); }
+:is(#tip, .tipbox) .tip-chip { display: inline-flex; width: 20px; height: 20px; align-items: center; justify-content: center; border-radius: 5px; color: #fff; font-size: 12px; }
+:is(#tip, .tipbox) .tip-chip.win { background: var(--accent); color: #1c1a17; }
+:is(#tip, .tipbox) .tip-head[data-attr=hope] { --c: var(--accent); } :is(#tip, .tipbox) .tip-head[data-attr=despair] { --c: #8a8a8a; }
+:is(#tip, .tipbox) .tip-chip.lose { background: var(--battle); } :is(#tip, .tipbox) .tip-chip.eff { background: var(--accent); color: #1c1a17; } :is(#tip, .tipbox) .tip-chip.fuse { background: var(--fuse); } :is(#tip, .tipbox) .tip-chip.warn { background: var(--curse); }
+:is(#tip, .tipbox) .tip-times { margin-left: auto; font-size: 15px; color: var(--ink); }
+:is(#tip, .tipbox) .tip-body { padding-left: 26px; }
+:is(#tip, .tipbox) .tip-body b, :is(#tip, .tipbox) .tip-special b { color: var(--accent); }
+:is(#tip, .tipbox) .tip-none { color: var(--muted); }
+:is(#tip, .tipbox) .tip-special { margin-top: 6px; padding: 6px 8px; border: 2px solid var(--accent); border-radius: 8px; background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
+:is(#tip, .tipbox) .tip-special .tip-sec { margin-top: 0; }
+:is(#tip, .tipbox) .tip-note { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line); color: var(--muted); font-size: 11.5px; line-height: 1.6; }
 .flip { perspective: 700px; }
 .flip-inner { position: relative; transform-style: preserve-3d; animation: flip var(--flip-ms, 750ms) cubic-bezier(.3,.7,.3,1.2) both; }
 .flip-inner .card { backface-visibility: hidden; }
@@ -113,9 +128,6 @@ section.zone { border-left: 6px solid var(--zc); background: color-mix(in srgb, 
 .pile-item { width: 74px; text-align: center; }
 .pile-item .card { margin: 0 auto; }
 .pile-note { font-size: 10px; color: var(--muted); line-height: 1.3; margin-top: 3px; }
-#lobby { max-width: 900px; }
-.lobby-cols { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-@media (max-width: 760px) { .lobby-cols { grid-template-columns: 1fr; } }
 .quick { border: 2px solid var(--accent); border-radius: 12px; padding: 10px 14px; background: color-mix(in srgb, var(--accent) 7%, var(--panel)); margin-bottom: 10px; }
 .quick-title { font-weight: 900; font-size: 16px; margin-bottom: 6px; }
 .quick-goal { margin: 0 0 8px; line-height: 1.6; }
@@ -176,11 +188,6 @@ section h2 .pstats { display: flex; gap: 12px; align-items: center; width: 100%;
 .deck-pill { display: inline-flex; align-items: baseline; gap: 2px; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); }
 .deck-pill b { font-size: 17px; }
 .deck-pill.low { border-color: var(--battle); color: var(--battle); font-weight: 700; }
-.prophecy-pill { display: inline-flex; align-items: baseline; gap: 2px; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 12.5px; }
-.prophecy-pill b { font-size: 15px; }
-.prophecy-pill.on { border-color: var(--curse); background: color-mix(in srgb, var(--curse) 22%, var(--panel)); color: var(--ink); font-weight: 700; }
-.prophecy-pill.reversal.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 24%, var(--panel)); }
-.board-prophecy { font-size: 12px; font-weight: 700; }
 .phase-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 12px; margin-bottom: 8px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; }
 .ph-round { font-weight: 700; margin-right: 6px; }
 .ph-step { padding: 1px 9px; border-radius: 999px; color: var(--muted); }
@@ -255,20 +262,13 @@ section.zone.turn-active { box-shadow: 0 0 0 3px var(--zc), 0 0 18px color-mix(i
 @media (max-width: 600px) { .announce { width: calc(100% - 32px); padding-left: 12px; padding-right: 12px; } .announce .announce-title { font-size: 30px !important; } .announce-text { font-size: 13px; } }
 @keyframes announce { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.6); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); } 20% { transform: translate(-50%, -50%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; } }
 .legend { align-self: center; line-height: 2; margin-left: 4px; font-size: 12px; color: var(--muted); }
-.sel-blow { transform: translateY(-6px); box-shadow: 0 0 0 3px var(--wind); opacity: .75; }
 .sel-fuse { transform: translateY(-10px); box-shadow: 0 0 0 3px var(--fuse); }
 .badge { position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: #fff; padding: 1px 6px; border-radius: 8px; white-space: nowrap; }
 .badge.b { background: var(--battle); } .badge.f { background: var(--fuse); }
 .slot { position: relative; }
 .curse-tag { position: absolute; top: -8px; left: -6px; background: var(--curse); color: #fff; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 8px; }
-.field-wrap { display: flex; gap: 12px; flex-wrap: wrap; align-items: stretch; }
-.events { flex: 1; min-width: 240px; max-height: 200px; min-height: 140px; overflow-y: auto; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--accent) 8%, var(--panel)); font-size: 13px; line-height: 1.7; }
-.events .ev-title { font-weight: 700; color: var(--muted); font-size: 12px; margin-top: 4px; }
-.events .hl { font-weight: 700; color: var(--battle); }
 #fieldSec.waiting { cursor: pointer; box-shadow: 0 0 0 2px var(--accent); }
-.next-hint { margin-top: 8px; text-align: center; font-weight: 700; color: var(--accent); animation: blink 1.4s ease-in-out infinite; }
 @keyframes blink { 50% { opacity: .35; } }
-.shield { font-size: 12px; background: color-mix(in srgb, var(--earth) 20%, var(--panel)); border: 1px solid var(--earth); border-radius: 8px; padding: 2px 8px; }
 #prompt { flex-shrink: 0; background: var(--panel); border-top: 2px solid var(--accent); padding: 10px 16px; display: flex; gap: 12px 28px; align-items: center; justify-content: center; flex-wrap: wrap; z-index: 5; }
 #prompt .txt { flex: 0 1 620px; min-width: 200px; font-weight: 600; text-align: right; }
 #prompt .txt:only-child { flex: 0 1 auto; text-align: center; }
@@ -337,11 +337,9 @@ body { overflow: hidden; }
   .pstats.compact .zone-tag { max-width: 6.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 1px 8px; font-size: 12px; }
   .pstats.compact .role { font-size: 12px; padding: 1px 8px; }
   .pstats.compact .mini { white-space: nowrap; }
-  .pstats.compact .info-btn { padding: 1px 6px; border-radius: 999px; font: inherit; font-weight: 600; }
   #opp .card.back.small { width: 34px; height: 50px; }
   .pstats.compact .mini b { font-size: 14px; }
   .pstats.compact .pile-btn { white-space: nowrap; }
-  .pstats.compact .shield { font-size: 11px; padding: 0 5px; white-space: nowrap; }
   .score-box.mini { margin-left: auto; flex-direction: row; align-items: center; padding: 0 8px; border-width: 2px; cursor: pointer; }
   .score-box.mini .score-total { font-size: 18px; }
   .score-box.mini .score-unit { font-size: 11px; }
@@ -364,14 +362,11 @@ body { overflow: hidden; }
   .board .card { width: 56px; height: 84px; }
   .brow > .lbl { width: 3.6em; font-size: 11.5px; }
   .board .vs { padding-left: 3.6em; font-size: 13px; }
-  .events { min-width: 0; flex-basis: 100%; max-height: 96px; min-height: 0; font-size: 12px; line-height: 1.55; padding: 5px 8px; }
-  .field-wrap { gap: 6px; }
-  .next-hint { margin-top: 4px; }
   /* 自分の手札は画面の下に固定（横にスクロール） */
   #me { position: sticky; bottom: 0; z-index: 4; margin: auto 0 0; padding: 5px 8px 4px; box-shadow: 0 -6px 14px rgba(0,0,0,.3); border-radius: 12px 12px 0 0; }
-  #me .row { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 11px 2px 4px !important; min-height: 0; }
   .picked-box { flex-shrink: 0; }
   .picked-label small { display: none; }
+  #me .row { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 11px 2px 4px !important; min-height: 0; }
   /* 画面下のナビ */
   /* 文とボタンを横に並べて、低くする（ボタンが多くて入らないときは折り返す） */
   #prompt { position: static; padding: 6px 10px 8px; gap: 6px 10px; font-size: 13px; }
@@ -411,7 +406,6 @@ dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-ali
 .rl-chip.minus { background: color-mix(in srgb, var(--curse) 18%, var(--panel)); }
 .rl-list { margin: 4px 0; padding-left: 1.3em; }
 .rl-note { font-size: 13px; color: var(--muted); }
-.rl-times { max-width: 360px; margin-top: 4px; }
 #rules th.lose { color: var(--battle); } #rules th.fuse { color: var(--fuse); }
 #rules .lose-t { color: var(--battle); }
 .rl-steps { list-style: none; counter-reset: step; padding: 0; margin: 0; }
@@ -431,6 +425,227 @@ dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-ali
 .rl-close { position: sticky; bottom: -1em; text-align: right; padding: 8px 0 4px; margin-top: 10px; background: var(--panel); border-top: 1px solid var(--line); }
 .stats { font-size: 13px; }
 .stats b { font-size: 15px; }
+
+/* ===== デザイン：和紙と墨の絵巻 =====
+   上の基本の見た目を、和紙・墨・朱の世界観に塗り替える（配置は変えない） */
+body { font-family: "Zen Kaku Gothic New", system-ui, "Hiragino Sans", sans-serif; background: var(--washi), var(--bg); }
+header { background: transparent; border-bottom: 2px solid var(--ink); }
+header h1 { font-family: var(--brush); font-weight: 400; font-size: 24px; letter-spacing: .06em; display: flex; align-items: center; gap: 8px; }
+header h1::before { content: "呪"; display: grid; place-items: center; width: 24px; height: 24px; background: var(--accent); color: var(--paper); font-size: 14px; border-radius: 3px; transform: rotate(-6deg); }
+header h1 small { font-family: "Zen Kaku Gothic New", sans-serif; font-size: 12px; }
+button { background: var(--paper); border-color: color-mix(in srgb, var(--ink) 35%, transparent); }
+button.primary { background: var(--accent); border-color: var(--ink); color: var(--paper); box-shadow: 2px 2px 0 var(--ink); }
+section { background: var(--washi), color-mix(in srgb, var(--paper) 70%, transparent); border-color: var(--line); border-radius: 6px; }
+section.zone { background: var(--washi), color-mix(in srgb, var(--zc) 5%, var(--paper)); border-left-width: 4px; }
+section h2 { color: var(--muted); }
+.zone-tag { background: none; color: var(--ink); font-family: var(--brush); font-weight: 400; font-size: 16px; padding: 0 2px; border-radius: 0; border-bottom: 3px solid var(--zc); line-height: 1.15; }
+
+/* カード：和紙の札に墨の縁。右上の判子が職業の印 */
+.card { background: var(--paper); border: 1.5px solid var(--ink); border-radius: 3px 8px 4px 9px / 8px 3px 9px 4px; box-shadow: 2px 3px 0 rgba(29,26,22,.22); }
+.card .num { font-family: var(--brush); font-weight: 400; }
+.card .icon { top: 5px; right: 5px; width: 20px; height: 20px; display: grid; place-items: center; background: var(--c); color: var(--paper); font-family: var(--brush); font-size: 12px; border-radius: 3px; transform: rotate(-5deg); }
+.card .eff span { background: transparent; color: var(--ink); border: 1px solid var(--ink); border-radius: 50%; min-width: 13px; }
+.card[data-attr=curse] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.card[data-attr=curse] .num { color: var(--paper); }
+.card[data-attr=curse] .icon { background: var(--paper); color: var(--ink); }
+.card[data-attr=curse] .nm { color: #cfc6b4; }
+.card[data-attr=curse] .eff span { border-color: var(--paper); color: var(--paper); }
+.card[data-attr=hope] { --c: var(--gold); background: linear-gradient(160deg, #fffaf0, #f1dfa8); border-color: var(--gold); }
+.card[data-attr=despair] { --c: #4a4540; background: #d9d3c7; }
+.card.back { background: repeating-linear-gradient(0deg, #2a2621 0 2px, #3b3630 2px 4px); border-color: var(--ink); color: #efe6d2; font-family: var(--brush); font-weight: 400; font-size: 13px; }
+.card.empty { background: transparent; border: 1.5px dashed var(--line); box-shadow: none; }
+.deck-stack .card.back { box-shadow: 3px 3px 0 #3b3630, 6px 6px 0 rgba(29,26,22,.3); }
+.deck-count b { font-family: var(--brush); font-weight: 400; }
+.curse-tag { background: var(--ink); border-radius: 2px; }
+.seen.secret { background: var(--paper); }
+
+/* 説明欄・お知らせ・ダイアログは、和紙の紙片 */
+#tip, dialog { background: var(--washi), var(--paper); border: 1.5px solid var(--ink); border-radius: 6px; box-shadow: 3px 4px 0 rgba(29,26,22,.25); }
+:is(#tip, .tipbox) .tip-head { font-family: var(--brush); font-weight: 400; }
+:is(#tip, .tipbox) .tip-chip.eff, :is(#tip, .tipbox) .tip-chip.win { color: var(--paper); }
+dialog h3, .rl-h4, .quick-title, #lobby h4 { font-family: var(--brush); font-weight: 400; }
+.quick { border: 1.5px solid var(--accent); background: color-mix(in srgb, var(--accent) 5%, var(--paper)); }
+.quick-tip { background: color-mix(in srgb, var(--accent) 10%, var(--paper)); }
+.rl-steps > li::before { color: var(--paper); }
+.rl-chip { background: var(--paper); }
+#lobby input { background: var(--paper); }
+.room-code { font-family: var(--brush); }
+
+/* 場面・先攻後攻・点数 */
+.phase-bar { background: transparent; border: none; border-top: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 0; }
+.ph-step.now { background: var(--accent); color: var(--paper); font-family: var(--brush); font-weight: 400; border-radius: 3px; }
+.role { font-family: var(--brush); font-weight: 400; border-radius: 3px; }
+.role.first { background: var(--accent); color: var(--paper); }
+.role.second { background: var(--ink); color: var(--paper); }
+.score-box { background: var(--paper); }
+.score-total, #board b { font-family: var(--brush); font-weight: 400; }
+.fx-label { background: var(--accent); color: var(--paper); font-family: var(--brush); font-weight: 400; border-radius: 3px; box-shadow: 2px 2px 0 var(--ink); }
+
+/* 画面中央のお知らせ：墨の縁の紙片。ラウンドの初めは朱（先攻）と墨（後攻）、場面の切り替わりは上の帯の色で */
+.announce { background: var(--washi), var(--paper); color: var(--ink); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 4px 5px 0 rgba(29,26,22,.35); }
+.announce-title { font-family: var(--brush); font-weight: 400; }
+.announce.ann-first { background: var(--washi), var(--accent); color: var(--paper); }
+.announce.ann-second { background: var(--washi), var(--ink); color: var(--paper); }
+.announce.ann-draft, .announce.ann-play, .announce.ann-battle, .announce.ann-fuse { background: var(--washi), var(--paper); color: var(--ink); border-top-width: 10px; }
+.announce.ann-draft { border-top-color: var(--wind); }
+.announce.ann-play { border-top-color: var(--ink); }
+.announce.ann-battle { border-top-color: var(--battle); }
+.announce.ann-fuse { border-top-color: var(--fuse); }
+
+/* 画面下のナビ */
+#prompt { background: var(--washi), var(--paper); border-top: 2px solid var(--ink); }
+#prompt .actions button.primary { font-family: var(--brush); font-weight: 400; font-size: 18px; border-radius: 4px; box-shadow: 2px 3px 0 var(--ink); }
+@media (max-width: 600px) {
+  /* スマホのヘッダーは、題名の代わりに朱の判子だけ */
+  header h1 { font-size: 0; gap: 0; }
+  header h1::before { width: 22px; height: 22px; font-size: 13px; }
+  header h1 small { display: none; }
+  header button { white-space: nowrap; padding: 4px 8px; }
+  #prompt .actions button.primary { font-size: 16px; }
+}
+
+/* ===== ホーム画面（最初の画面）：全画面の和紙。遊ぶ・ルール・カード図鑑を切り替える ===== */
+#lobby.home { width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; padding: 0; border: none; border-radius: 0; box-shadow: none; overflow-y: auto; }
+dialog.home::backdrop { background: var(--bg); }
+.home-inner { max-width: 880px; margin: 0 auto; padding: 28px 18px 40px; }
+.home-hero { text-align: center; margin-bottom: 18px; }
+.home-seal { display: inline-grid; place-items: center; width: 58px; height: 58px; background: var(--accent); color: var(--paper); font-family: var(--brush); font-size: 34px; border-radius: 6px; transform: rotate(-6deg); box-shadow: 3px 3px 0 var(--ink); }
+.home-hero h1 { font-family: var(--brush); font-weight: 400; font-size: 52px; letter-spacing: .18em; margin: 10px 0 4px; }
+.home-hero p { margin: 0; color: var(--muted); line-height: 1.7; }
+.home-hero small { font-size: 11.5px; margin-left: 4px; }
+.home-tabs { display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid var(--ink); margin-bottom: 16px; }
+.home-tabs button { font-family: var(--brush); font-size: 17px; padding: 8px 18px; border: 1.5px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; background: transparent; color: var(--muted); margin-bottom: -2px; }
+.home-tabs button.on { background: var(--washi), var(--paper); color: var(--ink); border-color: var(--ink); border-bottom: 2px solid var(--paper); }
+section.home-tab { background: transparent; border: none; padding: 0; }
+.lobby-play { max-width: 520px; margin: 0 auto; }
+.home-first { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+.home-first button { font-size: 13px; padding: 2px 8px; }
+.home-note { font-size: 13.5px; color: var(--muted); line-height: 1.7; margin: 0 0 14px; }
+.lobby-box { background: var(--washi), var(--paper); }
+/* カード図鑑：札の絵と、長押しで出る説明と同じ内容を並べる */
+.card-book { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 12px; }
+.book-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--washi), var(--paper); }
+.book-card { flex-shrink: 0; padding-top: 4px; }
+.tipbox { flex: 1; min-width: 0; font-size: 13.5px; line-height: 1.65; }
+@media (max-width: 600px) {
+  .home-inner { padding: 18px 12px 30px; }
+  .home-seal { width: 46px; height: 46px; font-size: 27px; }
+  .home-hero h1 { font-size: 40px; }
+  .home-tabs button { font-size: 15px; padding: 7px 10px; }
+  .card-book { grid-template-columns: 1fr; }
+  .book-item { gap: 10px; padding: 8px; }
+  .tipbox { font-size: 13px; }
+}
+
+/* ===== 座卓：相手・市場・勝負の場・手札を枠で区切らず、1枚の木の座卓の上に並べる =====
+   奥に相手、手前に自分。市場の札は茣蓙の敷物に、勝負は緋毛氈の上でする。見出しは座卓に筆で書いたように */
+#app main > div:first-child { position: relative; padding: 16px 18px 12px; border-radius: 10px; background: var(--oldwood);
+  box-shadow: inset 0 0 70px rgba(10,4,0,.6), inset 0 0 0 5px #2e1b0c, inset 0 0 0 6px rgba(255,210,150,.18), 0 5px 0 #24150a, 0 12px 28px rgba(0,0,0,.35); }
+#app main > div:first-child > section.zone, #app main > div:first-child section.zone { background: none; border: none; border-radius: 0; box-shadow: none; padding: 4px 4px; }
+/* 暗い木の上の文字は、生成りの色で */
+#app main > div:first-child section h2 { color: #f1e3c8; }
+#app main > div:first-child .stats, #app main > div:first-child .role-hint, #app main > div:first-child .legend { color: #e2cfae; }
+#app main > div:first-child .zone-tag { color: #f6ead2; border-bottom-color: color-mix(in srgb, var(--zc) 55%, #f6ead2); text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+#app main > div:first-child .picked-label { color: #cfe3b0; }
+#app main > div:first-child .picked-box { border-color: #a9c68a; }
+#app main > div:first-child .card.back { box-shadow: 0 0 0 1px rgba(255,225,180,.25), 2px 3px 0 rgba(0,0,0,.35); }
+#app main > div:first-child .card { box-shadow: 2px 3px 0 rgba(0,0,0,.35), 0 4px 10px rgba(0,0,0,.25); }
+#fieldSec .round-score { color: #f1e3c8; }
+#fieldSec .round-score .up { color: #9ff0b9; } #fieldSec .round-score .down { color: #ffb4a6; }
+.board-prophecy { color: #ffe08a; font-family: var(--brush); }
+/* 今の番の側は、見出しの札を朱にして知らせる（枠は光らせない） */
+section.zone.turn-active { box-shadow: none !important; }
+section.zone.turn-active .zone-tag { background: var(--accent); color: var(--paper); padding: 0 8px; border-radius: 3px; border-bottom-color: transparent; }
+/* 場面の表示は、座卓に置いた紙片 */
+#app main > div:first-child .phase-bar { background: var(--washi), var(--paper); border: 1px solid rgba(29,26,22,.35); border-radius: 4px; box-shadow: 2px 3px 0 rgba(60,35,10,.3); }
+/* 相手と自分のあいだに、墨の線を1本 */
+#opp { border-bottom: none !important; }
+.mid { border-top: 1px solid rgba(255,220,170,.12); border-bottom: 1px solid rgba(255,220,170,.12); box-shadow: 0 -1px 0 rgba(0,0,0,.45), 0 1px 0 rgba(0,0,0,.45); padding: 8px 0; margin: 4px 0 6px; }
+
+/* 市場：札は茣蓙の敷物の上に並べる */
+#marketSec .row { padding: 14px 12px 10px; border-radius: 6px;
+  background: repeating-linear-gradient(0deg, rgba(120,90,40,.14) 0 1px, transparent 1px 4px), linear-gradient(180deg, #e6d5a6, #d8c38d);
+  box-shadow: 0 3px 0 rgba(70,45,15,.35), inset 0 0 0 2px rgba(120,90,40,.35); }
+#marketSec.pick-now { box-shadow: none; }
+#marketSec.pick-now .row { box-shadow: 0 3px 0 rgba(70,45,15,.35), 0 0 0 3px var(--accent), 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent); }
+#marketSec .pick-banner { color: #ffd59a; text-shadow: 0 1px 2px rgba(0,0,0,.7); }
+#marketSec .deck { border-right-color: rgba(90,60,20,.35); }
+#marketSec .deck-label { color: #3a2a14; }
+#marketSec .deck-rounds { color: #5a4a2a; }
+
+/* 勝負の場：座卓に敷いた緋毛氈。文字は白抜き */
+#fieldSec .field-area { display: inline-flex; align-items: center; gap: 22px; padding: 10px 18px 12px 14px; border-radius: 8px; color: var(--paper);
+  background: var(--washi), radial-gradient(ellipse at 50% 40%, #b52f31, #8c1f23 90%); box-shadow: 0 4px 0 rgba(60,10,10,.45), 0 8px 16px rgba(0,0,0,.18); }
+#fieldSec .card:not([data-attr=curse]) { color: var(--ink); }  /* 緋毛氈の白い文字を、札の中には引き継がない */
+#fieldSec .board .side-opp, #fieldSec .board .side-me { color: var(--paper); }
+#fieldSec .fcell .lbl { color: #f1d9c9; }
+#fieldSec .fcell.battle .lbl, #fieldSec .fcell.fuse .lbl { color: var(--paper); }
+#fieldSec .board .vs { font-family: var(--brush); font-weight: 400; font-size: 18px; color: var(--paper); }
+#fieldSec .card.empty { border-color: rgba(251,247,238,.55); }
+#fieldSec .set-hint { color: #f1d9c9; }
+#fieldSec .fcell.battle .set-hint { border-color: #f3b0a0; } #fieldSec .fcell.fuse .set-hint { border-color: #b9c6e6; }
+#fieldSec #fieldSec.waiting { box-shadow: none; }
+#fieldSec.waiting .field-area { box-shadow: 0 4px 0 rgba(60,10,10,.45), 0 0 0 3px var(--paper), 0 0 14px rgba(255,255,255,.5); }
+
+@media (max-width: 600px) {
+  #app main { padding: 6px 6px 0; }
+  #app main > div:first-child { padding: 10px 8px 0; border-radius: 10px 10px 0 0; box-shadow: inset 0 0 50px rgba(10,4,0,.55), inset 0 0 0 3px #2e1b0c; }
+  #marketSec .row { padding: 12px 6px 8px; }
+  #fieldSec .field-area { display: flex; width: 100%; gap: 10px; padding: 8px 8px 10px; }
+  .field-go { flex: 1; }
+  .go-btn { font-size: 18px !important; padding: 10px 8px !important; width: 100%; }
+  /* 手前に固定した手札も同じ座卓の木目（下の札が透けないよう不透明に） */
+  #app main > div:first-child #me { background: var(--grain) 0 0 / 900px 460px, linear-gradient(180deg, #5e3e23, #4a2f1a);
+    border-top: 1px solid rgba(255,220,170,.15); box-shadow: 0 -1px 0 rgba(0,0,0,.5), 0 -8px 14px rgba(0,0,0,.3); border-radius: 0; margin: auto -8px 0; padding: 6px 12px 4px; }
+}
+
+/* ルールの開け閉め */
+details.fold { border: 1.5px solid var(--ink); border-radius: 6px; background: var(--washi), var(--paper); margin-bottom: 10px; }
+details.fold > summary { cursor: pointer; list-style: none; padding: 12px 14px; font-family: var(--brush); font-size: 18px; display: flex; align-items: center; gap: 8px; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::after { content: "＋ 開く"; margin-left: auto; font-family: "Zen Kaku Gothic New", sans-serif; font-size: 12.5px; color: var(--accent); }
+details.fold[open] > summary::after { content: "− 閉じる"; color: var(--muted); }
+details.fold[open] > summary { border-bottom: 1px dashed var(--line); }
+details.fold > div { padding: 10px 14px 12px; }
+details.fold .quick { border: none; background: none; padding: 0; margin: 0; }
+details.fold .quick-title, details.fold .rl-h3 { display: none; }
+
+/* 勝負の場の「勝負！」ボタン：緋毛氈の空いたところに置く */
+.field-go { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.go-btn { font-family: var(--brush); font-weight: 400; font-size: 24px; padding: 12px 26px; border-radius: 6px; border: 2px solid var(--ink); background: var(--washi), var(--paper); color: var(--accent); box-shadow: 3px 4px 0 rgba(0,0,0,.45); }
+.go-btn:not(:disabled) { animation: go-pulse 1.4s ease-in-out infinite; }
+.go-btn:disabled { opacity: .55; }
+@keyframes go-pulse { 50% { transform: scale(1.06); box-shadow: 3px 4px 0 rgba(0,0,0,.45), 0 0 18px rgba(255,230,190,.8); } }
+.go-hint { font-size: 12px; color: #f1d9c9; line-height: 1.5; }
+
+/* PC：画面右側の上に指示ナビ、その下に短めのログ */
+#side { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+#sideNav:empty { display: none; }
+@media (min-width: 861px) {
+  #side { align-self: start; position: sticky; top: 0; }
+  #log { max-height: 240px; }
+  #sideNav #prompt { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 12px; padding: 14px; min-height: 170px;
+    border: 1.5px solid var(--ink); border-radius: 6px; box-shadow: 3px 4px 0 rgba(29,26,22,.25); }
+  #sideNav #prompt::before { content: "指示"; font-family: var(--brush); font-size: 15px; color: var(--accent); border-bottom: 2px solid var(--accent); align-self: flex-start; line-height: 1.2; }
+  #sideNav #prompt .txt, #sideNav #prompt .txt.play-txt, #sideNav #prompt .txt:only-child { flex: none; min-width: 0; text-align: left; font-size: 14px; line-height: 1.7; }
+  #sideNav #prompt .play-txt > div { white-space: normal; }
+  #sideNav #prompt .actions { flex-direction: column; align-items: stretch; }
+  #sideNav #prompt .actions button.primary { min-width: 0; width: 100%; }
+}
+
+/* 緋毛氈は、勝負の枠とボタン置き場の分の大きさで固定する（中身で伸び縮みさせない） */
+#fieldSec .board { flex: none; width: 250px; }
+#fieldSec .board .vs { min-height: 2.8em; display: flex; align-items: center; line-height: 1.3; }
+.field-go { flex: none; width: 170px; min-height: 120px; justify-content: center; }
+.go-sub { font-size: 13px; padding: 6px 12px; background: var(--paper); border: 1.5px solid var(--ink); border-radius: 4px; }
+@media (max-width: 600px) {
+  #fieldSec .board { width: 188px; }
+  .field-go { flex: 1; width: auto; min-width: 0; }
+}
+/* 最終ラウンドのお知らせ：墨の地に朱の二重線、題名は大きく */
+.announce.ann-final { background: var(--washi), var(--ink); color: var(--paper); border: 4px double var(--accent); padding: 22px 48px; box-shadow: 0 0 0 4px var(--ink), 6px 8px 0 rgba(0,0,0,.4); }
+.announce.ann-final .announce-title { font-size: 56px; color: #ffcf9e; }
+@media (max-width: 600px) { .announce.ann-final .announce-title { font-size: 36px !important; } }
 </style>
 </head>
 <body>
@@ -456,7 +671,10 @@ dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-ali
     </div>
     <section id="me" class="zone"></section>
   </div>
-  <section id="logSec"><h2>ログ</h2><div id="log"></div></section>
+  <aside id="side">
+    <div id="sideNav"></div>
+    <section id="logSec"><h2>ログ</h2><div id="log"></div></section>
+  </aside>
 </main>
 <div id="prompt"></div>
 </div>
@@ -465,48 +683,42 @@ dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-ali
 <template id="quickRules">
   <div class="quick">
     <div class="quick-title">⏱ 1分でわかるルール</div>
-    <p class="quick-goal">🏆 <b>得点山のカードを多く集めた方の勝ち。</b>山札がなくなったら終わり。<br><span>（予言成功は+1点、手札に残った💀呪いは1枚−3点）</span></p>
+    <p class="quick-goal">🏆 <b>得点山のカードを多く集めた方の勝ち。</b>山札がなくなったら終わり。<br><span>（手札に残った💀呪いは1枚−2点）</span></p>
     <ol class="quick-steps">
       <li><b>🛒 市場からカードを取る</b><span>順番に1枚ずつ</span></li>
       <li><b>🂠 手札から「勝負札」と「伏せ札」を1枚ずつ出す</b><span>2人同時に、裏向きで</span></li>
-      <li><b>⚔ 勝負札の数字が大きい方の勝ち</b><span>勝者は2枚とも得点山へ。<em>負けた方は「敗北効果」が発動</em>（数字が小さい札ほど強い）</span></li>
-      <li><b>🔮 伏せ札をめくって「伏せ効果」</b><span>後攻は、先攻と<em>同じ種類</em>を伏せていたら「予言成功」+1点</span></li>
+      <li><b>⚔ 勝負札の数字が大きい方の勝ち</b><span>勝者は2枚とも得点山へ。<em>負けた札は、その職業の効果が発動</em></span></li>
+      <li><b>🔮 伏せ札をめくって、その職業の効果</b><span>後攻は、先攻と<em>同じ種類</em>を伏せていたら「予言成功」で先攻の伏せ札を無効にできる</span></li>
     </ol>
-    <p class="quick-tip">💡 <b>コツ：</b>弱い札で<em>わざと負けて</em>、強い敗北効果を使うのもアリ。</p>
+    <p class="quick-tip">💡 <b>コツ：</b>職業の効果は1つだけ（🗡️奪う・🪄流す・💰拾う・📿蘇らせる）。弱い札で<em>わざと負けて</em>効果を使うのもアリ。</p>
     <p class="quick-more">カードにマウスを合わせると（スマホは長押し）、そのカードの効果が見られます。</p>
   </div>
 </template>
-<dialog id="rules">
-  <div class="quick-rules-slot"></div>
+<!-- くわしいルール（「ルール」の画面とホーム画面の両方に出す） -->
+<template id="fullRules">
+  <div class="rules-body">
   <h3 class="rl-h3">くわしいルール</h3>
   <nav class="rl-toc">
     <button data-jump="rl-win">🏆 勝ち方</button>
     <button data-jump="rl-cards">🃏 カード</button>
     <button data-jump="rl-flow">🔄 1ラウンドの流れ</button>
     <button data-jump="rl-special">✨ 特別なルール</button>
-    <button data-jump="rl-effects">📖 効果一覧</button>
   </nav>
 
-  <h4 class="rl-h4" id="rl-win">🏆 勝ち方</h4>
+  <h4 class="rl-h4" data-sec="rl-win">🏆 勝ち方</h4>
   <p>山札が尽きたラウンドの終わりにゲーム終了。点数が多い方の勝ち。</p>
   <div class="rl-formula">
-    <span class="rl-chip">得点山の枚数</span>＋<span class="rl-chip">予言ボーナス</span>＋<span class="rl-chip">呪い返しの点</span>−<span class="rl-chip minus">手札の💀呪い × 3</span>
+    <span class="rl-chip">得点山の枚数</span>−<span class="rl-chip minus">手札の💀呪い × 2</span>
   </div>
 
-  <h4 class="rl-h4" id="rl-cards">🃏 カード（46枚）</h4>
+  <h4 class="rl-h4" data-sec="rl-cards">🃏 カード（38枚）</h4>
   <ul class="rl-list">
-    <li><b>行動カード 40枚</b>：4種類（🗡️盗賊・🪄呪術師・💰商人・📿僧侶）× 数字1〜10</li>
-    <li><b>💀呪い 6枚</b>：数字0。ゲーム終了時に手札にあると1枚 −3点</li>
+    <li><b>行動カード 32枚</b>：4つの職業（🗡️盗賊・🪄呪術師・💰商人・📿僧侶）× 数字1〜8</li>
+    <li><b>💀呪い 6枚</b>：数字0。ゲーム終了時に手札にあると1枚 −2点</li>
   </ul>
-  <p class="rl-note">数字が<b>小さいほど敗北効果が多く</b>、<b>大きいほど伏せ効果が多い</b>。</p>
-  <table class="rl-times">
-    <tr><th>数字</th><th class="lose">敗北効果</th><th class="fuse">伏せ効果</th></tr>
-    <tr><td>1〜3</td><td>2回</td><td>1回</td></tr>
-    <tr><td>4〜6</td><td>1回</td><td>1回</td></tr>
-    <tr><td>7〜10</td><td>なし</td><td>2回</td></tr>
-  </table>
+  <p class="rl-note">行動カードの効果は<b>職業ごとに1つだけ</b>。どの数字でも<b>1回</b>発動する。勝負札なら<b>負けたとき</b>、伏せ札なら<b>めくったとき</b>に発動する。</p>
 
-  <h4 class="rl-h4" id="rl-flow">🔄 1ラウンドの流れ</h4>
+  <h4 class="rl-h4" data-sec="rl-flow">🔄 1ラウンドの流れ</h4>
   <ol class="rl-steps">
     <li><b>🛒 ドラフト</b>
       <div>先攻 → 後攻 → 後攻 → 先攻 の順に、市場から1枚ずつ取る。呪いが付いたカードは呪いごと取る。</div>
@@ -519,24 +731,19 @@ dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-ali
       <div>勝負札と伏せ札を1枚ずつ、2人同時に裏向きで出す。</div>
     </li>
     <li><b>⚔ 勝負</b>
-      <div>勝負札の数字が大きい方の勝ち。勝者は2枚とも得点山へ。<b class="lose-t">負けた方の敗北効果</b>が発動。</div>
+      <div>勝負札の数字が大きい方の勝ち。勝者は2枚とも得点山へ。<b class="lose-t">負けた札の効果</b>が発動。</div>
       <ul class="rl-sub">
-        <li>同じ数字なら両方の敗北効果が発動し、2枚とも捨て札</li>
+        <li>同じ数字なら両方の札の効果が発動し、2枚とも捨て札</li>
         <li>💀呪いは数字0。負けた呪いは勝者の手札に入る</li>
       </ul>
     </li>
     <li><b>🔮 伏せ札オープン</b>
-      <div>2人の伏せ札が<b>同じ種類</b>なら、<b>後攻の予言成功</b>：</div>
-      <ul class="rl-sub">
-        <li>後攻 +1点、後攻の伏せ効果 +1回</li>
-        <li>先攻の伏せ札は無効（手札に戻る）</li>
-      </ul>
+      <div>2人の伏せ札が<b>同じ種類</b>なら、<b>後攻の予言成功</b>：先攻の伏せ札は無効（効果は発動せず、手札に戻る）。</div>
     </li>
-    <li><b>✨ 伏せ効果</b>
-      <div>呪術師の逆流 → 後攻 → 先攻 の順。使うかどうかは自分で選べる。<b>使ったら捨て札、使わなければ手札に戻す</b>。</div>
+    <li><b>✨ 伏せ札の効果</b>
+      <div>後攻 → 先攻 の順に、<b>必ず発動して捨て札</b>になる（効果で何も起きないときも捨て札）。</div>
       <ul class="rl-sub">
-        <li>僧侶の結界は、次のラウンドの終わりまで場に残してから捨て札</li>
-        <li>💀呪いは必ず送り込む（突き返されたり防がれたりしたら自分の手札に戻る）</li>
+        <li>💀呪いの伏せ札は、必ず相手の手札に送り込む</li>
       </ul>
     </li>
     <li><b>🔁 交代</b>
@@ -544,34 +751,40 @@ dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-ali
     </li>
   </ol>
 
-  <h4 class="rl-h4" id="rl-special">✨ 特別なルール</h4>
-  <div class="rl-box">
-    <div class="rl-box-title">💀 呪いと 10</div>
-    <ul class="rl-sub">
-      <li>勝負で呪いと10がぶつかったら、<b>呪いを出した側の勝ち</b>。呪いは出した人の手札に戻り、10は勝者の得点山へ</li>
-      <li>負けた10は、伏せ札をめくった後に敗北効果<b>「呪い返し」</b>：互いの伏せ札の数字の差を得点として得る</li>
-    </ul>
-  </div>
+  <h4 class="rl-h4" data-sec="rl-special">✨ 特別なルール</h4>
   <div class="rl-box">
     <div class="rl-box-title">🌟 希望と 🌑 絶望 <span>（終盤に1回）</span></div>
     <ul class="rl-sub">
       <li><b>いつ</b>：山札が残り10枚を切ったラウンドの初めに、<b>本当の点数</b>（秘密の手札の呪いも含む）で負けている側に希望、勝っている側に絶望が配られる。正確な点数は知らされない。同点なら次のラウンドで改めて判定</li>
-      <li><b>🌟希望</b>：絶望以外のすべてに勝ち、<b>相手の敗北効果を無効</b>にする。さらに手札の呪い1枚を市場の好きなカードに付けられる</li>
+      <li><b>🌟希望</b>：絶望以外のすべてに勝ち、<b>負けた相手の札の効果を無効</b>にする。さらに手札の呪い1枚を市場の好きなカードに付けられる</li>
       <li><b>🌑絶望</b>：希望に勝ち、希望の効果を打ち消す。さらに<b>捨て札から1枚</b>（打ち消した希望も可）を手札に加えられる。希望以外には数字0</li>
       <li>どちらも<b>勝負札専用</b>。使ったら捨て札（得点山には入らない）。持っていても減点なし。僧侶の「蘇らせる」で拾い直せる</li>
     </ul>
   </div>
 
-  <h4 class="rl-h4" id="rl-effects">📖 効果一覧</h4>
-  <table class="rl-effects">
-    <tr><th>種類</th><th class="lose">敗北効果（負けたとき）</th><th class="fuse">伏せ効果（めくったとき）</th></tr>
-    <tr data-attr="fire"><td>🗡️盗賊</td><td><b>奪う</b>：勝者の得点山から1枚奪う</td><td><b>追撃</b>：勝負に勝っていたら、山札の上から1枚を得点山へ（呪いは山札の一番下に戻して次のカード）</td></tr>
-    <tr data-attr="water"><td>🪄呪術師</td><td><b>流す</b>：手札の呪い1枚を相手へ</td><td><b>逆流</b>：相手の伏せ札が呪いなら突き返す（2回目以降は手札の呪い1枚を相手へ）</td></tr>
-    <tr data-attr="wind"><td>💰商人</td><td><b>拾う</b>：市場から1枚取る</td><td><b>吹き払い</b>：市場のカードを1〜6なら1枚、7〜10なら2枚まで捨てて補充。予言成功なら補充を見てからもう1回。付いていた呪いは補充後に付け直す</td></tr>
-    <tr data-attr="earth"><td>📿僧侶</td><td><b>蘇らせる</b>：捨て札から好きなカード1枚を手札に加える（呪いも選べる）</td><td><b>結界</b>：次のラウンド、自分への敗北効果・呪いの送り込みを防ぐ</td></tr>
-    <tr data-attr="curse"><td>💀呪い</td><td>（勝負札なら数字0）</td><td><b>送り込み</b>：相手の手札へ。防がれたら自分の手札に戻る</td></tr>
-  </table>
 
+
+  </div>
+</template>
+<!-- 効果一覧（「ルール」の画面とホーム画面の両方に出す） -->
+<template id="effectsTable">
+  <table class="rl-effects">
+    <tr><th>職業</th><th>効果（勝負札で負けたとき／伏せ札をめくったとき）</th></tr>
+    <tr data-attr="fire"><td>🗡️盗賊</td><td><b>奪う</b>：相手の得点山から1枚奪って、自分の得点山に入れる</td></tr>
+    <tr data-attr="water"><td>🪄呪術師</td><td><b>流す</b>：手札の呪いを1枚、相手の手札に押し付ける</td></tr>
+    <tr data-attr="wind"><td>💰商人</td><td><b>拾う</b>：市場から1枚取る（次のドラフトでは手札の枚数に数えない）</td></tr>
+    <tr data-attr="earth"><td>📿僧侶</td><td><b>蘇らせる</b>：捨て札から好きなカード1枚を手札に加える（呪い・希望・絶望も選べる。次のドラフトでは数えない）</td></tr>
+    <tr data-attr="curse"><td>💀呪い</td><td>勝負札：数字0で負け、勝者の手札へ／伏せ札：<b>送り込み</b>（必ず相手の手札へ）</td></tr>
+  </table>
+</template>
+<!-- ルールは3つの項目に分けて、最初は閉じておき、選んだものを開く -->
+<template id="rulesFolds">
+  <details class="fold" data-fold="quick"><summary>⏱ 1分でわかるルール</summary><div class="quick-rules-slot"></div></details>
+  <details class="fold" data-fold="full"><summary>📜 くわしいルール</summary><div class="full-rules-slot"></div></details>
+  <details class="fold" data-fold="effects"><summary>📖 効果一覧</summary><div class="effects-slot"></div></details>
+</template>
+<dialog id="rules">
+  <div class="rules-folds"></div>
   <div class="rl-close"><button onclick="this.closest('dialog').close()">閉じる</button></div>
 </dialog>
 
@@ -592,16 +805,26 @@ dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-ali
 </dialog>
 <dialog id="pile"></dialog>
 <dialog id="choose"></dialog>
-<dialog id="lobby">
-  <h3>呪い市 <small style="font-weight:400;color:var(--muted)">試作版</small></h3>
+<dialog id="lobby" class="home">
+  <div class="home-inner">
+  <div class="home-hero">
+    <div class="home-seal">呪</div>
+    <h1>呪い市</h1>
+    <p>市場で札を取り合い、呪いを押し付け合う。2人で遊ぶ読み合いのカードゲーム<small>（試作版）</small></p>
+  </div>
+  <nav class="home-tabs">
+    <button data-home-tab="play" class="on">🎮 遊ぶ</button>
+    <button data-home-tab="rules">📜 ルール</button>
+    <button data-home-tab="cards">🃏 カード図鑑</button>
+  </nav>
+  <section class="home-tab" data-home-pane="play">
   <!-- 招待リンク（?room=コード）から開いたときだけ出す -->
   <div id="inviteBox" class="lobby-box invite" hidden>
     <h4>📨 部屋 <b class="room-code" id="inviteCode"></b> に招待されています</h4>
     <div class="lobby-row"><button class="primary" id="btnInviteJoin">この部屋に入る</button></div>
   </div>
-  <div class="lobby-cols">
-  <div class="quick-rules-slot"></div>
   <div class="lobby-play">
+  <p class="home-first">はじめての方は、まず <button data-home-tab-go="rules">📜 ルール</button> の「1分でわかるルール」をどうぞ。</p>
   <label class="lobby-name">あなたの名前 <input id="myName" maxlength="10" placeholder="例：けい"></label>
   <div class="lobby-box">
     <h4>ひとりで遊ぶ</h4>
@@ -620,6 +843,14 @@ dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-ali
     <div id="installSteps"></div>
   </div>
   </div>
+  </section>
+  <section class="home-tab" data-home-pane="rules" hidden>
+    <div class="rules-folds"></div>
+  </section>
+  <section class="home-tab" data-home-pane="cards" hidden>
+    <p class="home-note">行動カードは4つの職業 × 数字1〜8 の32枚、呪いが6枚。終盤に希望と絶望が1枚ずつ配られます。カードの効果は、どの数字でも同じです。</p>
+    <div id="cardBook" class="card-book"></div>
+  </section>
   </div>
 </dialog>
 
@@ -630,18 +861,28 @@ dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-ali
 // ===== カードデータ =====
 const ATTRS = {
   // 4つの種類は職業として表す（属性どうしの相性はないので、炎・水などの自然の属性はやめた）。内部の名前（fire など）は変えていない
-  fire:  { name: '盗賊',   icon: '🗡️', lose: '奪う',     fuse: '追撃' },
-  water: { name: '呪術師', icon: '🪄', lose: '流す',     fuse: '逆流' },
-  wind:  { name: '商人',   icon: '💰', lose: '拾う',     fuse: '吹き払い' },
-  earth: { name: '僧侶',   icon: '📿', lose: '蘇らせる', fuse: '結界' },
-  curse: { name: '呪い', icon: '💀', lose: '—',     fuse: '送り込み' },
-  hope:    { name: '希望', icon: '🌟', lose: '—', fuse: '—' },
-  despair: { name: '絶望', icon: '🌑', lose: '—', fuse: '—' },
+  // eff：職業ごとの効果（1つだけ）。勝負札なら負けたとき、伏せ札ならめくったときに、どの数字でも1回発動する
+  fire:  { name: '盗賊',   icon: '🗡️', eff: '奪う' },
+  water: { name: '呪術師', icon: '🪄', eff: '流す' },
+  wind:  { name: '商人',   icon: '💰', eff: '拾う' },
+  earth: { name: '僧侶',   icon: '📿', eff: '蘇らせる' },
+  curse: { name: '呪い', icon: '💀', eff: '送り込み' },
+  hope:    { name: '希望', icon: '🌟', eff: '—' },
+  despair: { name: '絶望', icon: '🌑', eff: '—' },
 };
-const HAND_LIMIT = 6;
-const CURSE_PENALTY = 3;
+// カードの右上の判子（職業の印）
+const CREST = { fire: '盗', water: '術', wind: '商', earth: '僧', curse: '呪', hope: '希', despair: '絶' };
+// 効果の説明（カードの説明欄・確認の問い合わせで使う）
+const EFFECT_TEXT = {
+  fire: '相手の得点山から1枚奪って、自分の得点山に入れる',
+  water: '手札の呪いを1枚、相手の手札に押し付ける',
+  wind: '市場から1枚取る（次のドラフトでは手札の枚数に数えない）',
+  earth: '捨て札から好きなカードを1枚選んで手札に加える（呪い・希望・絶望も選べる。次のドラフトでは手札の枚数に数えない）',
+};
+const CURSE_PENALTY = 2;
 const CURSE_COUNT = 6;
-const BLOW_MAX = 2; // 吹き払い1回で流せる上限
+const MAX_NUM = 8;
+const HAND_LIMIT = 6;  // 行動カードの数字は1〜MAX_NUM
 const INITIAL_HAND = 4;
 const MARKET_SIZE = 5;
 const CPU_DELAY = 550;
@@ -655,8 +896,8 @@ const FLIP_MS = 750; // 札をめくるアニメーションの長さ
 // どちらも勝負札にしか出せない。希望は11（絶望以外に勝つ）、絶望は0として扱う
 const HOPE_DECK = 10;
 const isSpecial = c => c && (c.attr === 'hope' || c.attr === 'despair');
-const loseTimes = c => !c || c.attr === 'curse' || isSpecial(c) ? 0 : c.num <= 3 ? 2 : c.num <= 6 ? 1 : 0;
-const fuseTimes = c => c.attr === 'curse' ? 1 : c.num <= 6 ? 1 : 2;
+// 職業の効果を持つ札か（呪い・希望・絶望は持たない）
+const hasEffect = c => !!c && !isSpecial(c) && c.attr !== 'curse';
 const cardName = c => !c ? '（なし）' : c.attr === 'curse' || isSpecial(c) ? `${ATTRS[c.attr].icon}${ATTRS[c.attr].name}` : `${ATTRS[c.attr].icon}${ATTRS[c.attr].name}${c.num}`;
 
 let G = null;
@@ -675,9 +916,7 @@ const sleep = ms => G.headless ? Promise.resolve() : new Promise(r => setTimeout
 
 function mkPlayer(name, cpu) {
   // known: 相手に存在がバレている手札のカードID（公開された経路で手に入れたもの）
-  // bonus：予言的中の回数（1回1点）、reversal / reversalCount：10の敗北効果「呪い返し」で得た点と回数
-  return { name, cpu, hand: [], score: [], bonus: 0, reversal: 0, reversalCount: 0, known: new Set(),
-           shield: 0, shieldCard: null, shieldNext: 0, shieldCardNext: null,
+  return { name, cpu, hand: [], score: [], known: new Set(),
            // pickedUp: 商人の「拾う」・僧侶の「蘇らせる」で手に入れたカードID。次のドラフトの手札枚数には数えない
            pickedUp: new Set() };
 }
@@ -685,7 +924,7 @@ function mkPlayer(name, cpu) {
 function newGame(opts = {}) {
   const deck = [];
   let id = 0;
-  for (const a of ['fire', 'water', 'wind', 'earth']) for (let n = 1; n <= 10; n++) deck.push({ id: id++, attr: a, num: n });
+  for (const a of ['fire', 'water', 'wind', 'earth']) for (let n = 1; n <= MAX_NUM; n++) deck.push({ id: id++, attr: a, num: n });
   for (let i = 0; i < CURSE_COUNT; i++) deck.push({ id: id++, attr: 'curse', num: 0 });
   shuffle(deck);
   // hopeDealt：希望と絶望を配ったか。moves / moveSeq：札の移動の記録（画面で飛ばして見せる）。fx：今発動している効果。announce：画面中央に大きく知らせる出来事
@@ -703,9 +942,8 @@ function newGame(opts = {}) {
 function log(text, cls = '') { G.log.push({ text, cls }); }
 
 // ===== 基本操作 =====
-function refillMarket(carried = []) {
-  // carried：吹き払いで流したカードに付いていた呪い。補充後に付け直す
-  const pending = [...carried];
+function refillMarket() {
+  const pending = [];
   while (G.market.length < MARKET_SIZE && G.deck.length) {
     const c = G.deck.pop();
     if (c.attr === 'curse') pending.push(c); else G.market.push({ card: c, curses: [] });
@@ -746,6 +984,9 @@ function removeFromHand(p, c) { p.hand.splice(p.hand.indexOf(c), 1); p.known.del
 const findCurse = p => p.hand.find(c => c.attr === 'curse');
 const countCurses = p => p.hand.filter(c => c.attr === 'curse').length;
 
+// ドラフトの手札上限チェック用の枚数（直前に「拾う」「蘇らせる」で手に入れたカードは数えない）
+const draftHandCount = p => p.hand.filter(c => !p.pickedUp.has(c.id)).length;
+
 function takeSlot(pi, idx) {
   const p = G.players[pi];
   const s = G.market.splice(idx, 1)[0];
@@ -756,30 +997,12 @@ function takeSlot(pi, idx) {
   return [s.card, ...s.curses];
 }
 
-// ドラフトの手札上限チェック用の枚数（直前に「拾う」「蘇らせる」で手に入れたカードは数えない）
-const draftHandCount = p => p.hand.filter(c => !p.pickedUp.has(c.id)).length;
-
-// 結界チェック。防いだら true
-function blocked(ti) {
-  const t = G.players[ti];
-  if (t.shield > 0) { t.shield--; log(`📿${t.name}の結界が防いだ`, 'hl'); return true; }
-  return false;
-}
 
 function sendCurse(pi, c, from) {
   const me = G.players[pi], opp = G.players[1 - pi];
-  if (blocked(1 - pi)) { addToHand(me, c); moved(c, from, Z.hand(pi)); log(`呪いは${me.name}の手札に戻った`); }
-  else { addToHand(opp, c); moved(c, from, Z.hand(1 - pi)); log(`💀${me.name}が${opp.name}に呪いを送り込んだ`, 'hl'); }
-}
-
-function blowAway(pi, idxs) {
-  const me = G.players[pi];
-  const gone = idxs.map(i => G.market[i]);
-  G.market = G.market.filter(s => !gone.includes(s));
-  const curses = [];
-  for (const s of gone) { toDiscard(s.card, `${me.name}の吹き払い`); moved(s.card, Z.market, Z.discard); curses.push(...s.curses); }
-  log(`💰${me.name}は市場の ${gone.map(s => cardName(s.card)).join('、')} を吹き払った`, 'hl');
-  refillMarket(curses);
+  addToHand(opp, c);
+  moved(c, from, Z.hand(1 - pi));
+  log(`💀${me.name}が${opp.name}に呪いを送り込んだ`, 'hl');
 }
 
 // ===== 人間の入力待ち =====
@@ -809,13 +1032,8 @@ function answer(value) {
 // 通信で届いた答えが不正でも止まらないよう、市場の番号を確かめる
 const validSlot = i => Number.isInteger(i) && i >= 0 && i < G.market.length;
 
-async function decide(pi, text, cpuValue) {
-  if (G.players[pi].cpu) return cpuValue;
-  return ask(pi, { type: 'confirm', text, options: [{ label: '使う', value: true, primary: true }, { label: '使わず手札に戻す', value: false }] });
-}
-
 // ===== CPU の思考 =====
-const cardValue = c => c.attr === 'curse' ? -6 : c.attr === 'hope' ? 6 : c.attr === 'despair' ? 0 : c.num >= 7 ? c.num * 0.5 : c.num <= 3 ? 3 : 2;
+const cardValue = c => c.attr === 'curse' ? -6 : c.attr === 'hope' ? 6 : c.attr === 'despair' ? 0 : 1 + c.num * 0.4;
 const slotValue = s => cardValue(s.card) - 3.5 * s.curses.length;
 
 // 蘇らせる：捨て札から一番価値の高いカードを選ぶ（呪いは選ばない）
@@ -831,13 +1049,6 @@ function cpuPickMarket() {
   return best;
 }
 
-// 吹き払いで流す市場カード：呪い付きと、価値の低いカード
-function cpuBlowPicks(max) {
-  const idxs = [];
-  G.market.forEach((s, i) => { if (s.curses.length || slotValue(s) < 2.2) idxs.push(i); });
-  return idxs.sort((a, b) => slotValue(G.market[a]) - slotValue(G.market[b])).slice(0, max);
-}
-
 function cpuPlay(pi) {
   const me = G.players[pi], opp = G.players[1 - pi];
   const second = pi !== G.first;
@@ -847,45 +1058,35 @@ function cpuPlay(pi) {
   const predicted = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
   const myCurses = countCurses(me);
   const oppKnown = opp.hand.filter(c => opp.known.has(c.id));
-  const oppHas10 = oppKnown.some(c => c.num === 10), oppHasCurse = oppKnown.some(c => c.attr === 'curse');
   const oppHasHope = oppKnown.some(c => c.attr === 'hope'), oppHasDespair = oppKnown.some(c => c.attr === 'despair');
   const freeSlot = G.market.some(sl => !sl.curses.length);
 
-  const loseVal = c => {
-    const t = loseTimes(c);
+  // 職業の効果の価値（勝負札で負けたときも、伏せ札でめくったときも同じ効果）
+  const effVal = c => {
     switch (c.attr) {
-      case 'fire': return t * (opp.score.length ? 1.2 : 0.3);
-      case 'water': return t * (myCurses ? 2.5 : 0);
-      case 'wind': return t * 1.2;
-      case 'earth': return t * (G.discard.some(c => cardValue(c) >= 3) ? 1.5 : 0.2);
+      case 'fire': return opp.score.length ? 1.2 : 0.3;
+      case 'water': return myCurses ? 2.5 : 0;
+      case 'wind': return 1.2;
+      case 'earth': return G.discard.some(c => cardValue(c) >= 3) ? 1.5 : 0.2;
       default: return 0;
     }
   };
-  const fuseVal = (f, pw) => {
-    const t = fuseTimes(f);
-    switch (f.attr) {
-      case 'curse': return 3.5;
-      case 'fire': return pw * t * 1.1 - cardValue(f) * 0.15;
-      case 'water': return 0.5 + (t - 1) * (myCurses ? 2 : 0) - cardValue(f) * 0.15;
-      case 'wind': return 0.6 - cardValue(f) * 0.15;
-      case 'earth': return 0.7 * t - cardValue(f) * 0.15;
-      default: return 0;
-    }
-  };
+  const loseVal = c => hasEffect(c) ? effVal(c) : 0;
+  // 伏せ札：呪いは確実に押し付けられる。ほかは効果の価値から、必ず捨て札になって手放す札の価値を引く
+  const fuseVal = f => f.attr === 'curse' ? 3.5 : effVal(f) - cardValue(f) * 0.3;
   const evalPair = (b, f) => {
     let v0 = 0;
     // 希望：相手が絶望を持っていなければ確実に勝ち、手札の呪いを市場に付けて手放せる
     if (b.attr === 'hope') v0 = (oppHasDespair ? 0.4 : 1) * (2 + (myCurses && freeSlot ? 3 : 0)) + 1;
     // 絶望：相手の希望を打ち消せるときだけ価値がある。それ以外は効果のない0の札
     if (b.attr === 'despair') v0 = oppHasHope ? 3 : -0.3;
-    if (isSpecial(b)) return v0 + (f ? fuseVal(f, b.attr === 'hope' ? 1 : 0) : 0) + Math.random() * 1.2;
-    const pw = b.attr === 'curse' ? 0 : Math.min(0.95, (b.num - 0.5) / 10);
+    if (isSpecial(b)) return v0 + (f ? fuseVal(f) : 0) + Math.random() * 1.2;
+    const pw = b.attr === 'curse' ? 0 : Math.min(0.95, (b.num - 0.5) / MAX_NUM);
     let v = pw * 2 + (1 - pw) * loseVal(b) - cardValue(b) * 0.25;
-    // 呪いと10がぶつかると、負けた10の「呪い返し」で10を出した側が平均5点ほど得るので、
-    // 相手が10を持っていそうなら呪いは出しにくく、相手が呪いを持っていそうなら10を出しやすくする
-    if (b.attr === 'curse') v += 2.5 - (oppHas10 ? 2.5 : 0);
-    if (b.num === 10 && oppHasCurse) v += 1.5;
-    if (f) { v += fuseVal(f, pw); if (second && f.attr === predicted) v += 2.5; }
+    // 勝負札の呪いは負けて相手の手札に入るので、手放す手段になる
+    if (b.attr === 'curse') v += 2.5;
+    // 後攻は、先攻と同じ種類を伏せて予言を当てれば、先攻の伏せ札を無効にできる
+    if (f) { v += fuseVal(f); if (second && f.attr === predicted) v += 1.5; }
     return v + Math.random() * 1.2;
   };
 
@@ -930,137 +1131,78 @@ async function choosePlay(pi) {
   return r;
 }
 
-async function loseEffect(pi, c) {
-  const t = loseTimes(c);
-  if (!t) return;
-  const me = G.players[pi], opp = G.players[1 - pi], A = ATTRS[c.attr];
-  setPhase('battle', pi, '敗北効果');
-  G.fx = { pi, kind: 'battle', label: `${A.icon}${A.lose}${t > 1 ? ' ×' + t : ''}` };
-  log(`${me.name}の敗北効果：${A.icon}${A.lose}${t > 1 ? ' ×' + t : ''}`);
-  render();
-  await sleep(FX_STEP * 0.6);
-  for (let i = 0; i < t; i++) {
-    switch (c.attr) {
-      case 'fire':
-        if (!opp.score.length) { log('奪える得点がない'); break; }
-        if (blocked(1 - pi)) break;
-        const stolen = opp.score.pop();
-        toScore(me, stolen, `${opp.name}から奪った`);
-        moved(stolen, Z.score(1 - pi), Z.score(pi));
-        log(`${me.name}は${opp.name}の得点を1枚奪った`);
-        break;
-      case 'water': {
-        const cu = findCurse(me);
-        if (!cu) { log('流す呪いがない'); break; }
-        if (blocked(1 - pi)) break;
-        removeFromHand(me, cu); addToHand(opp, cu);
-        moved(cu, Z.hand(pi), Z.hand(1 - pi));
-        log(`💀${me.name}は呪いを${opp.name}に押し付けた`, 'hl');
-        break;
-      }
-      case 'wind': {
-        if (!G.market.length) break;
-        const idx = me.cpu ? cpuPickMarket() : await ask(pi, { type: 'pickMarket', text: '💰拾う：市場から1枚取ってください（次のドラフトでは手札の枚数に数えません）' });
-        takeSlot(pi, validSlot(idx) ? idx : 0).forEach(c => me.pickedUp.add(c.id));
-        break;
-      }
-      case 'earth':
-        await reviveFromDiscard(pi, '📿蘇らせる');
-        break;
-    }
-    render();
-    await sleep(FX_STEP);
-  }
-  G.fx = null;
-}
-
-async function fuseEffect(pi, c, times, pre, won) {
-  const me = G.players[pi], opp = G.players[1 - pi], A = ATTRS[c.attr];
-  setPhase('effect', pi, '伏せ効果');
-  let used = pre > 0;
-  const tag = `${A.icon}${A.fuse}${times > 1 ? ' ×' + times : ''}`;
-  G.fx = { pi, kind: 'fuse', label: tag };
-  render();
-  await sleep(FX_STEP * 0.6);
+// 職業の効果を使えるか（使っても何も起きないときは使わない）
+function canUse(pi, c) {
+  const me = G.players[pi], opp = G.players[1 - pi];
   switch (c.attr) {
-    case 'curse': {
-      used = true;
-      log(`${me.name}の伏せ効果：${tag}`);
-      sendCurse(pi, c, Z.field(pi, 'fuse'));
-      for (let k = 1; k < times; k++) {
-        const cu = findCurse(me);
-        if (!cu) break;
-        removeFromHand(me, cu);
-        sendCurse(pi, cu, Z.hand(pi));
-      }
-      break;
-    }
+    case 'fire': return opp.score.length > 0;
+    case 'water': return !!findCurse(me);
+    case 'wind': return G.market.length > 0;
+    case 'earth': return G.discard.length > 0;
+  }
+  return false;
+}
+const cannotText = { fire: '奪える得点がない', water: '流す呪いがない', wind: '市場にカードがない', earth: '捨て札にカードがない' };
+
+// 職業の効果を1回処理する
+async function runEffect(pi, c) {
+  const me = G.players[pi], opp = G.players[1 - pi];
+  switch (c.attr) {
     case 'fire': {
-      // 呪いは得点にしない：めくれた呪いは山札の一番下に戻し、次のカードを取る
-      const n = Math.min(times, G.deck.filter(x => x.attr !== 'curse').length);
-      if (won && n > 0 && await decide(pi, `伏せ効果 ${tag}：山札から${n}枚を得点山へ。使う？`, true)) {
-        used = true;
-        for (let k = 0; k < n;) {
-          const top = G.deck.pop();
-          if (top.attr === 'curse') { G.deck.unshift(top); log('追撃で呪いがめくれた → 山札の一番下へ'); continue; }
-          toScore(me, top, '追撃（山札から）');
-          moved(top, Z.deck, Z.score(pi));
-          k++;
-        }
-        log(`${me.name}の伏せ効果：${tag} → +${n}点`, 'hl');
-      }
+      const stolen = opp.score.pop();
+      toScore(me, stolen, `${opp.name}から奪った`);
+      moved(stolen, Z.score(1 - pi), Z.score(pi));
+      log(`${me.name}は${opp.name}の得点を1枚奪った`);
       break;
     }
     case 'water': {
-      const n = Math.min(times - pre, countCurses(me));
-      if (n > 0 && await decide(pi, `伏せ効果 ${tag}：手札の呪い${n}枚を相手に送る。使う？`, true)) {
-        used = true;
-        log(`${me.name}の伏せ効果：${tag}`);
-        for (let k = 0; k < n; k++) {
-          if (blocked(1 - pi)) continue;
-          const cu = findCurse(me);
-          removeFromHand(me, cu); addToHand(opp, cu);
-          moved(cu, Z.hand(pi), Z.hand(1 - pi));
-          log(`💀${me.name}は呪いを${opp.name}に押し付けた`, 'hl');
-        }
-      }
+      const cu = findCurse(me);
+      removeFromHand(me, cu); addToHand(opp, cu);
+      moved(cu, Z.hand(pi), Z.hand(1 - pi));
+      log(`💀${me.name}は呪いを${opp.name}に押し付けた`, 'hl');
       break;
     }
     case 'wind': {
-      // 1回に流せる枚数は1〜6なら1枚、7〜10なら2枚。予言成功なら吹き払いを2回できる
-      const perBlow = Math.min(fuseTimes(c), BLOW_MAX);
-      const blows = times > fuseTimes(c) ? 2 : 1;
-      for (let k = 0; k < blows; k++) {
-        const max = Math.min(perBlow, G.market.length);
-        if (!max) break;
-        const reply = me.cpu ? cpuBlowPicks(max) : await ask(pi, {
-          type: 'multiMarket', sel: [], max, skip: 'やめる',
-          text: `伏せ効果 ${tag}${blows > 1 ? `（${k + 1}/${blows}回目）` : ''}：流す市場のカードを最大${max}枚クリックして「流す」`
-            + (used ? '' : '。1枚も流さなければ、この札は手札に戻ります'),
-        });
-        const picks = [...new Set(Array.isArray(reply) ? reply : [])].filter(validSlot).slice(0, max);
-        if (!picks.length) break;
-        if (!used) log(`${me.name}の伏せ効果：${tag}`);
-        used = true;
-        blowAway(pi, picks);
-        render();
-        await sleep(FX_STEP);
-      }
+      const idx = me.cpu ? cpuPickMarket() : await ask(pi, { type: 'pickMarket', text: '💰拾う：市場から1枚取ってください（次のドラフトでは手札の枚数に数えません）' });
+      takeSlot(pi, validSlot(idx) ? idx : 0).forEach(c => me.pickedUp.add(c.id));
       break;
     }
-    case 'earth': {
-      if (await decide(pi, `伏せ効果 ${tag}：次のラウンド、自分への攻撃を${times}回防ぐ。使う？`, true)) {
-        used = true;
-        me.shieldNext += times;
-        me.shieldCardNext = c;
-        log(`${me.name}の伏せ効果：${tag} → 次のラウンドに結界`);
-      }
+    case 'earth':
+      await reviveFromDiscard(pi, '📿蘇らせる');
       break;
-    }
   }
-  if (used) {
-    if (c.attr !== 'curse' && c.attr !== 'earth') { toDiscard(c, `${me.name}の伏せ札（効果を使用）`); moved(c, Z.field(pi, 'fuse'), Z.discard); }
-  } else { addToHand(me, c); moved(c, Z.field(pi, 'fuse'), Z.hand(pi)); log(`${me.name}は伏せ札 ${cardName(c)} を手札に戻した`); }
+}
+
+// 勝負札で負けたとき（引き分けも）の効果。自動で発動する
+async function loseEffect(pi, c) {
+  if (!hasEffect(c)) return;
+  const me = G.players[pi], A = ATTRS[c.attr];
+  setPhase('battle', pi, '負けた札の効果');
+  G.fx = { pi, kind: 'battle', label: `${A.icon}${A.eff}` };
+  log(`${me.name}の負けた札の効果：${A.icon}${A.eff}`);
+  render();
+  await sleep(FX_STEP * 0.6);
+  if (canUse(pi, c)) await runEffect(pi, c); else log(cannotText[c.attr]);
+  render();
+  await sleep(FX_STEP);
+  G.fx = null;
+}
+
+// 伏せ札をめくったときの効果。必ず発動して、捨て札になる（呪いは相手の手札に送り込む。効果で何も起きないときも捨て札）
+async function fuseEffect(pi, c) {
+  const me = G.players[pi], A = ATTRS[c.attr];
+  setPhase('effect', pi, '伏せ札の効果');
+  const tag = `${A.icon}${A.eff}`;
+  G.fx = { pi, kind: 'fuse', label: tag };
+  render();
+  await sleep(FX_STEP * 0.6);
+  log(`${me.name}の伏せ札の効果：${tag}`);
+  if (c.attr === 'curse') sendCurse(pi, c, Z.field(pi, 'fuse'));
+  else {
+    if (canUse(pi, c)) await runEffect(pi, c); else log(cannotText[c.attr]);
+    toDiscard(c, `${me.name}の伏せ札`);
+    moved(c, Z.field(pi, 'fuse'), Z.discard);
+  }
   render();
   await sleep(FX_STEP);
   G.fx = null;
@@ -1139,6 +1281,14 @@ async function hopeEffect(pi) {
 
 function setPhase(step, actor, label) { G.phase = { step, actor, label }; }
 
+// 山札が尽きたら、このラウンドが最後。1ゲームに1回、画面の中央に大きく知らせる
+async function announceFinal() {
+  if (G.deck.length || G.finalShown) return;
+  G.finalShown = true;
+  log('山札が尽きた！ このラウンドが最終ラウンド', 'hl');
+  await announce({ title: '🏮 最終ラウンド', text: '山札が尽きました。このラウンドで決着！', style: 'final' }, ANN_MS);
+}
+
 // 画面の中央に大きく知らせて、読めるだけの時間を待つ。
 // a.per（プレイヤー番号順の配列）があれば、それぞれの画面に違う文面を出す
 const ANN_MS = 2600, ROUND_ANN_MS = 2000, PHASE_ANN_MS = 1300;
@@ -1153,13 +1303,12 @@ async function playRound() {
   const f = G.first, s = 1 - f;
   const P = G.players;
   G.field = null;
-  for (const p of P) { p.shield = p.shieldNext; p.shieldCard = p.shieldCardNext; p.shieldNext = 0; p.shieldCardNext = null; }
   setPhase('draft', null, 'ラウンド開始');
   log(`ラウンド${G.round}（先攻：${P[f].name}）`, 'round');
   // ラウンドの初めに「あなたは先攻です」を大きく出す（通信対戦では、それぞれの画面に自分の立場を出す）
   const roleText = pi => pi === f
     ? { title: 'あなたは先攻です', text: `ラウンド${G.round}　ドラフトで先に取れます`, style: 'first' }
-    : { title: 'あなたは後攻です', text: `ラウンド${G.round}　先攻と同じ種類を伏せれば予言成功`, style: 'second' };
+    : { title: 'あなたは後攻です', text: `ラウンド${G.round}　先攻と同じ種類を伏せれば、先攻の伏せ札を無効にできる`, style: 'second' };
   await announce({ title: '', text: '', per: [roleText(0), roleText(1)] }, ROUND_ANN_MS);
   // 希望と絶望が配られたら、すぐ画面に出して（お知らせと、札が手札へ飛ぶ動き）、読み終わるまで待ってからドラフトへ
   const dealt = dealHopeDespair();
@@ -1174,6 +1323,7 @@ async function playRound() {
   }
   // 「拾う」のカードを数えないのは、拾った直後のドラフト1回だけ
   for (const p of P) p.pickedUp.clear();
+  await announceFinal();
 
   // 2. 伏せる
   // 2人とも同時に選ぶ（通信対戦では、お互いの選択を待つ）
@@ -1182,41 +1332,24 @@ async function playRound() {
   const plays = await Promise.all([choosePlay(0), choosePlay(1)]);
   const b = [plays[0].battle, plays[1].battle];
   const fz = [plays[0].fuse, plays[1].fuse];
-  // battleLog / fuseLog：場の欄に「このフェーズで起きたこと」を出すためのログ位置
   // flip：今まさにめくっている札の種類（'battle' / 'fuse'）。そのときだけ裏返るアニメーションを付ける
-  G.field = { battle: b, fuse: fz, battleOpen: false, fuseOpen: false, flip: null, result: '', battleLog: G.log.length, fuseLog: null };
+  G.field = { battle: b, fuse: fz, battleOpen: false, fuseOpen: false, flip: null, result: '' };
   setPhase('battle', null, '勝負札をめくる');
   render();
-  await waitNext('お互いの札が伏せられました。クリックで勝負札をめくります', '勝負札をめくる');
-  await announce({ title: '⚔ 勝負！', text: '数字が大きい方の勝ち。負けた方の敗北効果が発動', style: 'battle' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
+  await waitNext('お互いの札が伏せられました。勝負札をめくります', '勝負札をめくる');
+  await announce({ title: '⚔ 勝負！', text: '数字が大きい方の勝ち。負けた札の効果が発動', style: 'battle' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
   await reveal('battle');
 
   // 3. 勝負
   const v = b.map(c => c ? c.num : -1);
   let winner = v[0] > v[1] ? 0 : v[1] > v[0] ? 1 : -1;
   log(`勝負：${P[0].name} ${cardName(b[0])} vs ${P[1].name} ${cardName(b[1])}`);
-  // 呪いと10がぶつかったら、勝敗が逆転して呪いを出した側の勝ち（負けた10は敗北効果「呪い返し」を得る）
-  const reversal = winner >= 0 && b[winner].num === 10 && b[1 - winner] && b[1 - winner].attr === 'curse';
-  if (reversal) winner = 1 - winner;
   // 希望と絶望がぶつかったら、絶望が希望の効果を打ち消して絶望の勝ち
   const hopeBlocked = b.some(c => c && c.attr === 'hope') && b.some(c => c && c.attr === 'despair');
   if (hopeBlocked) winner = b.findIndex(c => c.attr === 'despair');
-  const won = [winner === 0, winner === 1];
-  if (reversal) {
-    const W = P[winner], L = P[1 - winner];
-    G.field.result = `${W.name}の勝ち（呪いと10で逆転）`;
-    log(`💀呪いと10がぶつかり、勝敗が逆転！ ${W.name}の勝ち`, 'hl');
-    addToHand(W, b[winner]);  // 勝負札に出した呪いは、出した人の手札に戻る
-    moved(b[winner], Z.field(winner, 'battle'), Z.hand(winner));
-    log(`${W.name}の呪いは手札に戻った`);
-    toScore(W, b[1 - winner], `${L.name}の勝負札（呪いに負け）`);
-    moved(b[1 - winner], Z.field(1 - winner, 'battle'), Z.score(winner));
-    render();
-    await sleep(FX_STEP);
-    // 10の敗北効果は伏せ札の数値を使うので、伏せ札をめくった後に処理する
-  } else if (winner < 0) {
+  if (winner < 0) {
     G.field.result = '引き分け';
-    log('引き分け！ 両方の敗北効果が発動');
+    log('引き分け！ 両方の札の効果が発動');
     for (const pi of [0, 1]) {
       const c = b[pi];
       if (!c) continue;
@@ -1244,10 +1377,10 @@ async function playRound() {
     }
     render();
     await sleep(FX_STEP);
-    if (hopeWin && loseTimes(b[1 - winner])) {
-      // 希望は、負けた相手の敗北効果を無効にする
-      G.fx = { pi: 1 - winner, kind: 'battle', label: '🌟希望：敗北効果は無効' };
-      log(`🌟希望の力で、${P[1 - winner].name}の敗北効果（${ATTRS[b[1 - winner].attr].icon}${ATTRS[b[1 - winner].attr].lose}）は無効`, 'hl');
+    if (hopeWin && hasEffect(b[1 - winner])) {
+      // 希望は、負けた相手の札の効果を無効にする
+      G.fx = { pi: 1 - winner, kind: 'battle', label: '🌟希望：効果は無効' };
+      log(`🌟希望の力で、${P[1 - winner].name}の負けた札の効果（${ATTRS[b[1 - winner].attr].icon}${ATTRS[b[1 - winner].attr].eff}）は無効`, 'hl');
       render();
       await sleep(FX_STEP);
       G.fx = null;
@@ -1256,40 +1389,28 @@ async function playRound() {
     if (hopeBlocked) await despairEffect(winner);
   }
   setPhase('battle', null, '勝負の結果');
-  await waitNext('勝負の結果を確認したら、クリックで伏せ札をめくります', '伏せ札をめくる');
+  await waitNext('勝負の結果を確認したら、伏せ札をめくります', '伏せ札をめくる');
+
+  await announceFinal();  // 勝負の効果（拾う）で山札が尽きることもある
 
   // 4. 伏せ札オープンと予言判定
   setPhase('fuse', null, '伏せ札をめくる・予言判定');
-  G.field.fuseLog = G.log.length;
-  await announce({ title: '🔮 伏せ札オープン', text: '同じ種類なら後攻の予言成功。そのあと伏せ効果', style: 'fuse' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
+  await announce({ title: '🔮 伏せ札オープン', text: '同じ種類なら後攻の予言成功（先攻の伏せ札は無効）。そのあと伏せ札の効果', style: 'fuse' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
   await reveal('fuse');
   log(`伏せ札オープン：${P[0].name} ${cardName(fz[0])} / ${P[1].name} ${cardName(fz[1])}`);
-  if (reversal) {
-    // 10の敗北効果：互いの伏せ札の数値の差の絶対値を得点として得る（呪い・伏せ札なしは0）
-    const L = P[1 - winner], n = c => c ? c.num : 0;
-    const diff = Math.abs(n(fz[0]) - n(fz[1]));
-    G.fx = { pi: 1 - winner, kind: 'battle', label: `🔟呪い返し +${diff}点` };
-    L.reversal += diff;
-    L.reversalCount++;
-    log(`🔟${L.name}の10の敗北効果「呪い返し」：伏せ札の差 |${n(fz[0])} − ${n(fz[1])}| ＝ +${diff}点`, 'hl');
-    render();
-    await sleep(FX_STEP * 1.5);
-    G.fx = null;
-  }
-  const active = [!!fz[0], !!fz[1]], extra = [0, 0], pre = [0, 0];
+  // 予言成功（2人の伏せ札が同じ種類）なら、先攻の伏せ札は無効になり手札に戻る
+  const active = [!!fz[0], !!fz[1]];
   if (fz[0] && fz[1] && fz[0].attr === fz[1].attr) {
-    log(`予言成功！ ${P[s].name}（後攻）が伏せ札を読み切った（+1点）`, 'hl');
+    log(`予言成功！ ${P[s].name}（後攻）が伏せ札を読み切った`, 'hl');
     G.field.prophecy = true;
-    P[s].bonus++;
     // まず当てた後攻の伏せ札に「予言成功！」を出し、そのあと無効になった先攻の伏せ札を手札へ戻す
-    G.fx = { pi: s, kind: 'fuse', label: '🔮予言成功！ +1点' };
+    G.fx = { pi: s, kind: 'fuse', label: '🔮予言成功！' };
     render();
     await sleep(FX_STEP * 1.5);
     active[f] = false;
     addToHand(P[f], fz[f]);
     moved(fz[f], Z.field(f, 'fuse'), Z.hand(f));
     log(`${P[f].name}の伏せ札は無効 → 手札に戻る`);
-    extra[s] = 1;
     render();
     await sleep(FX_STEP);
     G.fx = null;
@@ -1297,27 +1418,13 @@ async function playRound() {
   render();
   await sleep(CPU_DELAY);
 
-  // 5. 伏せ効果（呪術師の逆流が割り込み → 後攻 → 先攻）
-  for (const pi of [s, f]) {
-    if (active[pi] && fz[pi].attr === 'water' && active[1 - pi] && fz[1 - pi].attr === 'curse') {
-      log(`🪄逆流！ ${P[pi].name}が呪いを突き返した`, 'hl');
-      G.fx = { pi, kind: 'fuse', label: '🪄逆流！' };
-      active[1 - pi] = false;
-      addToHand(P[1 - pi], fz[1 - pi]);
-      moved(fz[1 - pi], Z.field(1 - pi, 'fuse'), Z.hand(1 - pi));
-      pre[pi] = 1;
-      render();
-      await sleep(FX_STEP);
-      G.fx = null;
-    }
-  }
-  for (const pi of [s, f]) if (active[pi]) await fuseEffect(pi, fz[pi], fuseTimes(fz[pi]) + extra[pi], pre[pi], won[pi]);
+  // 5. 伏せ札の効果（後攻 → 先攻）
+  for (const pi of [s, f]) if (active[pi]) await fuseEffect(pi, fz[pi]);
 
   // ラウンド終了
   const over = !G.deck.length || P.every(p => !p.hand.length);
   setPhase('end', null, 'ラウンド終了');
-  await waitNext('伏せ札の結果を確認したら、クリックで次へ進みます', over ? '結果を見る' : '次のラウンドへ');
-  for (const p of P) { if (p.shieldCard) { toDiscard(p.shieldCard, `${p.name}の結界（期限切れ）`); p.shieldCard = null; } p.shield = 0; }
+  await waitNext('伏せ札の結果を確認したら、次へ進みます', over ? '結果を見る' : '次のラウンドへ');
   G.first = s;
   G.over = over;
   render();
@@ -1341,8 +1448,7 @@ async function waitNext(text, label) {
 
 function finalScore(p) {
   const curses = countCurses(p);
-  return { cards: p.score.length, bonus: p.bonus, reversal: p.reversal, curses,
-           total: p.score.length + p.bonus + p.reversal - curses * CURSE_PENALTY };
+  return { cards: p.score.length, curses, total: p.score.length - curses * CURSE_PENALTY };
 }
 
 async function gameLoop() {
@@ -1368,102 +1474,80 @@ function cardHTML(c, o = {}) {
     + (o.seen ? `<div class="seen ${o.seen}">${o.seen === 'open' ? '👁 公開' : '🔒 秘密'}</div>` : '');
   if (isSpecial(c)) {
     const A = ATTRS[c.attr];
-    return `<div class="${cls}" data-attr="${c.attr}" data-tip="${c.attr}:${c.num}" ${data}><div class="num">${c.attr === 'hope' ? '★' : '✖'}</div><div class="icon">${A.icon}</div><div class="nm">${A.name}</div>
-      <div class="eff"><b>勝負札専用</b><br>${c.attr === 'hope' ? '絶望以外に勝ち<br>＋敗北無効' : '希望を消す<br>＋捨て札1枚'}</div>${badge}</div>`;
+    return `<div class="${cls}" data-attr="${c.attr}" data-tip="${c.attr}:${c.num}" ${data}><div class="num">${c.attr === 'hope' ? '★' : '✖'}</div><div class="icon">${CREST[c.attr]}</div><div class="nm">${A.name}</div>
+      <div class="eff"><b>勝負札専用</b><br>${c.attr === 'hope' ? '絶望以外に勝ち<br>＋効果無効' : '希望を消す<br>＋捨て札1枚'}</div>${badge}</div>`;
   }
   if (c.attr === 'curse') {
-    return `<div class="${cls}" data-attr="curse" data-tip="curse:0" ${data}><div class="num">0</div><div class="icon">💀</div><div class="nm">呪い</div>
+    return `<div class="${cls}" data-attr="curse" data-tip="curse:0" ${data}><div class="num">0</div><div class="icon">${CREST.curse}</div><div class="nm">呪い</div>
       <div class="eff"><b>終了時 −${CURSE_PENALTY}</b><br><span>伏</span>送り込み</div>${badge}</div>`;
   }
-  const A = ATTRS[c.attr], lt = loseTimes(c), ft = fuseTimes(c);
-  return `<div class="${cls}" data-attr="${c.attr}" data-tip="${c.attr}:${c.num}" ${data}><div class="num">${c.num}</div><div class="icon">${A.icon}</div><div class="nm">${A.name}</div>
-    <div class="eff">${c.num === 10 ? '<div><span>敗</span>呪い返し</div>' : `<div class="${lt ? '' : 'off'}"><span>敗</span>${A.lose}${lt ? '×' + lt : ''}</div>`}<div><span>伏</span>${A.fuse}×${ft}</div></div>${badge}</div>`;
+  const A = ATTRS[c.attr];
+  return `<div class="${cls}" data-attr="${c.attr}" data-tip="${c.attr}:${c.num}" ${data}><div class="num">${c.num}</div><div class="icon">${CREST[c.attr]}</div><div class="nm">${A.name}</div>
+    <div class="eff"><div><span>効</span>${A.eff}</div></div>${badge}</div>`;
 }
 
 // マウスを合わせたときに出す、カード効果の説明
 // 説明欄の部品：「いつ発動するか」の見出しと本文の組
 const tipSec = (kind, when, name, times, body) => `<div class="tip-sec ${kind}">
-  <div class="tip-label"><span class="tip-chip ${kind}">${{ lose: '敗', fuse: '伏', win: '勝' }[kind] || '!'}</span>${when}${name ? `「${name}」` : ''}${times ? `<span class="tip-times">×${times}</span>` : ''}</div>
+  <div class="tip-label"><span class="tip-chip ${kind}">${{ lose: '敗', fuse: '伏', win: '勝', eff: '効' }[kind] || '!'}</span>${when}${name ? `「${name}」` : ''}${times ? `<span class="tip-times">×${times}</span>` : ''}</div>
   <div class="tip-body">${body}</div></div>`;
-const ROLES = { fire: '得点を稼ぐ・奪う', water: '呪いを押し付ける・跳ね返す', wind: '市場を操る', earth: '捨て札から取り戻す・守る' };
+const ROLES = { fire: '得点を奪う', water: '呪いを押し付ける', wind: '市場から取る', earth: '捨て札から取り戻す' };
 
-function cardTipHTML(attr, num) {
+// full：ホーム画面のカード図鑑用。補足の箇条書きと（ ）の中の説明も出す。
+// カーソルを合わせたとき・長押ししたときは、読みやすいよう要点だけにする
+function cardTipHTML(attr, num, full = false) {
+  const html = cardTipFull(attr, num, full);
+  return full ? html : html.replace(/（[^）]*）/g, '');
+}
+function cardTipFull(attr, num, full) {
   if (attr === 'hope') {
     return `<div class="tip-head" data-attr="hope"><span class="tip-num">★</span>🌟 希望<span class="tip-role">負けている側の切り札</span></div>
       ${tipSec('warn', '配られるとき', '', 0, `山札が残り <b>${HOPE_DECK}枚</b> を切ったとき、<b>本当の点数</b>（秘密の手札の呪いも含む）で<b>負けている側</b>に配られる`)}
-      ${tipSec('win', '勝負札にすると', '', 0, `<b>絶望以外のすべての札に勝つ</b>。さらに<b>相手の敗北効果を無効</b>にし、手札の呪いを <b>1枚</b>、市場の好きなカード（呪いが付いていないもの）に付けられる`)}
+      ${tipSec('win', '勝負札にすると', '', 0, `<b>絶望以外のすべての札に勝つ</b>。さらに<b>負けた相手の札の効果を無効</b>にし、手札の呪いを <b>1枚</b>、市場の好きなカード（呪いが付いていないもの）に付けられる`)}
       <div class="tip-special"><b>相手の勝負札が絶望のとき</b>：希望の効果は打ち消されて負ける。捨て札に入った希望は、絶望側に<b>奪われる</b>ことがある</div>
-      <div class="tip-note">・勝負札専用（伏せ札にはできない）<br>・使ったら捨て札になる（得点山には入らない）。僧侶の「蘇らせる」で拾い直せる</div>`;
+      ${full ? '<div class="tip-note">・勝負札専用（伏せ札にはできない）<br>・使ったら捨て札になる（得点山には入らない）。僧侶の「蘇らせる」で拾い直せる</div>' : ''}`;
   }
   if (attr === 'despair') {
     return `<div class="tip-head" data-attr="despair"><span class="tip-num">✖</span>🌑 絶望<span class="tip-role">勝っている側の守り</span></div>
       ${tipSec('warn', '配られるとき', '', 0, `山札が残り <b>${HOPE_DECK}枚</b> を切ったとき、<b>本当の点数</b>（秘密の手札の呪いも含む）で<b>勝っている側</b>に配られる`)}
       ${tipSec('win', '勝負札にすると', '', 0, `数字 <b>0</b> として扱われる（効果はない）`)}
       <div class="tip-special"><b>相手の勝負札が希望のとき</b>：希望の効果を打ち消して<b>勝つ</b>。さらに捨て札から好きなカードを <b>1枚</b> 手札に加えられる（打ち消した<b>希望も選べる</b>。次のドラフトでは手札の枚数に数えない）</div>
-      <div class="tip-note">・勝負札専用（伏せ札にはできない）<br>・持っていても減点はない。使ったら捨て札になる（得点山には入らない）。僧侶の「蘇らせる」で拾い直せる</div>`;
+      ${full ? '<div class="tip-note">・勝負札専用（伏せ札にはできない）<br>・持っていても減点はない。使ったら捨て札になる（得点山には入らない）。僧侶の「蘇らせる」で拾い直せる</div>' : ''}`;
   }
   if (attr === 'curse') {
     return `<div class="tip-head" data-attr="curse"><span class="tip-num">0</span>💀 呪い<span class="tip-role">持っていると減点</span></div>
       ${tipSec('warn', '持っていると', '', 0, `ゲーム終了時に手札にあると、1枚につき <b>−${CURSE_PENALTY}点</b>`)}
-      ${tipSec('lose', '勝負札にすると', '', 0, `数字0で負け。この呪いは<b>勝った相手の手札</b>に入る`)}
-      <div class="tip-special"><b>相手の勝負札が10のとき</b>：相手の10の「呪い返し」が発動する。勝負は<b>自分の勝ち</b>（相手の10は自分の得点山へ）、出した呪いは<b>自分の手札に返される</b>。相手は伏せ札の数値の差を得点として得る</div>
-      ${tipSec('fuse', '伏せ札にすると', '送り込み', 0, `相手の手札に送り込む。呪術師の逆流で突き返されたり、結界で防がれたりすると自分の手札に戻る`)}`;
+      ${tipSec('lose', '勝負札にすると', '', 0, `数字0で負け。この呪いは<b>勝った相手の手札</b>に入る（手放す手段になる）`)}
+      ${tipSec('fuse', '伏せ札にすると', '送り込み', 0, `めくったときに、必ず<b>相手の手札</b>に送り込む`)}`;
   }
-  const c = { attr, num: +num }, A = ATTRS[attr], lt = loseTimes(c), ft = fuseTimes(c);
-  const lose = {
-    fire: `勝った相手の得点山から <b>${lt}枚</b> 奪う`,
-    water: `手札の呪いを <b>${lt}枚</b>、相手の手札に押し付ける`,
-    wind: `市場から <b>${lt}枚</b> 取る（次のドラフトでは手札の枚数に数えない）`,
-    earth: `捨て札から好きなカードを <b>${lt}枚</b> 選んで手札に加える（呪いも選べる。次のドラフトでは手札の枚数に数えない）`,
-  }[attr];
-  const fuse = {
-    fire: `このラウンドの勝負に<b>勝っていたら</b>、山札の上から <b>${ft}枚</b> を得点山に入れる（呪いがめくれたら山札の一番下に戻して次のカードを取る）`,
-    water: ft === 1 ? '相手の伏せ札が呪いなら、相手の手札に<b>突き返す</b>。呪いでなければ、手札の呪いを <b>1枚</b> 相手に送る'
-                    : '相手の伏せ札が呪いなら<b>突き返し</b>、さらに手札の呪いを <b>1枚</b> 相手に送る。呪いでなければ、手札の呪いを <b>2枚まで</b> 相手に送る',
-    wind: `市場のカードを <b>${Math.min(ft, BLOW_MAX)}枚まで</b> 捨てて、山札から補充する。付いていた呪いは補充後に付け直す`,
-    earth: `この札を場に残し、次のラウンド、自分への敗北効果・呪いの送り込みを <b>${ft}回</b> 防ぐ`,
-  }[attr];
-  const loseSec = +num === 10
-    ? `<div class="tip-special">${tipSec('lose', '勝負に負けたとき', '呪い返し', 0,
-        '種類に関係なく10共通。勝負札で<b>呪いとぶつかると10は負け</b>になり、互いの伏せ札の数値の差を<b>得点として得る</b>（呪い・伏せ札なしは0）。負けた10は呪いを出した側の得点山に入る')}</div>`
-    : tipSec('lose', '勝負に負けたとき', A.lose, lt, lt ? lose : '<span class="tip-none">なし（7〜9は敗北効果がない）</span>');
+  const A = ATTRS[attr];
   return `<div class="tip-head" data-attr="${attr}"><span class="tip-num">${num}</span>${A.icon} ${A.name}<span class="tip-role">${ROLES[attr]}</span></div>
-    ${loseSec}
-    ${tipSec('fuse', '伏せ札をめくったとき', A.fuse, ft, fuse)}
-    <div class="tip-note">・伏せ効果を使ったら捨て札、使わなければ手札に戻る${attr === 'earth' ? '（結界は次ラウンドの終わりまで場に残る）' : ''}<br>
-      ・予言成功（後攻）なら、${attr === 'wind' ? '補充を見てから吹き払いをもう1回できる' : '伏せ効果がもう1回発動する'}</div>`;
+    ${tipSec('eff', '効果', A.eff, 0, EFFECT_TEXT[attr])}
+    ${full ? `<div class="tip-note">・<b>勝負札</b>にしたら、勝負に<b>負けたとき</b>（引き分けも）に発動<br>
+      ・<b>伏せ札</b>にしたら、<b>めくったとき</b>に必ず発動して、捨て札になる<br>
+      ・どの数字でも、効果は1回</div>` : ''}`;
 }
 
 // 先攻・後攻の札。先攻はドラフトで先に取れ、後攻は予言（伏せ札の属性当て）ができる
 const roleBadge = first => `<span class="role ${first ? 'first' : 'second'}">${first ? '⚔ 先攻' : '🔮 後攻'}</span>`;
 const roleHint = first => first ? 'ドラフトで先に取れる。伏せ札の種類を後攻に読まれると無効になる'
-                                : '予言ができる：先攻と同じ種類の伏せ札を出すと +1点、相手の伏せ効果を無効にし、自分の伏せ効果を強化';
+                                : '予言ができる：先攻と同じ種類の伏せ札を出すと、先攻の伏せ札を無効にできる';
 
 // 点数。自分は手札の呪いまで含めた正確な点数、相手は見えている情報だけで計算する（未判明の呪いは数えない）
 function scoreOf(p, isMe) {
   const curses = isMe ? p.curses : p.knownCurses;
-  return { total: p.score.length + p.bonus + p.reversal - curses * CURSE_PENALTY, curses };
+  return { total: p.score.length - curses * CURSE_PENALTY, curses };
 }
 
-// 予言的中の回数（1回につき+1点）。後攻のときに先攻と同じ種類の伏せ札を出すと的中する
-// 10の敗北効果「呪い返し」で得た点。予言的中と同じく、点数に直結するので目立たせる
-const reversalPill = (count, pts) => `<span class="prophecy-pill reversal ${count ? 'on' : ''}" title="勝負札の10が呪いとぶつかって負けると「呪い返し」が発動し、互いの伏せ札の数値の差を得点として得る">🔟 呪い返し <b>${count}</b>回（+${pts}点）</span>`;
-const prophecyPill = n => `<span class="prophecy-pill ${n ? 'on' : ''}" title="後攻のとき、先攻と同じ種類の伏せ札を出すと予言的中。1回につき+1点">🔮 予言的中 <b>${n}</b>回（+${n}点）</span>`;
-
 function playerStats(p, isMe, idx) {
-  const shield = p.shield ? `<span class="shield">📿結界 残り${p.shield}</span>` : '';
-  const shieldNext = p.shieldNext ? `<span class="shield">📿次ラウンド結界 ×${p.shieldNext}</span>` : '';
   const sc = scoreOf(p, isMe);
   const picked = p.hand.filter(c => c && c.picked).length;
-  const calc = `得点山 ${p.score.length} ＋ 予言 ${p.bonus}${p.reversal ? ` ＋ 呪い返し ${p.reversal}` : ''} − ${isMe ? '' : '判明している'}呪い ${sc.curses}×${CURSE_PENALTY}`;
-  // スマホでは1行にまとめる（点数・予言・呪い返しは、タップすると詳しい説明が出る）
-  const who = isMe ? 'あなた' : p.name;
+  const calc = `得点山 ${p.score.length} − ${isMe ? '' : '判明している'}呪い ${sc.curses}×${CURSE_PENALTY}`;
+  // スマホでは1行にまとめる（点数は、タップすると内訳が出る）
   if (isPhone()) return `<div class="pstats compact">
     <span class="zone-tag">${isMe ? '🙂' : '👤'} ${p.name}</span>${roleBadge(p.first)}
     <button class="pile-btn" data-pile="score:${idx}" title="得点山">🏆<b>${p.score.length}</b>▸</button>
-    <button class="mini info-btn" data-info="🔮 予言ボーナス|${who}の予言的中：<b>${p.bonus}回</b>（<b>+${p.bonus}点</b>）<br>後攻のとき、先攻と同じ種類の伏せ札を出すと予言成功。1回につき+1点（さらに先攻の伏せ札は無効になり、後攻の伏せ効果は+1回）">🔮<b>${p.bonus}</b></button>${p.reversalCount ? `<button class="mini info-btn" data-info="🔟 呪い返し|${who}の呪い返し：<b>${p.reversalCount}回</b>（<b>+${p.reversal}点</b>）<br>勝負札の10が呪いとぶつかって負けると発動。伏せ札をめくった後、互いの伏せ札の数字の差を得点として得る">🔟<b>+${p.reversal}</b></button>` : ''}
     <span class="mini" title="手札">🂠<b>${p.hand.length}</b>${picked ? `<small>(${p.hand.length - picked})</small>` : ''}</span>
-    ${p.shield ? `<span class="shield">📿${p.shield}</span>` : ''}${p.shieldNext ? `<span class="shield">📿次${p.shieldNext}</span>` : ''}
     <div class="score-box mini" data-info="🧮 点数の内訳|${isMe ? '現在の点数' : '見えている点数（未判明の呪いは含まない）'}<br>${calc}"><span class="score-line"><span class="score-total">${sc.total}</span><span class="score-unit">点</span></span></div>
   </div>`;
   return `<div class="pstats">
@@ -1473,9 +1557,7 @@ function playerStats(p, isMe, idx) {
       ${isMe ? `<span class="role-hint">${roleHint(p.first)}</span>` : ''}
       <div class="pstats-sub">
         <button class="pile-btn" data-pile="score:${idx}">🏆 得点山 <b>${p.score.length}</b>枚 ▸</button>
-        ${prophecyPill(p.bonus)}
-        ${reversalPill(p.reversalCount, p.reversal)}
-        <span class="stats">手札 ${p.hand.length}枚${picked ? `（ドラフトでは ${p.hand.length - picked}枚として数える）` : ''}</span> ${shield} ${shieldNext}
+        <span class="stats">手札 ${p.hand.length}枚${picked ? `（ドラフトでは ${p.hand.length - picked}枚として数える）` : ''}</span>
       </div>
     </div>
     <div class="score-box" title="${calc}">
@@ -1491,10 +1573,8 @@ function playerStats(p, isMe, idx) {
 function makeView(pi) {
   const pub = (p, i) => {
     const self = i === pi;
-    const sc = p.shieldCard || p.shieldCardNext;
     return {
-      name: p.name, bonus: p.bonus, reversal: p.reversal, reversalCount: p.reversalCount, score: p.score, first: G.first === i,
-      shield: p.shield, shieldNext: p.shieldNext, shieldCard: sc ? cardName(sc) : null,
+      name: p.name, score: p.score, first: G.first === i,
       hand: p.hand.map(c => self || p.known.has(c.id) ? { ...c, known: p.known.has(c.id), picked: p.pickedUp.has(c.id) } : null),
       knownCurses: p.hand.filter(c => c.attr === 'curse' && p.known.has(c.id)).length,
       curses: self ? countCurses(p) : null,
@@ -1523,10 +1603,10 @@ function render() {
 const isPhone = () => typeof matchMedia !== 'undefined' && matchMedia('(max-width: 600px)').matches;
 let scrolledUi = null, shownResult = null, scrolledPick = null;
 let placedMemo = { battle: null, fuse: null };  // 前回描いたときに場へ置いていた札（新しく置いた札だけ動かすため）
+
 // 商人の「拾う」・僧侶の「蘇らせる」で手に入れた札の別枠。次のドラフトでは手札の枚数に数えないので、ほかの手札と分けて見せる
 const pickedBox = cards => !cards.length ? '' : `<div class="picked-box" title="商人の「拾う」・僧侶の「蘇らせる」で手に入れた札。次のドラフトでは手札の枚数に数えない（ドラフトが終わると普通の手札に戻る）">
   <div class="picked-label">💰📿 拾った・蘇らせた札 <small>次のドラフトでは数えない</small></div><div class="picked-cards">${cards.join('')}</div></div>`;
-
 // 山札。尽きたラウンドでゲームが終わるので、残りが少なくなったら目立たせる
 // （ドラフトをパスすると補充されず減らないので、残りラウンド数は正確に見積もれない。目安の表示はしない）
 const deckLow = n => n <= 8;
@@ -1550,9 +1630,9 @@ function renderView(v) {
     : `${v.online ? '🌐 通信対戦　' : ''}ラウンド ${v.round}　<span class="deck-pill ${deckLow(v.deck) ? 'low' : ''}">🂠 山札 <b>${v.deck}</b>枚</span>　<button class="pile-btn" data-pile="discard">🗑 捨て札 <b>${v.discard.length}</b>枚 ▸</button>`;
   document.getElementById('board').innerHTML = !v.round ? '' : phone ? `
     <span class="board-side me">🙂<b>${scoreOf(me, true).total}</b></span><span class="board-vs">vs</span><span class="board-side opp"><b>${scoreOf(opp, false).total}</b>👤</span>` : `
-    <span class="board-side me">🙂 ${me.name} ${roleBadge(me.first)} <b>${scoreOf(me, true).total}</b>点 <span class="board-prophecy" title="予言的中の回数">🔮${me.bonus}</span>${me.reversal ? ` <span class="board-prophecy" title="呪い返しで得た点">🔟+${me.reversal}</span>` : ''}</span>
+    <span class="board-side me">🙂 ${me.name} ${roleBadge(me.first)} <b>${scoreOf(me, true).total}</b>点</span>
     <span class="board-vs">vs</span>
-    <span class="board-side opp">${opp.reversal ? `<span class="board-prophecy" title="呪い返しで得た点">🔟+${opp.reversal}</span> ` : ''}<span class="board-prophecy" title="予言的中の回数">🔮${opp.bonus}</span> <b>${scoreOf(opp, false).total}</b>点 ${roleBadge(opp.first)} ${opp.name} 👤</span>`;
+    <span class="board-side opp"><b>${scoreOf(opp, false).total}</b>点 ${roleBadge(opp.first)} ${opp.name} 👤</span>`;
 
   // 相手
   // スマホでは、中身の見えない札は小さな裏向きの札にして、相手に知られた札と並べる
@@ -1561,31 +1641,35 @@ function renderView(v) {
       ${pickedBox(opp.hand.filter(c => c && c.picked).map(c => cardHTML(c, { small: true, known: true })))}</div>`;
 
   // 市場
-  const pickM = ui.type === 'pickMarket' || ui.type === 'multiMarket';
-  const msel = ui.type === 'multiMarket' ? ui.sel : [];
+  const pickM = ui.type === 'pickMarket';
   const msec = document.getElementById('marketSec');
   msec.classList.toggle('pick-now', pickM);
   msec.innerHTML = `<h2><span class="zone-tag">🛒 市場</span> ${pickM
-      ? `<span class="pick-banner">▼ ${ui.banner || (ui.type === 'multiMarket' ? '流すカードをここから選んでください' : 'ここから1枚選んでください')}</span>`
+      ? `<span class="pick-banner">▼ ${ui.banner || 'ここから1枚選んでください'}</span>`
       : '<span class="pc-only">みんなで取り合うカード（強いカードには呪いが取り付く）</span>'}</h2>
-    <div class="row">${deckHTML(v.deck)}${v.market.map((s, i) => `<div class="slot ${!pickM ? '' : ui.allowed && !ui.allowed.includes(i) ? 'dim' : 'clickable'}" data-action="market" data-i="${i}">${cardHTML(s.card, msel.includes(i) ? { cls: 'sel-blow', badge: ['b', '流す'] } : {})}${s.curses.length ? `<div class="curse-tag">💀×${s.curses.length}</div>` : ''}</div>`).join('') || '<span class="info">（空）</span>'}</div>`;
+    <div class="row">${deckHTML(v.deck)}${v.market.map((s, i) => `<div class="slot ${!pickM ? '' : ui.allowed && !ui.allowed.includes(i) ? 'dim' : 'clickable'}" data-action="market" data-i="${i}">${cardHTML(s.card)}${s.curses.length ? `<div class="curse-tag">💀×${s.curses.length}</div>` : ''}</div>`).join('') || '<span class="info">（空）</span>'}</div>`;
 
   // スマホでは、市場から選ぶ番になったら市場が見えるところまで動かす
   if (phone && pickM && scrolledPick !== ui.id) { scrolledPick = ui.id; msec.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
 
   // 場
   const F = v.field;
-  let fieldHTML = phone ? '' : '<span style="color:var(--muted)">勝負札と伏せ札を選ぶと、ここで勝負します</span>';
+  let fieldHTML = '';
   // 場は、相手の勝負札・伏せ札を上（相手の手札側）、自分の札を下（自分の手札側）に置く
   // pi：その場所のプレイヤー。札が飛ぶ動きの出発点・到着点として使う。発動中の効果の札は光らせて効果名を出す
   const fxOn = (pi, kind) => v.fx && v.fx.pi === pi && v.fx.kind === kind;
   const cell = (kind, label, inner, pi) => `<div class="fcell ${kind} ${fxOn(pi, kind) ? 'fx-on' : ''}" ${pi != null ? `data-slot="${pi}:${kind}"` : ''}>
     ${fxOn(pi, kind) ? `<div class="fx-label">${v.fx.label}</div>` : ''}<div class="lbl">${label}</div>${inner}</div>`;
+  // 伏せ札は、伏せ札にできる札（希望・絶望以外）が勝負札のほかにあるときだけ必要
+  const sel0 = ui.sel || {};
+  const playOk = ui.type === 'play' && sel0.battle != null && (sel0.fuse != null || !me.hand.some(c => c.id !== sel0.battle && !isSpecial(c)));
   const board = (mine, theirs, center) => `<div class="board">
     <div class="brow opp"><span class="lbl side-opp">👤 ${opp.name}</span>${theirs}</div>
     <div class="vs">${center}</div>
     <div class="brow me"><span class="lbl side-me">🙂 ${me.name}</span>${mine}</div>
   </div>`;
+  // 札が出ていない間も、空の枠を並べた勝負の場（緋毛氈）を出しておく
+  const emptyRow = cell('', '勝負', cardHTML(null)) + cell('', '伏せ', cardHTML(null));
   if (ui.type === 'play') {
     // 札を選んでいる間は、選んだ札が自分の側の枠に置かれる（クリックすると手札に戻る）
     const sel = ui.sel;
@@ -1596,7 +1680,7 @@ function renderView(v) {
                : `<div class="card empty set-hint">${kind === 'battle' ? '勝負札' : '伏せ札'}を<br>選んでください</div>`;
     };
     fieldHTML = board(cell('battle', '勝負札', setSlot('battle'), v.me) + cell('fuse', '伏せ札', setSlot('fuse'), v.me),
-                      cell('', '勝負', cardHTML(null)) + cell('', '伏せ', cardHTML(null)), 'VS');
+                      emptyRow, 'VS');
     placedMemo = { battle: sel.battle, fuse: sel.fuse };
   } else if (F) {
     const slot = (kind, i) => {
@@ -1609,19 +1693,24 @@ function renderView(v) {
     const o = 1 - v.me, m = v.me;
     fieldHTML = board(cell('battle', '勝負', slot('battle', m), m) + cell('fuse', '伏せ', slot('fuse', m), m),
                       cell('battle', '勝負', slot('battle', o), o) + cell('fuse', '伏せ', slot('fuse', o), o),
-                      `${F.result || 'VS'}${F.prophecy ? '　<span style="color:var(--battle)">予言成功！</span>' : ''}`);
-    // このフェーズで起きたこと
-    const lines = (from, to) => v.log.slice(from, to).map(l => `<div class="${l.cls}">${l.text}</div>`).join('');
-    fieldHTML = `<div class="field-wrap">${fieldHTML}<div class="events"><div class="ev-title">⚔️ 勝負</div>${lines(F.battleLog, F.fuseLog ?? undefined)}`
-      + (F.fuseLog != null ? `<div class="ev-title">🂠 伏せ札</div>${lines(F.fuseLog)}` : '') + '</div></div>';
-  }
-  const shields = v.players.filter(p => p.shieldCard).map(p => `<span class="shield">${p.name}の結界：${p.shieldCard}</span>`).join(' ');
+                      `${F.result || 'VS'}${F.prophecy ? '　<span class="board-prophecy">予言成功！</span>' : ''}`);
+  } else fieldHTML = board(emptyRow, emptyRow, 'VS');
   const sec = document.getElementById('fieldSec');
   const tap = phone ? 'タップ' : 'クリック';
-  sec.innerHTML = `<h2><span class="zone-tag">⚔️ 場</span> <span class="pc-only">このラウンド、あなたは ${roleBadge(me.first)}</span>${phone && !fieldHTML ? '<span>伏せるターンで札を出します</span>' : ''} ${shields}<span id="roundScore" class="round-score"></span></h2>${fieldHTML}`
-    + (ui.type === 'next' ? `<div class="next-hint">▶ ${tap}して${ui.options[0].label}</div>` : '');
-  const ev = sec.querySelector('.events');
-  if (ev) ev.scrollTop = ev.scrollHeight;
+  // 緋毛氈の右側のボタン置き場。操作のボタンはここにだけ出す（指示ナビは説明だけ）。
+  // 置き場はいつも同じ大きさで出しておき、緋毛氈の大きさが変わらないようにする
+  let go;
+  if (ui.type === 'play') {
+    go = `<button class="primary go-btn" data-action="confirmPlay" ${playOk ? '' : 'disabled'}>⚔ 勝負！</button>
+      <div class="go-hint">${playOk ? '押すと勝負札を出します' : '手札から勝負札と伏せ札を<br>置いてください'}</div>`;
+  } else if (ui.type && (ui.options?.length || ui.skip)) {
+    go = (ui.options || []).map((o, i) => `<button class="${o.primary ? 'primary go-btn' : 'go-sub'}" data-action="opt" data-i="${i}">${o.label}</button>`).join('')
+      + (ui.skip ? `<button class="go-sub" data-action="skip">${ui.skip}</button>` : '');
+  } else {
+    go = `<div class="go-hint">${v.over ? 'ゲーム終了' : turn.oppActing ? `${opp.name}の番です` : ui.type === 'pickMarket' ? '市場から選んでください' : ''}</div>`;
+  }
+  fieldHTML = `<div class="field-area">${fieldHTML}<div class="field-go">${go}</div></div>`;
+  sec.innerHTML = `<h2><span class="zone-tag">⚔️ 場</span> <span class="pc-only">このラウンド、あなたは ${roleBadge(me.first)}</span> <span id="roundScore" class="round-score"></span></h2>${fieldHTML}`;
   sec.classList.toggle('waiting', ui.type === 'next');
   if (ui.type === 'next') sec.dataset.action = 'next'; else delete sec.dataset.action;
   // 場が見えるところまで動かす（クリックで進む場面。スマホでは、札を選ぶ場面と、場に札が出たときも）
@@ -1657,21 +1746,15 @@ function renderView(v) {
   if (NET.dead) {
     pr.innerHTML = '<div class="txt" style="color:var(--battle)">通信が切れました。ページを再読み込みして、部屋を作り直してください。</div>';
   } else if (ui.type === 'play') {
-    // 伏せ札は、伏せ札にできる札（希望・絶望以外）が勝負札のほかにあるときだけ必要
-    const needFuse = me.hand.some(c => c.id !== sel.battle && !isSpecial(c));
-    const ok = sel.battle != null && (sel.fuse != null || !needFuse);
     const hasSpecial = me.hand.some(isSpecial);
     // 1行ずつ短くして、横幅があるときは折り返さずに見せる
     pr.innerHTML = `<div class="txt play-txt"><div>手札を${tap}で <span style="color:var(--battle)">勝負札</span> → <span style="color:var(--fuse)">伏せ札</span> の順に場へ置く（場の札を${tap}で戻す）</div>
-      <div class="prompt-role">あなたは ${roleBadge(me.first)} ${me.first ? '伏せ札の種類を相手に読まれないように' : '先攻と同じ種類を伏せると予言成功'}${hasSpecial ? '　※希望・絶望は勝負札専用' : ''}</div></div>
-      <div class="actions"><button class="primary" data-action="confirmPlay" ${ok ? '' : 'disabled'}>決定</button></div>`;
-  } else if (ui.type === 'multiMarket') {
-    pr.innerHTML = `<div class="txt">${uiText}</div>
-      <div class="actions"><button class="primary" data-action="confirmMulti" ${ui.sel.length ? '' : 'disabled'}>流す（${ui.sel.length}枚）</button><button data-action="skip">${ui.skip}</button></div>`;
+      <div class="prompt-role">あなたは ${roleBadge(me.first)} ${me.first ? '伏せ札の種類を相手に読まれないように' : '先攻と同じ種類を伏せると、先攻の伏せ札を無効にできる'}${hasSpecial ? '　※希望・絶望は勝負札専用' : ''}</div>
+      <div class="prompt-role">置いたら、勝負の場の「⚔ 勝負！」を押す</div></div>`;
   } else if (ui.type) {
-    const opts = (ui.options || []).map((o, i) => `<button class="${o.primary ? 'primary' : ''}" data-action="opt" data-i="${i}">${o.label}</button>`).join('');
-    const buttons = opts + (ui.skip ? `<button data-action="skip">${ui.skip}</button>` : '');
-    pr.innerHTML = `<div class="txt">${uiText}</div>${buttons ? `<div class="actions">${buttons}</div>` : ''}`;
+    // ボタンは勝負の場に出すので、ここは説明だけ
+    const where = ui.options?.length || ui.skip ? '（ボタンは勝負の場にあります）' : '';
+    pr.innerHTML = `<div class="txt">${uiText}<div class="prompt-role">${where}</div></div>`;
   } else {
     pr.innerHTML = `<div class="txt" style="color:var(--muted)">${v.over ? 'ゲーム終了' : turn.oppActing ? `👤 ${opp.name}が考えています…` : '処理中…'}</div>`;
   }
@@ -1865,7 +1948,7 @@ function flyFromMarket(marketRects) {
 }
 
 // ===== 今「誰が」「何を」している番か =====
-const STEPS = [['draft', 'ドラフト'], ['play', '伏せる'], ['battle', '勝負'], ['fuse', '伏せ札'], ['effect', '伏せ効果'], ['end', '終了']];
+const STEPS = [['draft', 'ドラフト'], ['play', '伏せる'], ['battle', '勝負'], ['fuse', '伏せ札'], ['effect', '効果'], ['end', '終了']];
 let flashedUi = null;
 
 // 自分が操作する番か、相手が操作している（考えている）番か
@@ -1963,13 +2046,13 @@ function openPile(kind) {
 
 function showResult(v) {
   const s = v.result.scores, P = v.players;
-  const row = i => `<tr><td>${P[i].name}</td><td>${s[i].cards}</td><td>${s[i].bonus}</td><td>${s[i].reversal}</td><td>${s[i].curses}（−${s[i].curses * CURSE_PENALTY}）</td><td><b>${s[i].total}</b></td></tr>`;
+  const row = i => `<tr><td>${P[i].name}</td><td>${s[i].cards}</td><td>${s[i].curses}（−${s[i].curses * CURSE_PENALTY}）</td><td><b>${s[i].total}</b></td></tr>`;
   const mine = s[v.me].total, theirs = s[1 - v.me].total;
   const msg = mine > theirs ? 'あなたの勝ち！' : mine < theirs ? `${P[1 - v.me].name}の勝ち…` : '引き分け';
   const again = NET.mode === 'guest' ? '<span class="info">ホストが「もう一度」を押すと、次のゲームが始まります　</span>'
                                      : '<button class="primary" id="btnAgain">もう一度</button>';
   const d = document.getElementById('result');
-  d.innerHTML = `<h3>${msg}</h3><table><tr><th></th><th>得点山</th><th>予言</th><th>呪い返し</th><th>呪い</th><th>合計</th></tr>${row(0)}${row(1)}</table>
+  d.innerHTML = `<h3>${msg}</h3><table><tr><th></th><th>得点山</th><th>呪い</th><th>合計</th></tr>${row(0)}${row(1)}</table>
     <p style="text-align:right">${again} <button onclick="this.closest('dialog').close()">閉じる</button></p>`;
   if (!d.open) d.showModal();
   const b = document.getElementById('btnAgain');
@@ -2143,13 +2226,6 @@ if (typeof document !== 'undefined') {
     if (!el || !V || !V.ui || NET.dead) return;
     const ui = V.ui, a = el.dataset.action;
     if (a === 'market' && ui.type === 'pickMarket') { if (!ui.allowed || ui.allowed.includes(+el.dataset.i)) answer(+el.dataset.i); }
-    else if (a === 'market' && ui.type === 'multiMarket') {
-      const i = +el.dataset.i;
-      if (ui.sel.includes(i)) ui.sel = ui.sel.filter(x => x !== i);
-      else if (ui.sel.length < ui.max) ui.sel = [...ui.sel, i];
-      renderView(V);
-    }
-    else if (a === 'confirmMulti') answer([...ui.sel]);
     else if (a === 'discardPick' && ui.type === 'pickDiscard' && (!ui.allowed || ui.allowed.includes(+el.dataset.i))) answer(+el.dataset.i);
     else if (a === 'slot' && ui.type === 'play') placeCard(+el.dataset.id, 'hand');
     else if (a === 'hand' && ui.type === 'play') {
@@ -2222,7 +2298,7 @@ if (typeof document !== 'undefined') {
     clearTimeout(pressTimer);
     if (!isPhone()) setTimeout(() => { tip.hidden = true; }, 1500);
   });
-  // スマホ：点数・予言・呪い返しをタップすると、詳しい説明を出す（data-info は「見出し|本文」）
+  // スマホ：点数をタップすると、内訳を出す（data-info は「見出し|本文」）
   document.addEventListener('click', e => {
     const el = e.target.closest('[data-info]');
     if (!el) return;
@@ -2233,6 +2309,7 @@ if (typeof document !== 'undefined') {
   document.addEventListener('touchmove', () => clearTimeout(pressTimer), { passive: true });
   document.getElementById('btnRules').onclick = () => {
     const d = document.getElementById('rules');
+    d.querySelectorAll('details.fold').forEach(x => { x.open = false; });
     d.showModal();
     d.scrollTop = 0;   // 「閉じる」にフォーカスが当たって一番下まで流れるので、先頭（1分でわかるルール）から見せる
   };
@@ -2241,9 +2318,17 @@ if (typeof document !== 'undefined') {
     location.reload();
   };
   addEventListener('beforeunload', () => { if (NET.peer) NET.peer.destroy(); });
+  // 指示ナビ（#prompt）は、PC では右側のログの上、スマホ・タブレットでは画面の下に置く
+  const placePrompt = () => {
+    const pr = document.getElementById('prompt');
+    const home = matchMedia('(min-width: 861px)').matches ? document.getElementById('sideNav') : document.getElementById('app');
+    if (pr.parentNode !== home) home.appendChild(pr);
+  };
+  placePrompt();
   // スマホとそれ以外の並べ方が切り替わったら、描き直す
   let wasPhone = isPhone();
   addEventListener('resize', () => {
+    placePrompt();
     if (isPhone() !== wasPhone) { wasPhone = isPhone(); if (V) renderView(V); }
     fitScreen();
   });
@@ -2253,10 +2338,35 @@ if (typeof document !== 'undefined') {
   // 下から出す画面は、外側（暗いところ）をタップしても閉じる
   document.querySelectorAll('dialog.sheet').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.close(); }));
 
-  // 1分でわかるルールを、最初の画面と「ルール」の画面に差し込む
-  document.querySelectorAll('#rules [data-jump]').forEach(b => b.onclick = () =>
-    document.getElementById(b.dataset.jump).scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  document.querySelectorAll('.quick-rules-slot').forEach(slot => slot.appendChild(document.getElementById('quickRules').content.cloneNode(true)));
+  // 1分でわかるルール・くわしいルールを、ホーム画面と「ルール」の画面に差し込む
+  const fill = (sel, id) => document.querySelectorAll(sel).forEach(slot => slot.appendChild(document.getElementById(id).content.cloneNode(true)));
+  fill('.rules-folds', 'rulesFolds');
+  fill('.full-rules-slot', 'fullRules');
+  fill('.effects-slot', 'effectsTable');
+  // 目次ボタン：同じルールの中の見出しまで動かす（ルールの画面とホーム画面に1つずつある）
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-jump]');
+    if (b) b.closest('.rules-body').querySelector(`[data-sec="${b.dataset.jump}"]`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  fill('.quick-rules-slot', 'quickRules');
+
+  // ホーム画面：タブの切り替えと、カード図鑑
+  const homeTab = name => {
+    document.querySelectorAll('[data-home-tab]').forEach(x => x.classList.toggle('on', x.dataset.homeTab === name));
+    document.querySelectorAll('[data-home-pane]').forEach(x => { x.hidden = x.dataset.homePane !== name; });
+    document.getElementById('lobby').scrollTop = 0;
+  };
+  document.querySelectorAll('[data-home-tab]').forEach(b => b.onclick = () => homeTab(b.dataset.homeTab));
+  document.querySelectorAll('[data-home-tab-go]').forEach(b => b.onclick = () => {
+    homeTab(b.dataset.homeTabGo);
+    document.querySelector('#lobby [data-fold="quick"]').open = true;
+  });
+  const BOOK = [['fire', 7], ['water', 4], ['wind', 6], ['earth', 2], ['curse', 0], ['hope', 11], ['despair', 0]];
+  document.getElementById('cardBook').innerHTML = BOOK.map(([attr, num], i) => `
+    <div class="book-item">
+      <div class="book-card">${cardHTML({ id: 2000 + i, attr, num })}</div>
+      <div class="tipbox">${cardTipHTML(attr, attr === 'hope' || attr === 'despair' ? '' : num, true)}</div>
+    </div>`).join('');
 
   // 最初の画面（遊び方を選ぶ）
   const lobby = document.getElementById('lobby');
