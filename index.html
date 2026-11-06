@@ -1178,22 +1178,24 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
 <template id="screenGuide">
   <div class="screen-guide">
     <div class="sg-shots">
-      <figure class="sg-shot"><div class="sg-img"><img src="guide-pc.jpg" alt="PCで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:11.5%;top:0.5%">1</span><span class="sg-mark" style="left:48%;top:0.5%">2</span><span class="sg-mark" style="left:2.5%;top:7.5%">3</span><span class="sg-mark" style="left:2.5%;top:12%">4</span><span class="sg-mark" style="left:41%;top:36.5%">5</span><span class="sg-mark" style="left:2.5%;top:39.5%">6</span><span class="sg-mark" style="left:20.5%;top:50%">7</span><span class="sg-mark" style="left:2.5%;top:76%">8</span><span class="sg-mark" style="left:2.5%;top:83.5%">12</span><span class="sg-mark" style="left:81%;top:6%">9</span><span class="sg-mark" style="left:81%;top:24%">10</span><span class="sg-mark" style="left:86.5%;top:0.5%">11</span></div><figcaption>PC の画面</figcaption></figure>
-      <figure class="sg-shot sp"><div class="sg-img"><img src="guide-sp.jpg" alt="スマホで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:9%;top:0.5%">1</span><span class="sg-mark" style="left:38.5%;top:0.5%">2</span><span class="sg-mark" style="left:63%;top:0.5%">10</span><span class="sg-mark" style="left:74%;top:0.5%">11</span><span class="sg-mark" style="left:3.5%;top:6%">3</span><span class="sg-mark" style="left:3.5%;top:10.5%">4</span><span class="sg-mark" style="left:47%;top:27.5%">5</span><span class="sg-mark" style="left:4.5%;top:31%">6</span><span class="sg-mark" style="left:7%;top:62%">7</span><span class="sg-mark" style="left:2%;top:75.5%">8</span><span class="sg-mark" style="left:4.5%;top:81.5%">12</span><span class="sg-mark" style="left:1%;top:92.5%">9</span></div><figcaption>スマホの画面</figcaption></figure>
+      <figure class="sg-shot"><div class="sg-img"><img src="guide-pc.jpg" alt="PCで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:11.5%;top:0.5%">1</span><span class="sg-mark" style="left:44%;top:0.5%">2</span><span class="sg-mark" style="left:86.5%;top:0.5%">11</span><span class="sg-mark" style="left:2.2%;top:7.5%">4</span><span class="sg-mark" style="left:33%;top:33%">5</span><span class="sg-mark" style="left:71.5%;top:39%">13</span><span class="sg-mark" style="left:2.5%;top:36.5%">6</span><span class="sg-mark" style="left:21%;top:47%">7</span><span class="sg-mark" style="left:2.2%;top:80.5%">12</span><span class="sg-mark" style="left:8.6%;top:81.5%">8</span><span class="sg-mark" style="left:43.4%;top:81.5%">14</span><span class="sg-mark" style="left:81%;top:6%">9</span><span class="sg-mark" style="left:81%;top:27.5%">10</span><span class="sg-mark" style="left:81%;top:57.5%">3</span></div><figcaption>PC の画面</figcaption></figure>
+      <figure class="sg-shot sp"><div class="sg-img"><img src="guide-sp.jpg" alt="スマホで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:9%;top:0.5%">1</span><span class="sg-mark" style="left:32.5%;top:0.5%">2</span><span class="sg-mark" style="left:63%;top:0.5%">10</span><span class="sg-mark" style="left:73%;top:0.5%">11</span><span class="sg-mark" style="left:3.5%;top:6.8%">3</span><span class="sg-mark" style="left:3.5%;top:11%">4</span><span class="sg-mark" style="left:46.7%;top:29.6%">5</span><span class="sg-mark" style="left:49%;top:56%">13</span><span class="sg-mark" style="left:4.8%;top:33.4%">6</span><span class="sg-mark" style="left:7%;top:64.4%">7</span><span class="sg-mark" style="left:4.5%;top:79.6%">12</span><span class="sg-mark" style="left:20.8%;top:76.8%">8</span><span class="sg-mark" style="left:1%;top:92%">9</span></div><figcaption>スマホの画面</figcaption></figure>
     </div>
     <ol class="sg-list">
-      <li><b>ラウンド・山札・捨て札</b>：今のラウンドと山札の残り（山札が尽きたラウンドで終わり）。捨て札は押すと中身が見られる</li>
+      <li><b>ラウンド・山札</b>：今のラウンドと山札の残り（山札が尽きたラウンドで終わり）</li>
       <li><b>点数</b>：あなたと相手の点数（相手は、見えている分だけで計算）</li>
-      <li><b>場面の表示</b>：今の場面（ドラフト → 伏せる → 勝負 → 伏せ札 → 効果）と、だれの番か</li>
-      <li><b>相手</b>：相手の手札（裏向きの札と、相手に知られている札）</li>
-      <li><b>市場</b>：2人で取り合う札。💀が付いた札は、呪いごと取る</li>
+      <li><b>場面の表示</b>：今の場面と、だれの番か（PC は右下の「進み方」、スマホは上の帯）</li>
+      <li><b>相手</b>：相手の得点山と札入れ（裏向きの札と、相手に知られている札）</li>
+      <li><b>市場</b>：2人で取り合う札。「呪×1」が付いた札は、呪いごと取る</li>
       <li><b>勝負の場</b>：勝負札と伏せ札を出して勝負する。勝ったら「勝」、負けたら「負」の判子が押される</li>
       <li><b>ボタン置き場</b>：「⚔ 勝負！」「勝負札をめくる」など、押すボタンはここに出る</li>
-      <li><b>あなたの手札</b>：押すと勝負の場に置ける。👁公開＝相手に見えている、🔒秘密＝相手は知らない</li>
+      <li><b>札入れ（あなたの手札）</b>：6枚まで。6枚埋まると、次のドラフトは休み。札を押すと勝負の場に置ける。👁公開＝相手に見えている、🔒秘密＝相手は知らない</li>
       <li><b>指示ナビ</b>：今やることの説明（PC は右上、スマホは画面の下）</li>
       <li><b>ログ</b>：これまでに起きたこと（スマホは 📜 ボタンで開く）</li>
       <li><b>ルール</b>：遊んでいる途中でも、ここからルールを確かめられる</li>
-      <li><b>得点山</b>：勝った札が重なって貯まる山。押すと中身が見られる（相手の得点山は、相手の手札の横）</li>
+      <li><b>得点山</b>：勝った札が重なって貯まる山。押すと中身が見られる</li>
+      <li><b>捨て札</b>：市場の端。一番上が最後に捨てられた札。押すと中身が見られる</li>
+      <li><b>拾い札</b>：「拾う」「蘇らせる」で手に入れた札の敷物。次のドラフトでは手札の枚数に数えない（スマホは札入れの右。横にずらすと見える）</li>
     </ol>
   </div>
 </template>
