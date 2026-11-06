@@ -1042,6 +1042,20 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
   .pstats-sub { flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
   .pstats-main .role-hint { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 520px; }
 }
+
+/* 捨て札は、市場の茣蓙とは別の墨色の敷物に置く */
+.market-wrap { display: flex; align-items: stretch; gap: 10px; }
+.discard-mat { flex: none; display: flex; align-items: center; justify-content: center; padding: 12px 12px 8px; border-radius: 6px;
+  background: repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 2px, transparent 2px 8px), radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.08), transparent 60%), linear-gradient(180deg, #34302b, #221f1b);
+  box-shadow: inset 0 0 0 2px rgba(214,178,98,.35), inset 0 0 0 4px #221f1b, 0 3px 0 rgba(0,0,0,.35); }
+.discard-mat .discard-pile { margin: 0; padding: 0; border: none; }
+.discard-mat .dp-label { color: #f1e3c8; }
+.discard-mat .dp-label b { color: #ffd59a; }
+.discard-mat .sp-empty { color: #cfc3ae; border-color: rgba(241,227,200,.35); }
+@media (max-width: 600px) {
+  .market-wrap { flex-direction: column; gap: 6px; }
+  .discard-mat { align-self: flex-start; padding: 8px 10px 6px; }
+}
 </style>
 </head>
 <body>
@@ -1135,7 +1149,7 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
       </ul>
     </li>
     <li><b>🔮 伏せ札オープン</b>
-      <div>2人の伏せ札が<b>同じ種類</b>なら、<b>後攻の予言成功</b>：先攻の伏せ札は無効（効果は発動せず、手札に戻る）。</div>
+      <div>2人の伏せ札が<b>同じ種類</b>なら、<b>後攻の予言成功</b>：先攻の伏せ札は無効（効果は発動せず、捨て札になる）。</div>
     </li>
     <li><b>✨ 伏せ札の効果</b>
       <div>後攻 → 先攻 の順に、<b>必ず発動して捨て札</b>になる（効果で何も起きないときも捨て札）。</div>
@@ -1153,7 +1167,7 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
     <div class="rl-box-title">🌕 満月と 🌑 月蝕 <span>（終盤に1回）</span></div>
     <ul class="rl-sub">
       <li><b>いつ</b>：山札が残り10枚を切ったラウンドの初めに、<b>本当の点数</b>（秘密の手札の呪いも含む）で負けている側に満月、勝っている側に月蝕が配られる。正確な点数は知らされない。同点なら次のラウンドで改めて判定</li>
-      <li><b>🌕満月</b>：月蝕以外のすべてに勝ち、<b>負けた相手の札の効果を無効</b>にする。さらに手札の呪い1枚を市場の好きなカードに付けられる</li>
+      <li><b>🌕満月</b>：月蝕以外のすべてに勝ち、<b>負けた相手の札の効果を無効</b>にする（呪いも押し付けられない）。さらに手札の呪い1枚を市場の好きなカードに付けられる</li>
       <li><b>🌑月蝕</b>：満月に勝ち、満月の効果を打ち消す。さらに<b>捨て札から1枚</b>（打ち消した満月も可）を手札に加えられる。満月以外には数字0</li>
       <li>どちらも<b>勝負札専用</b>。使ったら捨て札（得点山には入らない）。持っていても減点なし。僧侶の「蘇らせる」で拾い直せる</li>
     </ul>
@@ -1178,8 +1192,8 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
 <template id="screenGuide">
   <div class="screen-guide">
     <div class="sg-shots">
-      <figure class="sg-shot"><div class="sg-img"><img src="guide-pc.jpg" alt="PCで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:11.5%;top:0.5%">1</span><span class="sg-mark" style="left:44%;top:0.5%">2</span><span class="sg-mark" style="left:86.5%;top:0.5%">11</span><span class="sg-mark" style="left:2.2%;top:7.5%">4</span><span class="sg-mark" style="left:33%;top:33%">5</span><span class="sg-mark" style="left:71.5%;top:39%">13</span><span class="sg-mark" style="left:2.5%;top:36.5%">6</span><span class="sg-mark" style="left:21%;top:47%">7</span><span class="sg-mark" style="left:2.2%;top:80.5%">12</span><span class="sg-mark" style="left:8.6%;top:81.5%">8</span><span class="sg-mark" style="left:43.4%;top:81.5%">14</span><span class="sg-mark" style="left:81%;top:6%">9</span><span class="sg-mark" style="left:81%;top:27.5%">10</span><span class="sg-mark" style="left:81%;top:57.5%">3</span></div><figcaption>PC の画面</figcaption></figure>
-      <figure class="sg-shot sp"><div class="sg-img"><img src="guide-sp.jpg" alt="スマホで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:9%;top:0.5%">1</span><span class="sg-mark" style="left:32.5%;top:0.5%">2</span><span class="sg-mark" style="left:63%;top:0.5%">10</span><span class="sg-mark" style="left:73%;top:0.5%">11</span><span class="sg-mark" style="left:3.5%;top:6.8%">3</span><span class="sg-mark" style="left:3.5%;top:11%">4</span><span class="sg-mark" style="left:46.7%;top:29.6%">5</span><span class="sg-mark" style="left:49%;top:56%">13</span><span class="sg-mark" style="left:4.8%;top:33.4%">6</span><span class="sg-mark" style="left:7%;top:64.4%">7</span><span class="sg-mark" style="left:4.5%;top:79.6%">12</span><span class="sg-mark" style="left:20.8%;top:76.8%">8</span><span class="sg-mark" style="left:1%;top:92%">9</span></div><figcaption>スマホの画面</figcaption></figure>
+      <figure class="sg-shot"><div class="sg-img"><img src="guide-pc.jpg" alt="PCで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:11.5%;top:0.5%">1</span><span class="sg-mark" style="left:44%;top:0.5%">2</span><span class="sg-mark" style="left:86.5%;top:0.5%">11</span><span class="sg-mark" style="left:2.2%;top:7.5%">4</span><span class="sg-mark" style="left:32.5%;top:33%">5</span><span class="sg-mark" style="left:71.5%;top:36.5%">13</span><span class="sg-mark" style="left:2.5%;top:36.5%">6</span><span class="sg-mark" style="left:21%;top:47%">7</span><span class="sg-mark" style="left:2.2%;top:80.5%">12</span><span class="sg-mark" style="left:8.6%;top:81.5%">8</span><span class="sg-mark" style="left:43.4%;top:81.5%">14</span><span class="sg-mark" style="left:81%;top:6%">9</span><span class="sg-mark" style="left:81%;top:27.5%">10</span><span class="sg-mark" style="left:81%;top:57.5%">3</span></div><figcaption>PC の画面</figcaption></figure>
+      <figure class="sg-shot sp"><div class="sg-img"><img src="guide-sp.jpg" alt="スマホで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:9%;top:0.5%">1</span><span class="sg-mark" style="left:32.5%;top:0.5%">2</span><span class="sg-mark" style="left:63%;top:0.5%">10</span><span class="sg-mark" style="left:73%;top:0.5%">11</span><span class="sg-mark" style="left:3.5%;top:6.6%">3</span><span class="sg-mark" style="left:3.5%;top:10.7%">4</span><span class="sg-mark" style="left:46.7%;top:29.4%">5</span><span class="sg-mark" style="left:47.7%;top:56.6%">13</span><span class="sg-mark" style="left:4.8%;top:33.2%">6</span><span class="sg-mark" style="left:7%;top:64.2%">7</span><span class="sg-mark" style="left:4.5%;top:79.6%">12</span><span class="sg-mark" style="left:20.8%;top:76.8%">8</span><span class="sg-mark" style="left:1%;top:92%">9</span></div><figcaption>スマホの画面</figcaption></figure>
     </div>
     <ol class="sg-list">
       <li><b>ラウンド・山札</b>：今のラウンドと山札の残り（山札が尽きたラウンドで終わり）</li>
@@ -1194,7 +1208,7 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
       <li><b>ログ</b>：これまでに起きたこと（スマホは 📜 ボタンで開く）</li>
       <li><b>ルール</b>：遊んでいる途中でも、ここからルールを確かめられる</li>
       <li><b>得点山</b>：勝った札が重なって貯まる山。押すと中身が見られる</li>
-      <li><b>捨て札</b>：市場の端。一番上が最後に捨てられた札。押すと中身が見られる</li>
+      <li><b>捨て札</b>：市場の隣の墨色の敷物。一番上が最後に捨てられた札。押すと中身が見られる</li>
       <li><b>拾い札</b>：「拾う」「蘇らせる」で手に入れた札の敷物。次のドラフトでは手札の枚数に数えない（スマホは札入れの右。横にずらすと見える）</li>
     </ol>
   </div>
@@ -1892,10 +1906,10 @@ async function playRound() {
     if (winner < 0) return { title: '引き分け', text: '両方の札の効果が発動', style: 'draw' };
     const mine = b[pi], theirs = b[1 - pi];
     if (winner === pi) return { title: '勝ち！', style: 'win',
-      text: theirs && theirs.attr === 'curse' ? '……でも相手の呪いを引き取ってしまう' : '勝負札が自分の得点山へ' };
+      text: theirs && theirs.attr === 'curse' ? (hopeWins ? '満月の力で、呪いははね返した' : '……でも相手の呪いを引き取ってしまう') : '勝負札が自分の得点山へ' };
     return { title: '負け…', style: 'lose',
       text: hasEffect(mine) ? (hopeWins ? '満月の力で、負けた札の効果は無効' : `負けた札の効果「${ATTRS[mine.attr].eff}」が発動`)
-          : mine && mine.attr === 'curse' ? '呪いを相手に押し付けた' : '勝負札は相手の得点山へ' };
+          : mine && mine.attr === 'curse' ? (hopeWins ? '満月にはね返され、呪いは手札に戻った' : '呪いを相手に押し付けた') : '勝負札は相手の得点山へ' };
   };
   render();
   await announce({ title: '', text: '', per: [resultText(0), resultText(1)] }, RESULT_ANN_MS, RESULT_ANN_MS * 0.85);
@@ -1928,6 +1942,10 @@ async function playRound() {
       if (!c) continue;
       // 満月・月蝕は得点山に入らず、使ったら捨て札になる
       if (isSpecial(c)) { toDiscard(c, `${P[pi].name}の${ATTRS[c.attr].name}（使用済み）`); moved(c, Z.field(pi, 'battle'), Z.discard); }
+      else if (c.attr === 'curse' && hopeWin && pi !== winner) {
+        // 満月は、負けた呪いの「押し付け」も無効にする。呪いは出した人の手札に戻る
+        addToHand(P[pi], c); moved(c, Z.field(pi, 'battle'), Z.hand(pi)); log(`🌕満月の力で、${P[pi].name}の呪いは押し付けられずに手札へ戻った`, 'hl');
+      }
       else if (c.attr === 'curse') { addToHand(W, c); moved(c, Z.field(pi, 'battle'), Z.hand(winner)); if (pi !== winner) log(`${W.name}は呪いを引き取った`); }
       else { toScore(W, c, `${P[pi].name}の勝負札（${pi === winner ? '勝ち' : '負け'}）`); moved(c, Z.field(pi, 'battle'), Z.score(winner)); }
     }
@@ -1954,19 +1972,19 @@ async function playRound() {
   await announce({ title: '🔮 伏せ札、開帳', text: '後攻が先攻と同じ職を伏せたなら、予言成就。先攻の伏せ札は封じられる', style: 'fuse' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
   await reveal('fuse');
   log(`伏せ札オープン：${P[0].name} ${cardName(fz[0])} / ${P[1].name} ${cardName(fz[1])}`);
-  // 予言成功（2人の伏せ札が同じ種類）なら、先攻の伏せ札は無効になり手札に戻る
+  // 予言成功（2人の伏せ札が同じ種類）なら、先攻の伏せ札は無効になり捨て札へ
   const active = [!!fz[0], !!fz[1]];
   if (fz[0] && fz[1] && fz[0].attr === fz[1].attr) {
     log(`予言成功！ ${P[s].name}（後攻）が伏せ札を読み切った`, 'hl');
     G.field.prophecy = true;
-    // まず当てた後攻の伏せ札に「予言成功！」を出し、そのあと無効になった先攻の伏せ札を手札へ戻す
+    // まず当てた後攻の伏せ札に「予言成功！」を出し、そのあと無効になった先攻の伏せ札を捨て札へ
     G.fx = { pi: s, kind: 'fuse', label: '🔮予言成就！' };
     render();
     await sleep(FX_STEP * 1.5);
     active[f] = false;
-    addToHand(P[f], fz[f]);
-    moved(fz[f], Z.field(f, 'fuse'), Z.hand(f));
-    log(`${P[f].name}の伏せ札は無効 → 手札に戻る`);
+    toDiscard(fz[f], `${P[f].name}の伏せ札（予言で無効）`);
+    moved(fz[f], Z.field(f, 'fuse'), Z.discard);
+    log(`${P[f].name}の伏せ札は無効 → 捨て札へ`);
     render();
     await sleep(FX_STEP);
     G.fx = null;
@@ -2065,7 +2083,7 @@ function cardTipFull(attr, num, full) {
   if (attr === 'hope') {
     return `<div class="tip-head" data-attr="hope"><span class="tip-num">月</span>🌕 満月<span class="tip-role">負けている側の切り札</span></div>
       ${full ? tipSec('warn', '配られるとき', '', 0, `山札が残り <b>${HOPE_DECK}枚</b> を切ったとき、<b>本当の点数</b>（秘密の手札の呪いも含む）で<b>負けている側</b>に配られる`) : ''}
-      ${tipSec('win', '勝負札にすると', '', 0, `<b>月蝕以外のすべての札に勝つ</b>。さらに<b>負けた相手の札の効果を無効</b>にし、手札の呪いを <b>1枚</b>、市場の好きなカード（呪いが付いていないもの）に付けられる`)}
+      ${tipSec('win', '勝負札にすると', '', 0, `<b>月蝕以外のすべての札に勝つ</b>。さらに<b>負けた相手の札の効果を無効</b>にし（呪いも押し付けられない）、手札の呪いを <b>1枚</b>、市場の好きなカード（呪いが付いていないもの）に付けられる`)}
       <div class="tip-special"><b>相手の勝負札が月蝕のとき</b>：満月の効果は打ち消されて負ける。捨て札に入った満月は、月蝕側に<b>奪われる</b>ことがある</div>
       ${full ? '<div class="tip-note">・勝負札専用（伏せ札にはできない）<br>・使ったら捨て札になる（得点山には入らない）。僧侶の「蘇らせる」で拾い直せる</div>' : ''}`;
   }
@@ -2275,7 +2293,7 @@ function renderView(v) {
   setHTML(msec, `<h2><span class="zone-tag">市場</span> ${pickM
       ? `<span class="pick-banner">▼ ${ui.banner || 'ここから1枚選んでください'}</span>`
       : '<span class="pc-only">みんなで取り合うカード（強いカードには呪いが取り付く）</span>'}</h2>
-    <div class="row">${deckHTML(v.deck)}${v.market.map((s, i) => `<div class="slot ${!pickM ? '' : ui.allowed && !ui.allowed.includes(i) ? 'dim' : 'clickable'}" data-action="market" data-i="${i}">${cardHTML(s.card)}${s.curses.length ? `<div class="curse-tag">呪×${s.curses.length}</div>` : ''}</div>`).join('') || '<span class="info">（空）</span>'}${discardPileHTML(v.discard)}</div>`);
+    <div class="market-wrap"><div class="row">${deckHTML(v.deck)}${v.market.map((s, i) => `<div class="slot ${!pickM ? '' : ui.allowed && !ui.allowed.includes(i) ? 'dim' : 'clickable'}" data-action="market" data-i="${i}">${cardHTML(s.card)}${s.curses.length ? `<div class="curse-tag">呪×${s.curses.length}</div>` : ''}</div>`).join('') || '<span class="info">（空）</span>'}</div><div class="discard-mat">${discardPileHTML(v.discard)}</div></div>`);
 
   // スマホでは、市場から選ぶ番になったら市場が見えるところまで動かす
   if (phone && pickM && scrolledPick !== ui.id) { scrolledPick = ui.id; msec.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
