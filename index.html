@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>呪い市 試作版</title>
+<title>宵の市 試作版</title>
 <!-- スマホのホーム画面に追加したとき、アプリのように全画面で開く（ファイルを直接開いたときは読み込めないが、遊ぶのには影響しない） -->
 <meta name="theme-color" content="#efe6d2">
 <link rel="manifest" href="manifest.webmanifest">
@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="呪い市">
+<meta name="apple-mobile-web-app-title" content="宵の市">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <!-- 書体（筆文字と本文）。読み込めないとき（オフラインなど）は、手元の明朝・ゴシックで表示する -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -108,7 +108,7 @@ section h2 b { color: var(--ink); }
 :is(#tip, .tipbox) .tip-special .tip-sec { margin-top: 0; }
 :is(#tip, .tipbox) .tip-note { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line); color: var(--muted); font-size: 11.5px; line-height: 1.6; }
 .flip { perspective: 700px; }
-.flip-inner { position: relative; transform-style: preserve-3d; animation: flip var(--flip-ms, 750ms) cubic-bezier(.3,.7,.3,1.2) both; }
+.flip-inner { position: relative; transform-style: preserve-3d; animation: flip var(--flip-ms, 950ms) cubic-bezier(.3,.7,.3,1.2) both; }
 .flip-inner .card { backface-visibility: hidden; }
 .flip-back { position: absolute; inset: 0; transform: rotateY(180deg); backface-visibility: hidden; }
 @keyframes flip {
@@ -431,7 +431,7 @@ dialog td, dialog th { border: 1px solid var(--line); padding: 4px 6px; text-ali
 body { font-family: "Zen Kaku Gothic New", system-ui, "Hiragino Sans", sans-serif; background: var(--washi), var(--bg); }
 header { background: transparent; border-bottom: 2px solid var(--ink); }
 header h1 { font-family: var(--brush); font-weight: 400; font-size: 24px; letter-spacing: .06em; display: flex; align-items: center; gap: 8px; }
-header h1::before { content: "呪"; display: grid; place-items: center; width: 24px; height: 24px; background: var(--accent); color: var(--paper); font-size: 14px; border-radius: 3px; transform: rotate(-6deg); }
+header h1::before { content: "宵"; display: grid; place-items: center; width: 24px; height: 24px; background: var(--accent); color: var(--paper); font-size: 14px; border-radius: 3px; transform: rotate(-6deg); }
 header h1 small { font-family: "Zen Kaku Gothic New", sans-serif; font-size: 12px; }
 button { background: var(--paper); border-color: color-mix(in srgb, var(--ink) 35%, transparent); }
 button.primary { background: var(--accent); border-color: var(--ink); color: var(--paper); box-shadow: 2px 2px 0 var(--ink); }
@@ -653,7 +653,7 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
 .stamp.win { background: var(--accent); color: var(--paper); border: 2px solid var(--paper); }
 .stamp.lose { background: var(--ink); color: #cfc6b4; border: 2px solid #8a8178; }
 .stamp.draw { background: #8a8178; color: var(--paper); border: 2px solid var(--paper); }
-.stamp.pop { animation: stamp-in .45s cubic-bezier(.3,1.6,.5,1) both; }
+.stamp.pop { animation: stamp-in .7s cubic-bezier(.3,1.6,.5,1) both; }
 @keyframes stamp-in { 0% { transform: rotate(-14deg) scale(2.6); opacity: 0; } 100% { transform: rotate(-14deg) scale(1); opacity: 1; } }
 @media (max-width: 600px) { .stamp { width: 32px; height: 32px; font-size: 19px; right: -8px; } }
 #fieldSec .board .vs { font-size: 20px; }
@@ -737,12 +737,317 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
   #fieldSec > h2 .round-score { display: none; }
   .stamp { width: 28px; height: 28px; font-size: 16px; right: -7px; bottom: -5px; }
 }
+
+/* 判子は職業のフルネーム。字数に合わせて横に伸ばす */
+.card .icon { width: auto; min-width: 20px; height: 18px; padding: 0 4px; font-size: 11.5px; letter-spacing: .04em; white-space: nowrap; }
+.card.small .icon { height: 15px; padding: 0 3px; font-size: 9.5px; }
+@media (max-width: 600px) {
+  .card .icon { height: 15px; padding: 0 3px; font-size: 9.5px; letter-spacing: 0; }
+  .card.small .icon { font-size: 8.5px; }
+  /* 「公開」「秘密」の札は、判子と重ならないよう少し上に */
+  .card .seen { top: -13px; }
+  #me .row { padding-top: 15px !important; }
+}
+
+/* 得点山：座卓の上の札の山 */
+.seat { display: flex; align-items: flex-end; gap: 10px; min-width: 0; }
+.seat > .row { flex: 1; min-width: 0; }
+.score-pile { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0; border: none; background: none; cursor: pointer; font: inherit; color: inherit; }
+.sp-stack { padding-top: var(--up); padding-right: var(--up); }
+.sp-top .card { pointer-events: none; }
+.sp-top { border-radius: 3px; }
+.sp-empty { width: 50px; height: 74px; display: grid; place-items: center; text-align: center; font-size: 10.5px; line-height: 1.4; color: #e2cfae; border: 1.5px dashed rgba(241,227,200,.5); border-radius: 3px; }
+.sp-label { font-family: var(--brush); font-size: 13px; color: #f6ead2; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.sp-label b { font-size: 16px; font-weight: 400; color: #ffd59a; }
+.score-pile:hover .sp-label { text-decoration: underline; }
+@media (max-width: 600px) {
+  .seat { gap: 6px; }
+  .sp-empty { width: 40px; height: 60px; font-size: 9px; }
+  .score-pile .card.small { width: 40px; height: 60px; }
+  .score-pile .card.small .num { top: 18px; font-size: 18px; }
+  .score-pile .card.small .eff { display: none; }
+  .sp-label { font-size: 11px; }
+  .sp-label b { font-size: 13px; }
+}
+
+/* スマホでは、ずっと動き続ける飾りの動きを止めて軽くする */
+@media (max-width: 600px) {
+  #marketSec.pick-now .slot.clickable .card { animation: none; }
+  .go-btn:not(:disabled) { animation: none; }
+}
+
+/* ===== ホーム画面：夜の市の入り口 ===== */
+.home-inner { padding-top: 0; }
+.home-hero { position: relative; margin: 0 -18px 18px; padding: 0 18px 22px; text-align: center; overflow: hidden; border-radius: 0 0 18px 18px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,150,70,.28), transparent 60%), linear-gradient(180deg, #120d18, #24182a 60%, #3a2620); box-shadow: 0 6px 0 #1d1a16; }
+/* 提灯の列：紐に吊られて、ゆっくり揺れる */
+.lanterns { display: flex; justify-content: space-around; align-items: flex-start; height: 96px; margin: 0 -6px; border-top: 3px solid #2a1c12; }
+.lantern { position: relative; width: 30px; height: 42px; margin-top: 22px; border-radius: 50% / 44%; transform-origin: 50% -22px; animation: sway 4.2s ease-in-out infinite alternate;
+  background: repeating-linear-gradient(180deg, rgba(120,20,10,.35) 0 1px, transparent 1px 6px), radial-gradient(circle at 50% 40%, #ffe6a8, #f3842f 55%, #a2261b);
+  box-shadow: 0 0 22px rgba(255,140,60,.75), 0 0 60px rgba(255,120,40,.35); }
+.lantern::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: 1px; height: 22px; background: #3a2a1c; }
+.lantern::after { content: ""; position: absolute; left: 22%; right: 22%; top: -3px; height: 5px; background: #2a1c12; border-radius: 2px; box-shadow: 0 43px 0 #2a1c12; }
+.lantern.big { width: 44px; height: 60px; margin-top: 14px; transform-origin: 50% -14px; }
+.lantern.big::before { height: 14px; }
+.lantern.big::after { box-shadow: 0 61px 0 #2a1c12; }
+.lantern i { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-family: var(--brush); font-size: 22px; color: #7a1a12; }
+.lantern:nth-child(2) { animation-delay: -1.3s; } .lantern:nth-child(3) { animation-delay: -2.1s; } .lantern:nth-child(4) { animation-delay: -.7s; } .lantern:nth-child(5) { animation-delay: -3s; }
+@keyframes sway { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+/* 暖簾：木の棒から、朱の布が三枚さがる */
+.noren { display: inline-block; margin-top: 2px; }
+.noren-rod { height: 10px; margin: 0 -18px; border-radius: 5px; background: linear-gradient(180deg, #8a5a2b, #4a2e14); box-shadow: 0 2px 3px rgba(0,0,0,.5); }
+.noren-panels { display: flex; gap: 6px; margin: 0; padding: 0 6px; font-weight: 400; }
+.noren-panels span { width: 78px; height: 116px; display: grid; place-items: center; padding-top: 6px; font-family: var(--brush); font-size: 54px; color: var(--paper);
+  background: var(--washi), linear-gradient(180deg, #a92a22, #c8372d 30%, #b22f26); border-radius: 0 0 4px 4px; box-shadow: inset 0 6px 8px rgba(0,0,0,.25), 0 4px 8px rgba(0,0,0,.4);
+  transform-origin: top center; animation: flutter 5s ease-in-out infinite alternate; }
+.noren-panels span:nth-child(2) { animation-delay: -1.6s; } .noren-panels span:nth-child(3) { animation-delay: -3.1s; }
+@keyframes flutter { from { transform: skewX(-1.5deg); } to { transform: skewX(1.5deg); } }
+.home-hero p { margin: 16px 0 0; color: #e8dcc6; line-height: 1.8; font-size: 14px; }
+.home-hero small { color: #b8a98f; }
+@media (max-width: 600px) {
+  .home-hero { margin: 0 -12px 14px; padding: 0 12px 18px; }
+  .lanterns { height: 80px; }
+  .lantern { width: 24px; height: 34px; } .lantern::after { box-shadow: 0 35px 0 #2a1c12; }
+  .lantern.big { width: 36px; height: 48px; } .lantern.big::after { box-shadow: 0 49px 0 #2a1c12; }
+  .lantern i { font-size: 18px; }
+  .noren-panels span { width: 64px; height: 96px; font-size: 44px; }
+  .home-hero p { font-size: 13px; }
+}
+
+/* ===== 細部を世界観にそろえる ===== */
+.role { font-size: 13px; padding: 1px 10px; letter-spacing: .1em; }
+.curse-tag { font-family: var(--brush); font-weight: 400; font-size: 11px; letter-spacing: .05em; border: 1px solid var(--accent); background: var(--ink); color: var(--paper); }
+/* 結果の画面 */
+#result { max-width: 440px; }
+.res-head { display: flex; align-items: center; gap: 16px; margin: 4px 0 12px; }
+.res-stamp { position: static; width: 64px; height: 64px; font-size: 38px; flex-shrink: 0; }
+.res-sub { font-family: var(--brush); font-size: 14px; color: var(--muted); letter-spacing: .2em; }
+#result h3 { font-family: var(--brush); font-weight: 400; font-size: 26px; margin: 0; }
+.res-table th { font-family: var(--brush); font-weight: 400; font-size: 14px; }
+.res-table td:last-child b { font-family: var(--brush); font-weight: 400; font-size: 20px; color: var(--accent); }
+
+/* ===== はじめての一局：照らす場所と説明の吹き出し ===== */
+.coach { position: fixed; inset: 0; z-index: 95; }
+.coach-hole { position: fixed; border-radius: 10px; box-shadow: 0 0 0 9999px rgba(15,8,4,.62), 0 0 0 3px #ffd59a, 0 0 22px rgba(255,213,154,.6); pointer-events: none; }
+.coach-dim { position: fixed; inset: 0; background: rgba(15,8,4,.62); }
+.coach-box { position: fixed; left: 50%; transform: translateX(-50%); width: min(420px, calc(100vw - 24px)); padding: 14px 16px 12px;
+  background: var(--washi), var(--paper); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 6px; box-shadow: 4px 5px 0 rgba(0,0,0,.4); }
+.coach-title { font-family: var(--brush); font-size: 19px; color: var(--accent); margin-bottom: 6px; }
+.coach-text { font-size: 14px; line-height: 1.75; }
+.coach-text b { color: var(--accent); }
+.coach-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+.coach-stop { font-size: 12px; padding: 4px 10px; background: transparent; color: var(--muted); }
+.coach-ok { font-family: var(--brush); font-weight: 400; font-size: 16px; padding: 6px 22px; }
+.lobby-row #btnTutorial { font-size: 15px; padding: 8px 14px; }
+
+/* CPU の強さと戦績 */
+.cpu-level { align-items: center; flex-wrap: wrap; }
+.cpu-level span { font-size: 13px; color: var(--muted); margin-right: 2px; }
+.cpu-level button { font-size: 13px; padding: 4px 12px; border-radius: 999px; }
+.cpu-level button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.cpu-record, .res-record { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.cpu-record b, .res-record b { color: var(--ink); }
+
+/* 満月と月蝕の札：夜空の札に、満月（月蝕は黒く覆われた月と光の輪） */
+.card[data-attr=hope]:not(.back) { --c: #b8862a; background: radial-gradient(circle at 50% 45%, #fff7d6 0 15px, #f1d277 16px 19px, rgba(241,210,119,.25) 20px 25px, transparent 26px), var(--washi), linear-gradient(180deg, #2b2547, #17142a); border-color: #b8862a; }
+.card[data-attr=hope] .num { color: #6b4a0c; }
+.card[data-attr=despair]:not(.back) { --c: #8a8178; background: radial-gradient(circle at 50% 45%, #14111a 0 15px, #f1d277 16px 17.5px, rgba(241,210,119,.3) 18px 22px, transparent 23px), var(--washi), linear-gradient(180deg, #3a3542, #1f1c25); border-color: #4a4540; }
+.card[data-attr=despair] .num { color: #e8dcc6; }
+.card[data-attr=hope] .eff, .card[data-attr=despair] .eff { color: var(--paper); border-top-color: rgba(241,210,119,.5); }
+.card[data-attr=hope] .icon { background: #b8862a; } .card[data-attr=despair] .icon { background: #4a4540; }
+@media (max-width: 600px) {
+  .card[data-attr=hope]:not(.back) { background: radial-gradient(circle at 50% 44%, #fff7d6 0 11px, #f1d277 12px 14px, rgba(241,210,119,.25) 15px 19px, transparent 20px), var(--washi), linear-gradient(180deg, #2b2547, #17142a); }
+  .card[data-attr=despair]:not(.back) { background: radial-gradient(circle at 50% 44%, #14111a 0 11px, #f1d277 12px 13.5px, rgba(241,210,119,.3) 14px 17px, transparent 18px), var(--washi), linear-gradient(180deg, #3a3542, #1f1c25); }
+}
+
+/* 満月と月蝕が配られるとき：夜空に満月が昇り、2枚の札とその行き先を見せる */
+.announce.ann-moon { top: 46%; padding: 22px 30px 20px; color: #f6ead2; border: 2px solid #b8862a; overflow: hidden;
+  background: radial-gradient(circle at 50% 118%, #fff7d6 0 60px, rgba(241,210,119,.55) 64px, rgba(241,210,119,.15) 110px, transparent 160px), linear-gradient(180deg, #0f0b1c, #241d3b); }
+.announce.ann-moon::after { content: ""; position: absolute; left: 50%; bottom: -120px; width: 240px; height: 240px; margin-left: -120px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,247,214,.35), transparent 70%); animation: moon-rise 4.6s ease-out both; pointer-events: none; }
+@keyframes moon-rise { from { transform: translateY(80px); opacity: 0; } 30% { opacity: 1; } to { transform: translateY(-30px); opacity: 1; } }
+.announce.ann-moon .announce-title { font-size: 34px; color: #ffe8a8; text-shadow: 0 0 14px rgba(255,220,140,.6); }
+.announce.ann-moon .announce-text { color: #e8dcc6; }
+.moon-deal { position: relative; z-index: 1; display: flex; justify-content: center; gap: 28px; margin-top: 14px; }
+.md-item { display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: .85; }
+.md-item .card { animation: md-in .8s .4s cubic-bezier(.3,1.4,.5,1) both; }
+.md-item.mine { opacity: 1; }
+.md-item.mine .card { box-shadow: 0 0 0 3px #ffe8a8, 0 0 22px rgba(255,220,140,.8) !important; }
+.md-to { font-family: var(--brush); font-size: 18px; color: #ffe8a8; }
+.md-note { font-size: 11.5px; line-height: 1.5; color: #cfc3ae; }
+@keyframes md-in { from { transform: translateY(30px) scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 600px) {
+  .announce.ann-moon { padding: 16px 12px 14px; }
+  .announce.ann-moon .announce-title { font-size: 22px !important; }
+  .moon-deal { gap: 14px; }
+  .md-to { font-size: 15px; }
+  .md-note { font-size: 10px; }
+}
+
+/* 効果の演出 */
+.fx-art { position: fixed; left: 0; top: 0; z-index: 72; pointer-events: none; }
+.art-steal, .art-pick { width: 64px; height: 64px; filter: drop-shadow(0 4px 8px rgba(0,0,0,.6)); }
+.art-pick .sparkle { position: absolute; color: #ffd36a; font-size: 18px; text-shadow: 0 0 8px #ffb84a; animation: sparkle .9s ease-in-out infinite alternate; }
+.art-pick .sparkle:nth-of-type(1) { left: -14px; top: -6px; } .art-pick .sparkle:nth-of-type(2) { right: -16px; top: 10px; animation-delay: .3s; } .art-pick .sparkle:nth-of-type(3) { left: 20px; top: -22px; animation-delay: .6s; }
+@keyframes sparkle { from { opacity: .2; transform: scale(.6); } to { opacity: 1; transform: scale(1.2); } }
+.art-curse { width: 78px; height: 78px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 40% 40%, rgba(80,40,110,.95), rgba(20,10,30,.9) 55%, rgba(20,10,30,0) 72%); filter: blur(.3px) drop-shadow(0 0 12px rgba(120,60,170,.8)); }
+.art-curse span { font-family: var(--brush); font-size: 34px; color: #e8c8ff; text-shadow: 0 0 10px #b06be0; }
+.art-revive { width: 70px; height: 150px; transform-origin: 50% 100%; border-radius: 40px 40px 10px 10px;
+  background: linear-gradient(0deg, rgba(255,236,170,.95), rgba(255,236,170,.55) 40%, rgba(255,236,170,0)); box-shadow: 0 0 30px rgba(255,220,140,.8); }
+
+/* 奪う：ドット絵の手と、運ぶ札 */
+.art-steal { width: 64px; height: 64px; image-rendering: pixelated; filter: drop-shadow(0 4px 6px rgba(0,0,0,.6)); }
+.art-steal > div { position: absolute; inset: 0; }
+.art-steal .hand-card { inset: auto; left: 50%; top: -34px; transform: translateX(-50%) rotate(-8deg); }
+.art-steal .hand-card .card { box-shadow: 0 0 0 2px #ffd59a, 0 0 14px rgba(255,213,154,.8); }
+.art-steal .hand-fist { z-index: 1; }
+/* 蘇らせる：派手な光の柱 */
+.art-revive { width: 0; height: 0; }
+.rv-beam { position: absolute; left: -55px; bottom: 0; width: 110px; height: 85vh; transform-origin: 50% 100%; border-radius: 60px 60px 12px 12px;
+  background: linear-gradient(0deg, rgba(255,250,225,1), rgba(255,226,140,.85) 25%, rgba(255,214,120,.35) 65%, rgba(255,214,120,0));
+  box-shadow: 0 0 60px 20px rgba(255,214,120,.55); animation: rv-beam 1.9s ease-out both; mix-blend-mode: screen; }
+@keyframes rv-beam { 0% { transform: scaleY(0) scaleX(.3); } 25% { transform: scaleY(1) scaleX(1.1); } 60% { transform: scaleY(1) scaleX(.9); } 100% { transform: scaleY(1.05) scaleX(.6); } }
+.rv-ring { position: absolute; left: -40px; top: -40px; width: 80px; height: 80px; border-radius: 50%; border: 4px solid rgba(255,226,140,.95); box-shadow: 0 0 20px rgba(255,214,120,.9);
+  animation: rv-ring 1.2s ease-out both; }
+.rv-ring.r2 { animation-delay: .35s; }
+@keyframes rv-ring { from { transform: scale(.2); opacity: 1; } to { transform: scale(3.2); opacity: 0; } }
+.rv-dot { position: absolute; left: -8px; top: -8px; color: #fff2c4; font-size: 16px; text-shadow: 0 0 10px #ffd36a, 0 0 20px #ffb84a; animation: rv-dot 1.6s var(--d) ease-out both; }
+@keyframes rv-dot { from { transform: translate(0, 0) scale(.4); opacity: 0; } 20% { opacity: 1; } to { transform: translate(var(--dx), calc(var(--h) * -1)) scale(1.1); opacity: 0; } }
+
+/* 満月・月蝕の演出 */
+.art-moon, .art-eclipse { width: 0; height: 0; z-index: 73; }
+.mn-disc { position: absolute; left: -60px; top: -60px; width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle at 45% 40%, #fffdf0, #fff2c2 45%, #f1d277 70%, rgba(241,210,119,0) 72%); box-shadow: 0 0 50px 20px rgba(255,236,170,.75), 0 0 120px 40px rgba(255,220,140,.35);
+  animation: mn-disc 2s ease-out both; }
+@keyframes mn-disc { from { transform: scale(.2); } 35% { transform: scale(1.15); } to { transform: scale(1); } }
+.mn-rays { position: absolute; left: -150px; top: -150px; width: 300px; height: 300px; border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255,240,190,.55) 0 6deg, transparent 6deg 22deg); -webkit-mask: radial-gradient(circle, #000 25%, transparent 70%); mask: radial-gradient(circle, #000 25%, transparent 70%);
+  animation: mn-rays 2.4s linear both; }
+@keyframes mn-rays { from { transform: rotate(0) scale(.3); opacity: 0; } 30% { opacity: 1; } to { transform: rotate(60deg) scale(1.1); opacity: .6; } }
+.art-eclipse .mn-rays { animation-duration: 1.2s; }
+.mn-shadow { position: absolute; left: -58px; top: -58px; width: 116px; height: 116px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, #0d0a12 60%, #1d1824 100%);
+  animation: mn-shadow 1.6s .35s cubic-bezier(.4,0,.2,1) both; }
+@keyframes mn-shadow { from { transform: translate(var(--sx), var(--sy)); opacity: .3; } 70% { transform: translate(0, 0); opacity: 1; } to { transform: translate(0, 0); opacity: 1; } }
+/* 捨て札：市場の端の札の山 */
+.discard-pile { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; margin-left: 6px; padding: 0 0 0 10px; border: none; border-left: 2px dashed rgba(90,60,20,.35); border-radius: 0; background: none; cursor: pointer; font: inherit; color: inherit; }
+.discard-pile .sp-top { filter: saturate(.75); }
+.discard-pile .sp-empty { color: #6b5a3a; border-color: rgba(90,60,20,.4); }
+.dp-label { font-family: var(--brush); font-size: 12px; color: #3a2a14; white-space: nowrap; }
+.dp-label b { font-size: 15px; font-weight: 400; color: var(--accent); }
+.discard-pile:hover .dp-label { text-decoration: underline; }
+@media (max-width: 600px) {
+  #marketSec .discard-pile { margin: 0; padding: 0; border: none; grid-column: span 1; }
+  #marketSec .discard-pile .card.small, #marketSec .discard-pile .sp-empty { width: 46px; height: 64px; }
+  #marketSec .discard-pile .card.small .num { top: 20px; font-size: 20px; }
+  #marketSec .discard-pile .card.small .eff { display: none; }
+  .dp-label { font-size: 10.5px; }
+  .dp-label b { font-size: 12px; }
+}
+
+
+/* 札入れ：6枚分の枠のある袱紗（紫の布）。満杯になると縁が朱に光る */
+.fukusa { position: relative; flex: 0 1 auto; min-width: 0; padding: 18px 10px 8px; border-radius: 6px;
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,.035) 0 2px, transparent 2px 7px), radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.12), transparent 60%), linear-gradient(180deg, #5b2a5f, #432046);
+  box-shadow: inset 0 0 0 2px rgba(214,178,98,.55), inset 0 0 0 4px #432046, inset 0 0 0 5px rgba(214,178,98,.35), 0 3px 6px rgba(0,0,0,.35); }
+.fukusa.full { box-shadow: inset 0 0 0 2px var(--accent), inset 0 0 0 4px #432046, inset 0 0 0 5px rgba(200,55,45,.6), 0 0 14px rgba(200,55,45,.55); }
+.fk-label { position: absolute; left: 10px; top: -10px; z-index: 2; padding: 1px 10px; border-radius: 3px; font-family: var(--brush); font-size: 12.5px; color: #f6ead2; background: #2e1530; box-shadow: 0 0 0 1px rgba(214,178,98,.6); white-space: nowrap; }
+.fk-label b { font-size: 15px; font-weight: 400; color: #ffd59a; }
+.fk-label span { margin-left: 8px; color: #ffb4a6; }
+.fukusa .row { min-height: 0; }
+.card.empty.hand-slot { border: 1.5px dashed rgba(246,234,210,.35); background: rgba(0,0,0,.12); box-shadow: none; }
+#opp .fukusa { padding-top: 16px; }
+@media (max-width: 600px) {
+  .fukusa { padding: 14px 6px 4px; }
+  .fk-label { font-size: 11px; left: 6px; top: -9px; padding: 0 7px; }
+  .fk-label b { font-size: 13px; }
+  .fk-label span { margin-left: 5px; }
+  #me .fukusa .row { padding-top: 12px !important; }
+}
+
+/* ひとりで遊ぶ：はじめての一局と、CPU との対戦を2つの札に分ける */
+.solo-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+.solo-card { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+.solo-card.first { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--paper)); }
+.solo-title { font-family: var(--brush); font-size: 17px; }
+.solo-card p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.6; flex: 1; }
+.solo-card .primary { align-self: stretch; font-size: 15px; padding: 8px 12px; }
+.solo-card .cpu-level { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.solo-card .cpu-record { margin-top: 0; }
+@media (max-width: 600px) { .solo-pick { grid-template-columns: 1fr; } }
+
+/* ===== 大きさを固定する：札入れ・拾い札の敷物、得点山・捨て札、点数の増減、ナビ ===== */
+.hand-area { display: flex; align-items: flex-end; gap: 10px; min-width: 0; }
+.fukusa, .pick-mat { flex: none; --cw: 78px; --gap: 8px; }
+#opp .fukusa, #opp .pick-mat { --cw: 70px; --gap: 6px; }
+.mat-row { flex-wrap: nowrap !important; gap: 0 !important; width: calc(var(--cw) * var(--slots, 6) + var(--gap) * (var(--slots, 6) - 1)); }
+.pick-mat .mat-row { --slots: 2; }
+.mat-row > * + * { margin-left: calc(var(--gap) + var(--ov, 0px)); }
+.mat-row > .card { position: relative; }
+.pick-mat { position: relative; padding: 18px 10px 8px; border-radius: 6px;
+  background: repeating-linear-gradient(-45deg, rgba(255,255,255,.04) 0 2px, transparent 2px 7px), radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.12), transparent 60%), linear-gradient(180deg, #5f7a2e, #44591f);
+  box-shadow: inset 0 0 0 2px rgba(214,178,98,.5), inset 0 0 0 4px #44591f, 0 3px 6px rgba(0,0,0,.35); }
+.pm-label { background: #2c3a14; }
+.pm-label span { color: #d8e6b8; font-size: 11px; }
+#opp .pick-mat { padding-top: 16px; }
+.sp-stack { padding-top: 14px !important; padding-right: 14px !important; }
+.score-box { position: relative; }
+.score-box .score-delta { position: absolute; right: -12px; top: -18px; margin: 0; z-index: 3; }
+.score-box.mini .score-delta { right: -10px; top: -14px; }
+#sideNav #prompt { height: 200px; overflow: hidden; }
+@media (max-width: 600px) {
+  .fukusa, .pick-mat { --cw: 56px; --gap: 6px; }
+  #opp .fukusa, #opp .pick-mat { --cw: 40px; --gap: 4px; }
+  #opp .hand-area .card.small { width: 40px; height: 58px; }
+  #opp .hand-area .card.small .icon { font-size: 7.5px; height: 12px; top: 4px; }
+  #opp .hand-area .card.small .num { top: 18px; font-size: 18px; }
+  #opp .hand-area .card.small .eff { font-size: 7.5px; bottom: 4px; }
+  #opp .hand-area .card.back.small span { width: 18px; height: 18px; font-size: 10px; }
+  #opp .hand-area { overflow-x: auto; padding-top: 4px; }
+  .pick-mat { padding: 14px 6px 4px; }
+  .pm-label span { display: none; }
+  #me .hand-area { overflow-x: auto; padding-top: 4px; }
+  #me .fukusa .mat-row, #me .pick-mat .mat-row { overflow: visible; padding-top: 12px !important; }
+  #prompt { min-height: 66px; }
+}
+/* PC の右下：ラウンドの進み方（上の場面の帯の代わり） */
+#sideProg:empty { display: none; }
+#sideProg .prog-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; font-size: 13px; }
+#sideProg .prog-head b { font-family: var(--brush); font-weight: 400; font-size: 17px; }
+#sideProg .prog-head span { color: var(--muted); font-size: 12px; }
+.prog { list-style: none; margin: 0; padding: 0; counter-reset: pg; }
+.prog li { counter-increment: pg; position: relative; padding: 4px 6px 4px 30px; border-radius: 4px; color: var(--muted); }
+.prog li::before { content: counter(pg); position: absolute; left: 6px; top: 6px; width: 17px; height: 17px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); font-size: 10.5px; }
+.prog li b { display: block; font-family: var(--brush); font-weight: 400; font-size: 14px; color: var(--ink); }
+.prog li small { display: block; font-size: 11px; line-height: 1.4; }
+.prog li.done { opacity: .5; }
+.prog li.done::before { content: "✓"; }
+.prog li.now { background: color-mix(in srgb, var(--accent) 10%, var(--paper)); box-shadow: inset 3px 0 0 var(--accent); color: var(--ink); }
+.prog li.now::before { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.prog-who { margin-top: 8px; padding: 4px 10px; text-align: center; border-radius: 4px; font-family: var(--brush); background: var(--opp); color: var(--paper); }
+.prog-who.mine { background: var(--me); }
+@media (min-width: 861px) { #phaseBar { display: none; } }
+@media (max-width: 860px) { #sideProg { display: none; } }
+
+/* 見出しの行は折り返さない（中身の文が長くなっても、欄の高さを変えない） */
+#fieldSec > h2, #marketSec > h2 { flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
+#fieldSec > h2 .round-score { flex: 1 1 0; min-width: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; }
+.mid > #fieldSec, .mid > #marketSec { min-width: 0; }
+/* 得点山・捨て札の「まだなし」の枠は、札と同じ大きさにする（最初の札が入っても高さが変わらないように） */
+.sp-empty { width: 70px; height: 98px; }
+@media (max-width: 600px) { .sp-empty { width: 40px; height: 60px; } #marketSec .discard-pile .sp-empty { width: 46px; height: 64px; } }
+@media (min-width: 861px) {
+  section h2 .pstats { flex-wrap: nowrap; }
+  .pstats-main { flex-wrap: wrap; }
+  .pstats-sub { flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
+  .pstats-main .role-hint { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 520px; }
+}
 </style>
 </head>
 <body>
 <div id="app">
 <header>
-  <h1>呪い市 <small style="font-weight:400;color:var(--muted)">試作版</small></h1>
+  <h1>宵の市 <small style="font-weight:400;color:var(--muted)">試作版</small></h1>
   <span class="info" id="round"></span>
   <span class="spacer"></span>
   <span id="board"></span>
@@ -765,6 +1070,7 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
   <aside id="side">
     <div id="sideNav"></div>
     <section id="logSec"><h2>ログ</h2><div id="log"></div></section>
+    <section id="sideProg"></section>
   </aside>
 </main>
 <div id="prompt"></div>
@@ -844,11 +1150,11 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
 
   <h4 class="rl-h4" data-sec="rl-special">✨ 特別なルール</h4>
   <div class="rl-box">
-    <div class="rl-box-title">🌟 希望と 🌑 絶望 <span>（終盤に1回）</span></div>
+    <div class="rl-box-title">🌕 満月と 🌑 月蝕 <span>（終盤に1回）</span></div>
     <ul class="rl-sub">
-      <li><b>いつ</b>：山札が残り10枚を切ったラウンドの初めに、<b>本当の点数</b>（秘密の手札の呪いも含む）で負けている側に希望、勝っている側に絶望が配られる。正確な点数は知らされない。同点なら次のラウンドで改めて判定</li>
-      <li><b>🌟希望</b>：絶望以外のすべてに勝ち、<b>負けた相手の札の効果を無効</b>にする。さらに手札の呪い1枚を市場の好きなカードに付けられる</li>
-      <li><b>🌑絶望</b>：希望に勝ち、希望の効果を打ち消す。さらに<b>捨て札から1枚</b>（打ち消した希望も可）を手札に加えられる。希望以外には数字0</li>
+      <li><b>いつ</b>：山札が残り10枚を切ったラウンドの初めに、<b>本当の点数</b>（秘密の手札の呪いも含む）で負けている側に満月、勝っている側に月蝕が配られる。正確な点数は知らされない。同点なら次のラウンドで改めて判定</li>
+      <li><b>🌕満月</b>：月蝕以外のすべてに勝ち、<b>負けた相手の札の効果を無効</b>にする。さらに手札の呪い1枚を市場の好きなカードに付けられる</li>
+      <li><b>🌑月蝕</b>：満月に勝ち、満月の効果を打ち消す。さらに<b>捨て札から1枚</b>（打ち消した満月も可）を手札に加えられる。満月以外には数字0</li>
       <li>どちらも<b>勝負札専用</b>。使ったら捨て札（得点山には入らない）。持っていても減点なし。僧侶の「蘇らせる」で拾い直せる</li>
     </ul>
   </div>
@@ -864,7 +1170,7 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
     <tr data-attr="fire"><td>🗡️盗賊</td><td><b>奪う</b>：相手の得点山から1枚奪って、自分の得点山に入れる</td></tr>
     <tr data-attr="water"><td>🪄呪術師</td><td><b>流す</b>：手札の呪いを1枚、相手の手札に押し付ける</td></tr>
     <tr data-attr="wind"><td>💰商人</td><td><b>拾う</b>：市場から1枚取る（次のドラフトでは手札の枚数に数えない）</td></tr>
-    <tr data-attr="earth"><td>📿僧侶</td><td><b>蘇らせる</b>：捨て札から好きなカード1枚を手札に加える（呪い・希望・絶望も選べる。次のドラフトでは数えない）</td></tr>
+    <tr data-attr="earth"><td>📿僧侶</td><td><b>蘇らせる</b>：捨て札から好きなカード1枚を手札に加える（呪い・満月・月蝕も選べる。次のドラフトでは数えない）</td></tr>
     <tr data-attr="curse"><td>💀呪い</td><td>勝負札：数字0で負け、勝者の手札へ／伏せ札：<b>送り込み</b>（必ず相手の手札へ）</td></tr>
   </table>
 </template>
@@ -872,14 +1178,14 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
 <template id="screenGuide">
   <div class="screen-guide">
     <div class="sg-shots">
-      <figure class="sg-shot"><div class="sg-img"><img src="guide-pc.jpg" alt="PCで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:12%;top:1%">1</span><span class="sg-mark" style="left:47%;top:1%">2</span><span class="sg-mark" style="left:2.5%;top:8%">3</span><span class="sg-mark" style="left:2.5%;top:12.5%">4</span><span class="sg-mark" style="left:39%;top:34.5%">5</span><span class="sg-mark" style="left:2.5%;top:38%">6</span><span class="sg-mark" style="left:21.5%;top:48.5%">7</span><span class="sg-mark" style="left:2.5%;top:76%">8</span><span class="sg-mark" style="left:80.5%;top:6%">9</span><span class="sg-mark" style="left:80.5%;top:25%">10</span><span class="sg-mark" style="left:86%;top:0.5%">11</span></div><figcaption>PC の画面</figcaption></figure>
-      <figure class="sg-shot sp"><div class="sg-img"><img src="guide-sp.jpg" alt="スマホで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:9%;top:0.5%">1</span><span class="sg-mark" style="left:38.5%;top:0.5%">2</span><span class="sg-mark" style="left:63%;top:0.5%">10</span><span class="sg-mark" style="left:3.5%;top:7%">3</span><span class="sg-mark" style="left:3.5%;top:11%">4</span><span class="sg-mark" style="left:47%;top:27.5%">5</span><span class="sg-mark" style="left:4.5%;top:31%">6</span><span class="sg-mark" style="left:7%;top:62%">7</span><span class="sg-mark" style="left:2%;top:75.5%">8</span><span class="sg-mark" style="left:1%;top:92.5%">9</span></div><figcaption>スマホの画面</figcaption></figure>
+      <figure class="sg-shot"><div class="sg-img"><img src="guide-pc.jpg" alt="PCで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:11.5%;top:0.5%">1</span><span class="sg-mark" style="left:48%;top:0.5%">2</span><span class="sg-mark" style="left:2.5%;top:7.5%">3</span><span class="sg-mark" style="left:2.5%;top:12%">4</span><span class="sg-mark" style="left:41%;top:36.5%">5</span><span class="sg-mark" style="left:2.5%;top:39.5%">6</span><span class="sg-mark" style="left:20.5%;top:50%">7</span><span class="sg-mark" style="left:2.5%;top:76%">8</span><span class="sg-mark" style="left:2.5%;top:83.5%">12</span><span class="sg-mark" style="left:81%;top:6%">9</span><span class="sg-mark" style="left:81%;top:24%">10</span><span class="sg-mark" style="left:86.5%;top:0.5%">11</span></div><figcaption>PC の画面</figcaption></figure>
+      <figure class="sg-shot sp"><div class="sg-img"><img src="guide-sp.jpg" alt="スマホで遊んでいるときの画面" loading="lazy"><span class="sg-mark" style="left:9%;top:0.5%">1</span><span class="sg-mark" style="left:38.5%;top:0.5%">2</span><span class="sg-mark" style="left:63%;top:0.5%">10</span><span class="sg-mark" style="left:74%;top:0.5%">11</span><span class="sg-mark" style="left:3.5%;top:6%">3</span><span class="sg-mark" style="left:3.5%;top:10.5%">4</span><span class="sg-mark" style="left:47%;top:27.5%">5</span><span class="sg-mark" style="left:4.5%;top:31%">6</span><span class="sg-mark" style="left:7%;top:62%">7</span><span class="sg-mark" style="left:2%;top:75.5%">8</span><span class="sg-mark" style="left:4.5%;top:81.5%">12</span><span class="sg-mark" style="left:1%;top:92.5%">9</span></div><figcaption>スマホの画面</figcaption></figure>
     </div>
     <ol class="sg-list">
       <li><b>ラウンド・山札・捨て札</b>：今のラウンドと山札の残り（山札が尽きたラウンドで終わり）。捨て札は押すと中身が見られる</li>
       <li><b>点数</b>：あなたと相手の点数（相手は、見えている分だけで計算）</li>
       <li><b>場面の表示</b>：今の場面（ドラフト → 伏せる → 勝負 → 伏せ札 → 効果）と、だれの番か</li>
-      <li><b>相手</b>：相手の手札（裏向きの札と、相手に知られている札）と得点山</li>
+      <li><b>相手</b>：相手の手札（裏向きの札と、相手に知られている札）</li>
       <li><b>市場</b>：2人で取り合う札。💀が付いた札は、呪いごと取る</li>
       <li><b>勝負の場</b>：勝負札と伏せ札を出して勝負する。勝ったら「勝」、負けたら「負」の判子が押される</li>
       <li><b>ボタン置き場</b>：「⚔ 勝負！」「勝負札をめくる」など、押すボタンはここに出る</li>
@@ -887,6 +1193,7 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
       <li><b>指示ナビ</b>：今やることの説明（PC は右上、スマホは画面の下）</li>
       <li><b>ログ</b>：これまでに起きたこと（スマホは 📜 ボタンで開く）</li>
       <li><b>ルール</b>：遊んでいる途中でも、ここからルールを確かめられる</li>
+      <li><b>得点山</b>：勝った札が重なって貯まる山。押すと中身が見られる（相手の得点山は、相手の手札の横）</li>
     </ol>
   </div>
 </template>
@@ -921,10 +1228,16 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
 <dialog id="choose"></dialog>
 <dialog id="lobby" class="home">
   <div class="home-inner">
+  <!-- 夜の市の入り口：揺れる提灯と、「宵」「の」「市」の暖簾 -->
   <div class="home-hero">
-    <div class="home-seal">呪</div>
-    <h1>呪い市</h1>
-    <p>市場で札を取り合い、呪いを押し付け合う。2人で遊ぶ読み合いのカードゲーム<small>（試作版）</small></p>
+    <div class="lanterns" aria-hidden="true">
+      <span class="lantern"></span><span class="lantern"></span><span class="lantern big"><i>宵</i></span><span class="lantern"></span><span class="lantern"></span>
+    </div>
+    <div class="noren">
+      <div class="noren-rod"></div>
+      <h1 class="noren-panels" aria-label="宵の市"><span>宵</span><span>の</span><span>市</span></h1>
+    </div>
+    <p>市場で札を取り合い、呪いを押し付け合う。<br>2人で遊ぶ、読み合いの札遊び<small>（試作版）</small></p>
   </div>
   <nav class="home-tabs">
     <button data-home-tab="play" class="on">🎮 遊ぶ</button>
@@ -938,11 +1251,26 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
     <div class="lobby-row"><button class="primary" id="btnInviteJoin">この部屋に入る</button></div>
   </div>
   <div class="lobby-play">
-  <p class="home-first">はじめての方は、まず <button data-home-tab-go="rules">📜 ルール</button> の「1分でわかるルール」をどうぞ。</p>
-  <label class="lobby-name">あなたの名前 <input id="myName" maxlength="10" placeholder="例：けい"></label>
+  <p class="home-first">はじめての方は「🔰 はじめての一局」で、教わりながら遊べます。ルールを先に読むなら <button data-home-tab-go="rules">📜 ルール</button> へ。</p>
+  <label class="lobby-name">あなたの名前 <input id="myName" maxlength="10" placeholder="例：あなた"></label>
   <div class="lobby-box">
     <h4>ひとりで遊ぶ</h4>
-    <button class="primary" id="btnCpu">CPUと対戦</button>
+    <!-- 初めての人向けと、ふつうの対戦を、はっきり分けて並べる -->
+    <div class="solo-pick">
+      <div class="solo-card first">
+        <div class="solo-title">🔰 はじめての一局</div>
+        <p>見る場所を照らしながら、遊び方を一つずつ教えます。相手は見習いの CPU。</p>
+        <button class="primary" id="btnTutorial">教わりながら遊ぶ</button>
+      </div>
+      <div class="solo-card">
+        <div class="solo-title">⚔ CPUと対戦</div>
+        <div class="cpu-level" role="radiogroup" aria-label="CPU の強さ">
+          <span>強さ</span><button data-level="easy">見習い</button><button data-level="normal">ふつう</button><button data-level="hard">手練れ</button>
+        </div>
+        <button class="primary" id="btnCpu">対戦する</button>
+        <div id="cpuRecord" class="cpu-record"></div>
+      </div>
+    </div>
   </div>
   <div class="lobby-box">
     <h4>ふたりで通信対戦</h4>
@@ -962,7 +1290,7 @@ details.fold .quick-title, details.fold .rl-h3 { display: none; }
     <div class="rules-folds"></div>
   </section>
   <section class="home-tab" data-home-pane="cards" hidden>
-    <p class="home-note">行動カードは4つの職業 × 数字1〜8 の32枚、呪いが6枚。終盤に希望と絶望が1枚ずつ配られます。カードの効果は、どの数字でも同じです。</p>
+    <p class="home-note">行動カードは4つの職業 × 数字1〜8 の32枚、呪いが6枚。終盤に満月と月蝕が1枚ずつ配られます。カードの効果は、どの数字でも同じです。</p>
     <div id="cardBook" class="card-book"></div>
   </section>
   </div>
@@ -981,17 +1309,17 @@ const ATTRS = {
   wind:  { name: '商人',   icon: '💰', eff: '拾う' },
   earth: { name: '僧侶',   icon: '📿', eff: '蘇らせる' },
   curse: { name: '呪い', icon: '💀', eff: '送り込み' },
-  hope:    { name: '希望', icon: '🌟', eff: '—' },
-  despair: { name: '絶望', icon: '🌑', eff: '—' },
+  hope:    { name: '満月', icon: '🌕', eff: '—' },
+  despair: { name: '月蝕', icon: '🌑', eff: '—' },
 };
-// カードの右上の判子（職業の印）
-const CREST = { fire: '盗', water: '術', wind: '商', earth: '僧', curse: '呪', hope: '希', despair: '絶' };
+// 札の上の判子（職業の名前）
+const CREST = { fire: '盗賊', water: '呪術師', wind: '商人', earth: '僧侶', curse: '呪い', hope: '満月', despair: '月蝕' };
 // 効果の説明（カードの説明欄・確認の問い合わせで使う）
 const EFFECT_TEXT = {
   fire: '相手の得点山から1枚奪って、自分の得点山に入れる',
   water: '手札の呪いを1枚、相手の手札に押し付ける',
   wind: '市場から1枚取る（次のドラフトでは手札の枚数に数えない）',
-  earth: '捨て札から好きなカードを1枚選んで手札に加える（呪い・希望・絶望も選べる。次のドラフトでは手札の枚数に数えない）',
+  earth: '捨て札から好きなカードを1枚選んで手札に加える（呪い・満月・月蝕も選べる。次のドラフトでは手札の枚数に数えない）',
 };
 const CURSE_PENALTY = 2;
 const CURSE_COUNT = 6;
@@ -1001,16 +1329,16 @@ const INITIAL_HAND = 4;
 const MARKET_SIZE = 5;
 const CPU_DELAY = 550;
 // 効果の処理を、何が起きたか目で追えるようゆっくり見せる
-const FX_FLY_MS = 1100;   // 効果で札が飛ぶ時間
-const FX_STAGGER = 350;   // 複数の札が動くときの、2枚目以降の出発の遅れ
-const FX_STEP = 1500;     // 効果を1回処理するごとの間（札が着地してから次へ進む）
-const FLIP_MS = 750; // 札をめくるアニメーションの長さ
+const FX_FLY_MS = 1500;   // 効果で札が飛ぶ時間
+const FX_STAGGER = 450;   // 複数の札が動くときの、2枚目以降の出発の遅れ
+const FX_STEP = 2100;     // 効果を1回処理するごとの間（札が着地してから次へ進む）
+const FLIP_MS = 950; // 札をめくるアニメーションの長さ
 
-// 希望・絶望：山札が残り HOPE_DECK 枚を切ったとき、本当の点数で負けている側に希望、勝っている側に絶望が配られる。
-// どちらも勝負札にしか出せない。希望は11（絶望以外に勝つ）、絶望は0として扱う
+// 満月・月蝕：山札が残り HOPE_DECK 枚を切ったとき、本当の点数で負けている側に満月、勝っている側に月蝕が配られる。
+// どちらも勝負札にしか出せない。満月は11（月蝕以外に勝つ）、月蝕は0として扱う
 const HOPE_DECK = 10;
 const isSpecial = c => c && (c.attr === 'hope' || c.attr === 'despair');
-// 職業の効果を持つ札か（呪い・希望・絶望は持たない）
+// 職業の効果を持つ札か（呪い・満月・月蝕は持たない）
 const hasEffect = c => !!c && !isSpecial(c) && c.attr !== 'curse';
 const cardName = c => !c ? '（なし）' : c.attr === 'curse' || isSpecial(c) ? `${ATTRS[c.attr].icon}${ATTRS[c.attr].name}` : `${ATTRS[c.attr].icon}${ATTRS[c.attr].name}${c.num}`;
 
@@ -1041,13 +1369,17 @@ function newGame(opts = {}) {
   for (const a of ['fire', 'water', 'wind', 'earth']) for (let n = 1; n <= MAX_NUM; n++) deck.push({ id: id++, attr: a, num: n });
   for (let i = 0; i < CURSE_COUNT; i++) deck.push({ id: id++, attr: 'curse', num: 0 });
   shuffle(deck);
-  // hopeDealt：希望と絶望を配ったか。moves / moveSeq：札の移動の記録（画面で飛ばして見せる）。fx：今発動している効果。announce：画面中央に大きく知らせる出来事
+  // hopeDealt：満月と月蝕を配ったか。moves / moveSeq：札の移動の記録（画面で飛ばして見せる）。fx：今発動している効果。announce：画面中央に大きく知らせる出来事
   G = { deck, market: [], discard: [], round: 0, hopeDealt: false, moves: [], moveSeq: 0, fx: null, announce: null, first: Math.random() < .5 ? 0 : 1, log: [], over: false,
         field: null, uis: [null, null], result: null, headless: !!opts.headless,
+        tutorial: !!opts.tutorial, tutorialSeen: new Set(),
         // phase：今の場面（step）と手番のプレイヤー（actor。2人同時なら null）。画面の「今だれが何をしているか」に使う
         phase: { step: 'draft', actor: null, label: '' },
         players: opts.names ? opts.names.map(n => mkPlayer(n, false))
           : [mkPlayer(opts.cpuBoth ? 'CPU-A' : 'あなた', !!opts.cpuBoth), mkPlayer(opts.cpuBoth ? 'CPU-B' : 'CPU', true)] };
+  // CPU の強さ（levels は自動対戦で、2人それぞれに強さを決めて試すとき用）
+  G.cpuLevel = opts.cpuLevel || 'normal';
+  G.players.forEach((p, i) => { if (p.cpu) p.level = (opts.levels && opts.levels[i]) || G.cpuLevel; });
   // 初期手札は非公開で配る（全部ドラフトだと相手の手札が完全に読めてしまうため）
   for (let i = 0; i < INITIAL_HAND; i++) for (const p of G.players) p.hand.push(G.deck.pop());
   refillMarket();
@@ -1151,15 +1483,28 @@ const cardValue = c => c.attr === 'curse' ? -6 : c.attr === 'hope' ? 6 : c.attr 
 const slotValue = s => cardValue(s.card) - 3.5 * s.curses.length;
 
 // 蘇らせる：捨て札から一番価値の高いカードを選ぶ（呪いは選ばない）
-function cpuPickDiscard() {
+// CPU の強さ。判断に混ぜる「ゆらぎ」の大きさと、札の選び方の重みで変える。
+// CPU 同士の対戦で、ふつうは見習いに約67%、手練れはふつうに約62%勝つ
+const CPU_LEVELS = { easy: { name: '見習い', noise: 20 }, normal: { name: 'ふつう', noise: 1 }, hard: { name: '手練れ', noise: 0.15 } };
+// 札の選び方の重み（手練れは、CPU 同士で試して勝ちやすかった重みを使う）
+const CPU_TUNE = {
+  normal: { win: 2, battleCost: 0.25, fuseCost: 0.3, curseBattle: 2.5, prophecy: 1.5, marketCurse: 3.5, marketNum: 0.4 },
+  hard:   { win: 4.1, battleCost: 0.1, fuseCost: 0.47, curseBattle: 2.55, prophecy: 0.7, marketCurse: 4.1, marketNum: 0.33 },
+};
+const tune = pi => CPU_TUNE[G.players[pi].level === 'hard' ? 'hard' : 'normal'];
+const noise = (pi, w) => Math.random() * w * CPU_LEVELS[G.players[pi].level || 'normal'].noise;
+
+function cpuPickDiscard(pi) {
   let best = -1, bv = -1e9;
-  for (const i of revivable()) { const v = cardValue(G.discard[i]) + Math.random() * 0.5; if (v > bv) { bv = v; best = i; } }
+  for (const i of revivable()) { const v = cardValue(G.discard[i]) + noise(pi, 0.5); if (v > bv) { bv = v; best = i; } }
   return best;
 }
 
-function cpuPickMarket() {
+function cpuPickMarket(pi) {
   let best = 0, bv = -1e9;
-  G.market.forEach((s, i) => { const v = slotValue(s) + Math.random() * 0.8; if (v > bv) { bv = v; best = i; } });
+  const T = tune(pi);
+  const val = s => (s.card.attr === 'curse' ? -6 : 1 + s.card.num * T.marketNum) - T.marketCurse * s.curses.length;
+  G.market.forEach((s, i) => { const v = val(s) + noise(pi, 0.8); if (v > bv) { bv = v; best = i; } });
   return best;
 }
 
@@ -1174,6 +1519,26 @@ function cpuPlay(pi) {
   const oppKnown = opp.hand.filter(c => opp.known.has(c.id));
   const oppHasHope = oppKnown.some(c => c.attr === 'hope'), oppHasDespair = oppKnown.some(c => c.attr === 'despair');
   const freeSlot = G.market.some(sl => !sl.curses.length);
+  // 手練れは、見えている札から相手の勝負札の候補を読み、勝てる見込みをきちんと見積もる。
+  // 相手に知られている札はそのまま、知られていない札は「まだ見えていない札」のどれかとして数える
+  const hard = me.level === 'hard';
+  let beatChance = null;
+  if (hard) {
+    const seen = new Set([...me.hand, ...oppKnown, ...G.discard, ...G.market.flatMap(sl => [sl.card, ...sl.curses]), ...me.score, ...opp.score].map(c => c.id));
+    const unseenNums = [];
+    let id = 0;
+    for (const a of ['fire', 'water', 'wind', 'earth']) for (let n = 1; n <= MAX_NUM; n++) { if (!seen.has(id)) unseenNums.push(n); id++; }
+    for (let i = 0; i < CURSE_COUNT; i++) { if (!seen.has(id)) unseenNums.push(0); id++; }
+    const unknown = opp.hand.length - oppKnown.length;
+    const oppNum = c => c.attr === 'hope' ? 11 : c.attr === 'despair' || c.attr === 'curse' ? 0 : c.num;
+    beatChance = num => {
+      const total = oppKnown.length + unknown;
+      if (!total) return 0.5;
+      const known = oppKnown.reduce((a, c) => a + (num > oppNum(c) ? 1 : num === oppNum(c) ? 0.5 : 0), 0);
+      const frac = unseenNums.length ? unseenNums.reduce((a, n) => a + (num > n ? 1 : num === n ? 0.5 : 0), 0) / unseenNums.length : 0.5;
+      return (known + unknown * frac) / total;
+    };
+  }
 
   // 職業の効果の価値（勝負札で負けたときも、伏せ札でめくったときも同じ効果）
   const effVal = c => {
@@ -1187,21 +1552,22 @@ function cpuPlay(pi) {
   };
   const loseVal = c => hasEffect(c) ? effVal(c) : 0;
   // 伏せ札：呪いは確実に押し付けられる。ほかは効果の価値から、必ず捨て札になって手放す札の価値を引く
-  const fuseVal = f => f.attr === 'curse' ? 3.5 : effVal(f) - cardValue(f) * 0.3;
+  const T = tune(pi);
+  const fuseVal = f => f.attr === 'curse' ? 3.5 : effVal(f) - cardValue(f) * T.fuseCost;
   const evalPair = (b, f) => {
     let v0 = 0;
-    // 希望：相手が絶望を持っていなければ確実に勝ち、手札の呪いを市場に付けて手放せる
+    // 満月：相手が月蝕を持っていなければ確実に勝ち、手札の呪いを市場に付けて手放せる
     if (b.attr === 'hope') v0 = (oppHasDespair ? 0.4 : 1) * (2 + (myCurses && freeSlot ? 3 : 0)) + 1;
-    // 絶望：相手の希望を打ち消せるときだけ価値がある。それ以外は効果のない0の札
+    // 月蝕：相手の満月を打ち消せるときだけ価値がある。それ以外は効果のない0の札
     if (b.attr === 'despair') v0 = oppHasHope ? 3 : -0.3;
-    if (isSpecial(b)) return v0 + (f ? fuseVal(f) : 0) + Math.random() * 1.2;
-    const pw = b.attr === 'curse' ? 0 : Math.min(0.95, (b.num - 0.5) / MAX_NUM);
-    let v = pw * 2 + (1 - pw) * loseVal(b) - cardValue(b) * 0.25;
+    if (isSpecial(b)) return v0 + (f ? fuseVal(f) : 0) + noise(pi, 1.2);
+    const pw = b.attr === 'curse' ? 0 : hard ? beatChance(b.num) : Math.min(0.95, (b.num - 0.5) / MAX_NUM);
+    let v = pw * T.win + (1 - pw) * loseVal(b) - cardValue(b) * T.battleCost;
     // 勝負札の呪いは負けて相手の手札に入るので、手放す手段になる
-    if (b.attr === 'curse') v += 2.5;
+    if (b.attr === 'curse') v += T.curseBattle;
     // 後攻は、先攻と同じ種類を伏せて予言を当てれば、先攻の伏せ札を無効にできる
-    if (f) { v += fuseVal(f); if (second && f.attr === predicted) v += 1.5; }
-    return v + Math.random() * 1.2;
+    if (f) { v += fuseVal(f); if (second && f.attr === predicted) v += T.prophecy; }
+    return v + noise(pi, 1.2);
   };
 
   if (me.hand.length === 1) return { battle: me.hand[0], fuse: null };
@@ -1222,8 +1588,8 @@ async function draftPick(pi) {
   if (!G.market.length) return;
   if (draftHandCount(p) >= HAND_LIMIT) { log(`${p.name}：手札が${HAND_LIMIT}枚以上なのでドラフトをパス`); return; }
   let idx;
-  if (p.cpu) { await sleep(CPU_DELAY); idx = cpuPickMarket(); }
-  else idx = await ask(pi, { type: 'pickMarket', text: '市場より、札を一枚お取りなされ' });
+  if (p.cpu) { await sleep(CPU_DELAY); idx = cpuPickMarket(pi); }
+  else { await tutorial('draft'); idx = await ask(pi, { type: 'pickMarket', text: '市場より、札を一枚お取りなされ' }); }
   takeSlot(pi, validSlot(idx) ? idx : 0);
   render();
 }
@@ -1234,14 +1600,14 @@ async function choosePlay(pi) {
   let r;
   if (p.cpu) r = cpuPlay(pi);
   else {
+    await tutorial('play');
     const sel = await ask(pi, { type: 'play', sel: { battle: null, fuse: null } }) || {};
     const battle = p.hand.find(c => c.id === sel.battle) || p.hand[0];
-    const canFuse = c => c !== battle && !isSpecial(c);  // 希望・絶望は伏せ札にできない
+    const canFuse = c => c !== battle && !isSpecial(c);  // 満月・月蝕は伏せ札にできない
     const fuse = p.hand.find(c => c.id === sel.fuse && canFuse(c)) || p.hand.find(canFuse) || null;
     r = { battle, fuse };
   }
-  removeFromHand(p, r.battle);
-  if (r.fuse) removeFromHand(p, r.fuse);
+  // 手札から出すのは、2人とも選び終わってから（先に選んだ側の手札が減ると、何を出したか読まれてしまう）
   return r;
 }
 
@@ -1259,17 +1625,28 @@ function canUse(pi, c) {
 const cannotText = { fire: '奪える得点がない', water: '流す呪いがない', wind: '市場にカードがない', earth: '捨て札にカードがない' };
 
 // 職業の効果を1回処理する
+// 効果の演出（盗賊の手・呪いの煙・商人の手・僧侶の光の柱）。画面に知らせて、手や煙が届くまで待ってから札を動かす
+const ART_MS = 850, STEAL_MS = 2000, REVIVE_MS = 1500, MOON_ART_MS = 2000;
+async function effectArt(kind, from, to, card = null, wait = ART_MS) {
+  G.fxArt = { seq: (G.fxArt?.seq || 0) + 1, kind, from, to, card: card && { id: card.id, attr: card.attr, num: card.num } };
+  render();
+  await sleep(wait);
+}
+
 async function runEffect(pi, c) {
   const me = G.players[pi], opp = G.players[1 - pi];
   switch (c.attr) {
     case 'fire': {
-      const stolen = opp.score.pop();
+      // 自分の得点山から手が伸び、相手の得点山の一番上の札をつかんで持ち帰る（札は手が運ぶので、飛ぶ動きは付けない）
+      const stolen = opp.score[opp.score.length - 1];
+      await effectArt('steal', Z.score(pi), Z.score(1 - pi), stolen, STEAL_MS);
+      opp.score.pop();
       toScore(me, stolen, `${opp.name}から奪った`);
-      moved(stolen, Z.score(1 - pi), Z.score(pi));
       log(`${me.name}は${opp.name}の得点を1枚奪った`);
       break;
     }
     case 'water': {
+      await effectArt('curse', Z.hand(pi), Z.hand(1 - pi));  // 呪いが黒い煙をまとって相手へ
       const cu = findCurse(me);
       removeFromHand(me, cu); addToHand(opp, cu);
       moved(cu, Z.hand(pi), Z.hand(1 - pi));
@@ -1277,11 +1654,13 @@ async function runEffect(pi, c) {
       break;
     }
     case 'wind': {
-      const idx = me.cpu ? cpuPickMarket() : await ask(pi, { type: 'pickMarket', text: '💰拾う ── 市場より、札を一枚お取りなされ' });
+      await effectArt('pick', Z.hand(pi), Z.market);  // 手が市場に伸びる
+      const idx = me.cpu ? cpuPickMarket(pi) : await ask(pi, { type: 'pickMarket', text: '💰拾う ── 市場より、札を一枚お取りなされ' });
       takeSlot(pi, validSlot(idx) ? idx : 0).forEach(c => me.pickedUp.add(c.id));
       break;
     }
     case 'earth':
+      await effectArt('revive', Z.discard, Z.hand(pi), null, REVIVE_MS);  // 捨て札から光の柱が立つ
       await reviveFromDiscard(pi, '📿蘇らせる');
       break;
   }
@@ -1311,7 +1690,7 @@ async function fuseEffect(pi, c) {
   render();
   await sleep(FX_STEP * 0.6);
   log(`${me.name}の伏せ札の効果：${tag}`);
-  if (c.attr === 'curse') sendCurse(pi, c, Z.field(pi, 'fuse'));
+  if (c.attr === 'curse') { await effectArt('curse', Z.field(pi, 'fuse'), Z.hand(1 - pi)); sendCurse(pi, c, Z.field(pi, 'fuse')); }
   else {
     if (canUse(pi, c)) await runEffect(pi, c); else log(cannotText[c.attr]);
     toDiscard(c, `${me.name}の伏せ札`);
@@ -1323,14 +1702,14 @@ async function fuseEffect(pi, c) {
 }
 
 // 山札が残り HOPE_DECK 枚を切ったら、本当の点数（秘密の手札の呪いも含めた、ゲーム終了時と同じ計算）で
-// 負けている側に希望、勝っている側に絶望を配る。同点なら次のラウンドで改めて判定する。1ゲームに1回だけ。
+// 負けている側に満月、勝っている側に月蝕を配る。同点なら次のラウンドで改めて判定する。1ゲームに1回だけ。
 // 配られ方から相手の秘密の呪いを推測できる＝読み合いの材料にする。ただし正確な点数はお知らせに出さない
 function dealHopeDespair() {
   if (G.hopeDealt || G.deck.length >= HOPE_DECK) return;
   const P = G.players;
   const pts = P.map(p => finalScore(p).total);
   if (pts[0] === pts[1]) {
-    log(`山札が${HOPE_DECK}枚を切った！ ただし本当の点数が同点なので、希望と絶望は次のラウンドで改めて判定`, 'hl');
+    log(`山札が${HOPE_DECK}枚を切った！ ただし本当の点数が同点なので、満月と月蝕は次のラウンドで改めて判定`, 'hl');
     return;
   }
   const lo = pts[0] < pts[1] ? 0 : 1;
@@ -1340,21 +1719,31 @@ function dealHopeDespair() {
   addToHand(P[1 - lo], despair);
   moved(hope, Z.deck, Z.hand(lo));
   moved(despair, Z.deck, Z.hand(1 - lo));
-  G.announce = { seq: (G.announce?.seq || 0) + 1, title: '🌟希望と🌑絶望', ms: ANN_MS,
-                 text: `本当の点数で負けている${P[lo].name}に希望、勝っている${P[1 - lo].name}に絶望が配られた` };
-  log(`山札が${HOPE_DECK}枚を切った！ 本当の点数で負けている${P[lo].name}に🌟希望、勝っている${P[1 - lo].name}に🌑絶望が配られた`, 'hl');
+  // 夜が深まって満月が昇る演出。2枚の札と、だれの手に渡るかを大きく見せる（それぞれの画面に、自分から見た文で出す）
+  const who = (pi, i) => pi === i ? 'あなた' : P[i].name;
+  const moonText = pi => ({
+    title: '🌕 宵が深まり、月が昇る',
+    text: pi === lo ? '本当の点数で負けているあなたに、逆転の満月' : '本当の点数で勝っているあなたに、満月を覆う月蝕',
+    html: `<div class="moon-deal">
+      <div class="md-item ${pi === lo ? 'mine' : ''}">${cardHTML(hope)}<div class="md-to">${who(pi, lo)}へ</div><div class="md-note">どの札にも勝つ<br>（月蝕にだけは覆われる）</div></div>
+      <div class="md-item ${pi !== lo ? 'mine' : ''}">${cardHTML(despair)}<div class="md-to">${who(pi, 1 - lo)}へ</div><div class="md-note">満月を覆い隠して勝つ<br>（ほかの札には数字0）</div></div>
+    </div>`,
+    style: 'moon',
+  });
+  G.announce = { seq: (G.announce?.seq || 0) + 1, ms: MOON_ANN_MS, title: '', text: '', per: [moonText(0), moonText(1)] };
+  log(`山札が${HOPE_DECK}枚を切った！ 本当の点数で負けている${P[lo].name}に🌕満月、勝っている${P[1 - lo].name}に🌑月蝕が配られた`, 'hl');
   return true;
 }
 
-// 捨て札から好きなカードを1枚選んで手札に加える（僧侶の「蘇らせる」、絶望の追加効果）。
-// 呪い・希望・絶望も含めて、どのカードでも選べる（絶望は打ち消した希望を奪える。僧侶は使い終わった希望・絶望を拾える＝隠れた逆転の手段）。
+// 捨て札から好きなカードを1枚選んで手札に加える（僧侶の「蘇らせる」、月蝕の追加効果）。
+// 呪い・満月・月蝕も含めて、どのカードでも選べる（月蝕は打ち消した満月を奪える。僧侶は使い終わった満月・月蝕を拾える＝隠れた逆転の手段）。
 // 加えたカードは、商人の「拾う」と同じく次のドラフトでは手札の枚数に数えない
 const revivable = () => G.discard.map((c, i) => i);
 async function reviveFromDiscard(pi, title) {
   const me = G.players[pi];
   const allowed = revivable();
   if (!allowed.length) { log(`${title}：手札に加えられるカードが捨て札にない`); return; }
-  const idx = me.cpu ? cpuPickDiscard() : await ask(pi, { type: 'pickDiscard', title, allowed,
+  const idx = me.cpu ? cpuPickDiscard(pi) : await ask(pi, { type: 'pickDiscard', title, allowed,
     text: `${title} ── 捨て札より、一枚呼び戻されよ` });
   const c = G.discard.splice(allowed.includes(idx) ? idx : allowed[allowed.length - 1], 1)[0];
   delete c.at; delete c.why;
@@ -1364,40 +1753,70 @@ async function reviveFromDiscard(pi, title) {
   log(`${title}：${me.name}は捨て札から ${cardName(c)} を手札に加えた`, 'hl');
 }
 
-// 絶望で希望を打ち消したとき：追加で、捨て札から1枚手札に加えられる
+// 月蝕で満月を打ち消したとき：追加で、捨て札から1枚手札に加えられる
 async function despairEffect(pi) {
-  G.fx = { pi, kind: 'battle', label: '🌑絶望：捨て札から1枚' };
+  G.fx = { pi, kind: 'battle', label: '🌑月蝕：捨て札から1枚' };
   render();
   await sleep(FX_STEP * 0.6);
-  await reviveFromDiscard(pi, '🌑絶望');
+  await reviveFromDiscard(pi, '🌑月蝕');
   render();
   await sleep(FX_STEP);
   G.fx = null;
 }
 
-// 希望で勝ったとき：手札の呪いを1枚、市場の好きなカード（まだ呪いが付いていないもの）に付けられる
+// 満月で勝ったとき：手札の呪いを1枚、市場の好きなカード（まだ呪いが付いていないもの）に付けられる
 async function hopeEffect(pi) {
   const me = G.players[pi], opp = G.players[1 - pi];
   const cu = findCurse(me);
   const free = G.market.map((sl, i) => sl.curses.length ? -1 : i).filter(i => i >= 0);
-  if (!cu) { log(`🌟${me.name}の希望：手札に呪いがないので、付け替えはなし`); return; }
-  if (!free.length) { log(`🌟${me.name}の希望：呪いを付けられる市場のカードがない`); return; }
+  if (!cu) { log(`🌕${me.name}の満月：手札に呪いがないので、付け替えはなし`); return; }
+  if (!free.length) { log(`🌕${me.name}の満月：呪いを付けられる市場のカードがない`); return; }
   let idx;
   if (me.cpu) idx = free.reduce((a, b) => slotValue(G.market[b]) > slotValue(G.market[a]) ? b : a);
   else idx = await ask(pi, { type: 'pickMarket', allowed: free, skip: '付けない', banner: '呪いを付ける札を選ばれよ',
-                             text: '🌟希望 ── 手札の呪いを、市場の札に憑けられよ' });
-  if (!free.includes(idx)) { log(`🌟${me.name}は呪いを付けなかった`); return; }
+                             text: '🌕満月 ── 手札の呪いを、市場の札に憑けられよ' });
+  if (!free.includes(idx)) { log(`🌕${me.name}は呪いを付けなかった`); return; }
   removeFromHand(me, cu);
   G.market[idx].curses.push(cu);
   moved(cu, Z.hand(pi), Z.market);
-  log(`🌟${me.name}は手札の呪いを、市場の ${cardName(G.market[idx].card)} に付けた`, 'hl');
+  log(`🌕${me.name}は手札の呪いを、市場の ${cardName(G.market[idx].card)} に付けた`, 'hl');
 }
 
 function setPhase(step, actor, label) { G.phase = { step, actor, label }; }
 
+// ===== はじめての一局（チュートリアル） =====
+// CPU 対戦の中で、それぞれの場面が初めて来たときに、見る場所を照らして説明を出す。「わかった」を押すまで進行を止める。
+// 1つの説明は1ゲームに1回だけ。「教わるのをやめる」を押すと、そのあとは普通の対戦になる
+const TUTORIAL = {
+  intro: { at: '#app main > div:first-child', title: 'ようこそ、宵の市へ',
+    text: 'ここは座卓。<b>奥が相手、手前があなた</b>です。札を出し合って、<b>得点山に札を多く集めた方の勝ち</b>。手札に残った呪いは、1枚につき −2点になります。' },
+  draft: { at: '#marketSec', title: '① 市場から札を取る',
+    text: '<b>市場の札を押して、1枚取ります</b>。取る順は 先攻 → 後攻 → 後攻 → 先攻。<br>「呪×1」の付いた札は、<b>呪いも一緒に</b>付いてきます。' },
+  play: { at: '#me', title: '② 勝負札と伏せ札を出す',
+    text: '手札を押すと場に置かれます。<b>1枚目が勝負札、2枚目が伏せ札</b>。置けたら、勝負の場の<b>「⚔ 勝負！」</b>を押します。<br>札の効果は、札を長押し（PCはマウスを合わせる）すると読めます。' },
+  battle: { at: '#fieldSec', title: '③ 勝負：数字の大きい方の勝ち',
+    text: '勝った人は<b>勝負札2枚とも得点山へ</b>。負けた札は、その<b>職業の効果</b>が発動します（盗賊なら相手の得点を奪う、など）。<br>弱い札で<b>わざと負けて</b>、効果を使うのも作戦です。' },
+  fuse: { at: '#fieldSec', title: '④ 伏せ札：めくると必ず発動',
+    text: '伏せ札も、めくると<b>職業の効果が必ず発動</b>して捨て札になります。<br><b>後攻</b>が先攻と同じ職の札を伏せていたら<b>予言成就</b>。先攻の伏せ札は無効になります。' },
+  score: { at: '#me .score-pile', title: '⑤ 得点山と点数',
+    text: '勝った札はここ、<b>得点山</b>に貯まります。点数は <b>得点山の枚数 − 手札の呪い×2</b>。<br>呪いは勝負札や伏せ札で、相手に押し付けましょう。' },
+  finish: { at: '#app main > div:first-child', title: 'あとは、くり返し',
+    text: 'これで1巡りです。<b>山札が尽きたら終わり</b>。あとは同じことをくり返します。<br>迷ったら、右上の<b>「ルール」</b>から確かめられます。では、ご武運を。' },
+};
+async function tutorial(key) {
+  if (!G.tutorial || G.headless || G.tutorialSeen.has(key)) return;
+  G.tutorialSeen.add(key);
+  render();
+  await showCoach(TUTORIAL[key]);
+}
+
 // 山札が尽きたら、このラウンドが最後。1ゲームに1回、画面の中央に大きく知らせる
+// 山札が尽きたか。呪いしか残っていないときも尽きたとみなす（呪いは市場に付け先がないと山札に戻るので、そのままだと減らず、終わらなくなる）
+const deckOut = () => G.deck.every(c => c.attr === 'curse');
+const MAX_ROUNDS = 60;  // 念のための上限（どんな展開でも必ず終わるように）
+
 async function announceFinal() {
-  if (G.deck.length || G.finalShown) return;
+  if (!deckOut() || G.finalShown) return;
   G.finalShown = true;
   log('山札が尽きた！ このラウンドが最終ラウンド', 'hl');
   await announce({ title: '🏮 最終ラウンド', text: '山札が尽きました。このラウンドで決着！', style: 'final' }, ANN_MS);
@@ -1405,7 +1824,7 @@ async function announceFinal() {
 
 // 画面の中央に大きく知らせて、読めるだけの時間を待つ。
 // a.per（プレイヤー番号順の配列）があれば、それぞれの画面に違う文面を出す
-const ANN_MS = 2600, ROUND_ANN_MS = 2000, PHASE_ANN_MS = 1300, RESULT_ANN_MS = 1700;
+const ANN_MS = 2600, ROUND_ANN_MS = 2000, PHASE_ANN_MS = 1300, RESULT_ANN_MS = 2600, MOON_ANN_MS = 4600;
 async function announce(a, ms, wait = ms) {
   G.announce = { seq: (G.announce?.seq || 0) + 1, ms, ...a };
   render();
@@ -1424,10 +1843,11 @@ async function playRound() {
     ? { title: 'あなたは先攻です', text: `ラウンド${G.round}　ドラフトで先に取れます`, style: 'first' }
     : { title: 'あなたは後攻です', text: `ラウンド${G.round}　先攻と同じ種類を伏せれば、先攻の伏せ札を無効にできる`, style: 'second' };
   await announce({ title: '', text: '', per: [roleText(0), roleText(1)] }, ROUND_ANN_MS);
-  // 希望と絶望が配られたら、すぐ画面に出して（お知らせと、札が手札へ飛ぶ動き）、読み終わるまで待ってからドラフトへ
+  // 満月と月蝕が配られたら、すぐ画面に出して（お知らせと、札が手札へ飛ぶ動き）、読み終わるまで待ってからドラフトへ
   const dealt = dealHopeDespair();
   render();
-  if (dealt) await sleep(ANN_MS);
+  if (dealt) await sleep(MOON_ANN_MS);
+  await tutorial(G.round === 1 ? 'intro' : 'finish');
 
   // 1. ドラフト
   await announce({ title: '🛒 ドラフトターン', text: '市場から1枚ずつ取る（先攻 → 後攻 → 後攻 → 先攻）', style: 'draft' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
@@ -1444,10 +1864,12 @@ async function playRound() {
   setPhase('play', null, '勝負札と伏せ札を選ぶ');
   await announce({ title: '🂠 伏せるターン', text: '勝負札と伏せ札を1枚ずつ、2人同時に伏せる', style: 'play' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
   const plays = await Promise.all([choosePlay(0), choosePlay(1)]);
+  plays.forEach((r, pi) => { if (r.battle) removeFromHand(P[pi], r.battle); if (r.fuse) removeFromHand(P[pi], r.fuse); });
   const b = [plays[0].battle, plays[1].battle];
   const fz = [plays[0].fuse, plays[1].fuse];
   // flip：今まさにめくっている札の種類（'battle' / 'fuse'）。そのときだけ裏返るアニメーションを付ける
-  G.field = { battle: b, fuse: fz, battleOpen: false, fuseOpen: false, flip: null, result: '' };
+  // open：めくったかどうか（プレイヤーごと）。flip：今まさにめくっている札（{ kind, pi }）。そのときだけ裏返るアニメーションを付ける
+  G.field = { battle: b, fuse: fz, open: { battle: [false, false], fuse: [false, false] }, flip: null, result: '' };
   setPhase('battle', null, '勝負札をめくる');
   render();
   await waitNext('札は伏せられた。いざ、勝負札をめくられよ', '勝負札をめくる');
@@ -1458,7 +1880,7 @@ async function playRound() {
   const v = b.map(c => c ? c.num : -1);
   let winner = v[0] > v[1] ? 0 : v[1] > v[0] ? 1 : -1;
   log(`勝負：${P[0].name} ${cardName(b[0])} vs ${P[1].name} ${cardName(b[1])}`);
-  // 希望と絶望がぶつかったら、絶望が希望の効果を打ち消して絶望の勝ち
+  // 満月と月蝕がぶつかったら、月蝕が満月の効果を打ち消して月蝕の勝ち
   const hopeBlocked = b.some(c => c && c.attr === 'hope') && b.some(c => c && c.attr === 'despair');
   if (hopeBlocked) winner = b.findIndex(c => c.attr === 'despair');
   // 勝ち負けは、場の勝負札に「勝」「負」の判子を押し、画面の中央でも大きく知らせる（それぞれの画面に、自分から見た結果を出す）
@@ -1470,11 +1892,15 @@ async function playRound() {
     if (winner === pi) return { title: '勝ち！', style: 'win',
       text: theirs && theirs.attr === 'curse' ? '……でも相手の呪いを引き取ってしまう' : '勝負札が自分の得点山へ' };
     return { title: '負け…', style: 'lose',
-      text: hasEffect(mine) ? (hopeWins ? '希望の力で、負けた札の効果は無効' : `負けた札の効果「${ATTRS[mine.attr].eff}」が発動`)
+      text: hasEffect(mine) ? (hopeWins ? '満月の力で、負けた札の効果は無効' : `負けた札の効果「${ATTRS[mine.attr].eff}」が発動`)
           : mine && mine.attr === 'curse' ? '呪いを相手に押し付けた' : '勝負札は相手の得点山へ' };
   };
   render();
   await announce({ title: '', text: '', per: [resultText(0), resultText(1)] }, RESULT_ANN_MS, RESULT_ANN_MS * 0.85);
+  await tutorial('battle');
+  // 満月で勝ったら勝負札の上で満月が輝き、月蝕が満月を打ち消したら、満月の上を黒い影が覆う
+  if (hopeWins) await effectArt('moon', Z.field(winner, 'battle'), Z.field(winner, 'battle'), null, MOON_ART_MS);
+  if (hopeBlocked) await effectArt('eclipse', Z.field(winner, 'battle'), Z.field(1 - winner, 'battle'), null, MOON_ART_MS);
   if (winner < 0) {
     G.field.result = '引き分け';
     log('引き分け！ 両方の札の効果が発動');
@@ -1493,12 +1919,12 @@ async function playRound() {
   } else {
     const W = P[winner];
     const hopeWin = !hopeBlocked && b[winner].attr === 'hope';
-    G.field.result = hopeBlocked ? `${W.name}の勝ち（絶望が希望を打ち消した）` : hopeWin ? `${W.name}の勝ち（希望）` : `${W.name}の勝ち`;
-    log(hopeBlocked ? `🌑絶望が🌟希望を打ち消した！ ${W.name}の勝ち` : hopeWin ? `🌟希望の力で${W.name}の勝ち` : `${W.name}の勝ち`, 'hl');
+    G.field.result = hopeBlocked ? `${W.name}の勝ち（月蝕が満月を打ち消した）` : hopeWin ? `${W.name}の勝ち（満月）` : `${W.name}の勝ち`;
+    log(hopeBlocked ? `🌑月蝕が🌕満月を打ち消した！ ${W.name}の勝ち` : hopeWin ? `🌕満月の力で${W.name}の勝ち` : `${W.name}の勝ち`, 'hl');
     for (const pi of [0, 1]) {
       const c = b[pi];
       if (!c) continue;
-      // 希望・絶望は得点山に入らず、使ったら捨て札になる
+      // 満月・月蝕は得点山に入らず、使ったら捨て札になる
       if (isSpecial(c)) { toDiscard(c, `${P[pi].name}の${ATTRS[c.attr].name}（使用済み）`); moved(c, Z.field(pi, 'battle'), Z.discard); }
       else if (c.attr === 'curse') { addToHand(W, c); moved(c, Z.field(pi, 'battle'), Z.hand(winner)); if (pi !== winner) log(`${W.name}は呪いを引き取った`); }
       else { toScore(W, c, `${P[pi].name}の勝負札（${pi === winner ? '勝ち' : '負け'}）`); moved(c, Z.field(pi, 'battle'), Z.score(winner)); }
@@ -1506,9 +1932,9 @@ async function playRound() {
     render();
     await sleep(FX_STEP);
     if (hopeWin && hasEffect(b[1 - winner])) {
-      // 希望は、負けた相手の札の効果を無効にする
-      G.fx = { pi: 1 - winner, kind: 'battle', label: '🌟希望：効果は無効' };
-      log(`🌟希望の力で、${P[1 - winner].name}の負けた札の効果（${ATTRS[b[1 - winner].attr].icon}${ATTRS[b[1 - winner].attr].eff}）は無効`, 'hl');
+      // 満月は、負けた相手の札の効果を無効にする
+      G.fx = { pi: 1 - winner, kind: 'battle', label: '🌕満月：効果は無効' };
+      log(`🌕満月の力で、${P[1 - winner].name}の負けた札の効果（${ATTRS[b[1 - winner].attr].icon}${ATTRS[b[1 - winner].attr].eff}）は無効`, 'hl');
       render();
       await sleep(FX_STEP);
       G.fx = null;
@@ -1523,7 +1949,7 @@ async function playRound() {
 
   // 4. 伏せ札オープンと予言判定
   setPhase('fuse', null, '伏せ札をめくる・予言判定');
-  await announce({ title: '🔮 伏せ札オープン', text: '同じ種類なら後攻の予言成功（先攻の伏せ札は無効）。そのあと伏せ札の効果', style: 'fuse' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
+  await announce({ title: '🔮 伏せ札、開帳', text: '後攻が先攻と同じ職を伏せたなら、予言成就。先攻の伏せ札は封じられる', style: 'fuse' }, PHASE_ANN_MS, PHASE_ANN_MS * 0.7);
   await reveal('fuse');
   log(`伏せ札オープン：${P[0].name} ${cardName(fz[0])} / ${P[1].name} ${cardName(fz[1])}`);
   // 予言成功（2人の伏せ札が同じ種類）なら、先攻の伏せ札は無効になり手札に戻る
@@ -1532,7 +1958,7 @@ async function playRound() {
     log(`予言成功！ ${P[s].name}（後攻）が伏せ札を読み切った`, 'hl');
     G.field.prophecy = true;
     // まず当てた後攻の伏せ札に「予言成功！」を出し、そのあと無効になった先攻の伏せ札を手札へ戻す
-    G.fx = { pi: s, kind: 'fuse', label: '🔮予言成功！' };
+    G.fx = { pi: s, kind: 'fuse', label: '🔮予言成就！' };
     render();
     await sleep(FX_STEP * 1.5);
     active[f] = false;
@@ -1549,9 +1975,12 @@ async function playRound() {
   // 5. 伏せ札の効果（後攻 → 先攻）
   for (const pi of [s, f]) if (active[pi]) await fuseEffect(pi, fz[pi]);
 
+  await tutorial('fuse');
+
   // ラウンド終了
-  const over = !G.deck.length || P.every(p => !p.hand.length);
+  const over = deckOut() || P.every(p => !p.hand.length) || G.round >= MAX_ROUNDS;
   setPhase('end', null, 'ラウンド終了');
+  await tutorial('score');
   await waitNext(over ? '勝負の行方を、見届けられよ' : 'この巡りは終いじゃ。次の巡りへ', over ? '結果を見る' : '次のラウンドへ');
   G.first = s;
   G.over = over;
@@ -1559,11 +1988,14 @@ async function playRound() {
 }
 
 // 場の札をめくる（アニメーションが終わるまで待つ）
+// 場の札をめくる。先攻の札から1枚ずつ、めくるアニメーションが終わるのを待ちながら
 async function reveal(kind) {
-  G.field[kind + 'Open'] = true;
-  G.field.flip = kind;
-  render();
-  await sleep(FLIP_MS);
+  for (const pi of [G.first, 1 - G.first]) {
+    G.field.open[kind][pi] = true;
+    G.field.flip = { kind, pi };
+    render();
+    await sleep(FLIP_MS);
+  }
   G.field.flip = null;
 }
 
@@ -1594,7 +2026,7 @@ async function gameLoop() {
 
 // ===== 描画 =====
 function cardHTML(c, o = {}) {
-  if (o.back) return `<div class="card back ${o.small ? 'small' : ''}">${o.blank ? '' : '<span>呪</span>'}</div>`;
+  if (o.back) return `<div class="card back ${o.small ? 'small' : ''}">${o.blank ? '' : '<span>宵</span>'}</div>`;
   if (!c) return `<div class="card empty ${o.small ? 'small' : ''}"></div>`;
   const cls = ['card', o.small && 'small', o.known && 'known', o.cls].filter(Boolean).join(' ');
   const data = (o.action ? `data-action="${o.action}" data-id="${c.id}"` : '') + ` data-cid="${c.id}"`;
@@ -1602,8 +2034,8 @@ function cardHTML(c, o = {}) {
     + (o.seen ? `<div class="seen ${o.seen}">${o.seen === 'open' ? '👁 公開' : '🔒 秘密'}</div>` : '');
   if (isSpecial(c)) {
     const A = ATTRS[c.attr];
-    return `<div class="${cls}" data-attr="${c.attr}" data-tip="${c.attr}:${c.num}" ${data}><div class="num">${c.attr === 'hope' ? '★' : '✖'}</div><div class="icon">${CREST[c.attr]}</div><div class="nm">${A.name}</div>
-      <div class="eff">${c.attr === 'hope' ? '絶望以外に勝つ' : '希望に勝つ'}</div>${badge}</div>`;
+    return `<div class="${cls}" data-attr="${c.attr}" data-tip="${c.attr}:${c.num}" ${data}><div class="num">${c.attr === 'hope' ? '月' : '蝕'}</div><div class="icon">${CREST[c.attr]}</div><div class="nm">${A.name}</div>
+      <div class="eff">${c.attr === 'hope' ? '逆転の札' : '満月を覆う'}</div>${badge}</div>`;
   }
   if (c.attr === 'curse') {
     return `<div class="${cls}" data-attr="curse" data-tip="curse:0" ${data}><div class="num">0</div><div class="icon">${CREST.curse}</div><div class="nm">呪い</div>
@@ -1629,17 +2061,17 @@ function cardTipHTML(attr, num, full = false) {
 }
 function cardTipFull(attr, num, full) {
   if (attr === 'hope') {
-    return `<div class="tip-head" data-attr="hope"><span class="tip-num">★</span>🌟 希望<span class="tip-role">負けている側の切り札</span></div>
-      ${tipSec('warn', '配られるとき', '', 0, `山札が残り <b>${HOPE_DECK}枚</b> を切ったとき、<b>本当の点数</b>（秘密の手札の呪いも含む）で<b>負けている側</b>に配られる`)}
-      ${tipSec('win', '勝負札にすると', '', 0, `<b>絶望以外のすべての札に勝つ</b>。さらに<b>負けた相手の札の効果を無効</b>にし、手札の呪いを <b>1枚</b>、市場の好きなカード（呪いが付いていないもの）に付けられる`)}
-      <div class="tip-special"><b>相手の勝負札が絶望のとき</b>：希望の効果は打ち消されて負ける。捨て札に入った希望は、絶望側に<b>奪われる</b>ことがある</div>
+    return `<div class="tip-head" data-attr="hope"><span class="tip-num">月</span>🌕 満月<span class="tip-role">負けている側の切り札</span></div>
+      ${full ? tipSec('warn', '配られるとき', '', 0, `山札が残り <b>${HOPE_DECK}枚</b> を切ったとき、<b>本当の点数</b>（秘密の手札の呪いも含む）で<b>負けている側</b>に配られる`) : ''}
+      ${tipSec('win', '勝負札にすると', '', 0, `<b>月蝕以外のすべての札に勝つ</b>。さらに<b>負けた相手の札の効果を無効</b>にし、手札の呪いを <b>1枚</b>、市場の好きなカード（呪いが付いていないもの）に付けられる`)}
+      <div class="tip-special"><b>相手の勝負札が月蝕のとき</b>：満月の効果は打ち消されて負ける。捨て札に入った満月は、月蝕側に<b>奪われる</b>ことがある</div>
       ${full ? '<div class="tip-note">・勝負札専用（伏せ札にはできない）<br>・使ったら捨て札になる（得点山には入らない）。僧侶の「蘇らせる」で拾い直せる</div>' : ''}`;
   }
   if (attr === 'despair') {
-    return `<div class="tip-head" data-attr="despair"><span class="tip-num">✖</span>🌑 絶望<span class="tip-role">勝っている側の守り</span></div>
-      ${tipSec('warn', '配られるとき', '', 0, `山札が残り <b>${HOPE_DECK}枚</b> を切ったとき、<b>本当の点数</b>（秘密の手札の呪いも含む）で<b>勝っている側</b>に配られる`)}
+    return `<div class="tip-head" data-attr="despair"><span class="tip-num">蝕</span>🌑 月蝕<span class="tip-role">勝っている側の守り</span></div>
+      ${full ? tipSec('warn', '配られるとき', '', 0, `山札が残り <b>${HOPE_DECK}枚</b> を切ったとき、<b>本当の点数</b>（秘密の手札の呪いも含む）で<b>勝っている側</b>に配られる`) : ''}
       ${tipSec('win', '勝負札にすると', '', 0, `数字 <b>0</b> として扱われる（効果はない）`)}
-      <div class="tip-special"><b>相手の勝負札が希望のとき</b>：希望の効果を打ち消して<b>勝つ</b>。さらに捨て札から好きなカードを <b>1枚</b> 手札に加えられる（打ち消した<b>希望も選べる</b>。次のドラフトでは手札の枚数に数えない）</div>
+      <div class="tip-special"><b>相手の勝負札が満月のとき</b>：満月の効果を打ち消して<b>勝つ</b>。さらに捨て札から好きなカードを <b>1枚</b> 手札に加えられる（打ち消した<b>満月も選べる</b>。次のドラフトでは手札の枚数に数えない）</div>
       ${full ? '<div class="tip-note">・勝負札専用（伏せ札にはできない）<br>・持っていても減点はない。使ったら捨て札になる（得点山には入らない）。僧侶の「蘇らせる」で拾い直せる</div>' : ''}`;
   }
   if (attr === 'curse') {
@@ -1657,7 +2089,7 @@ function cardTipFull(attr, num, full) {
 }
 
 // 先攻・後攻の札。先攻はドラフトで先に取れ、後攻は予言（伏せ札の属性当て）ができる
-const roleBadge = first => `<span class="role ${first ? 'first' : 'second'}">${first ? '⚔ 先攻' : '🔮 後攻'}</span>`;
+const roleBadge = first => `<span class="role ${first ? 'first' : 'second'}">${first ? '先攻' : '後攻'}</span>`;
 const roleHint = first => first ? 'ドラフトで先に取れる。伏せ札の種類を後攻に読まれると無効になる'
                                 : '予言ができる：先攻と同じ種類の伏せ札を出すと、先攻の伏せ札を無効にできる';
 
@@ -1673,18 +2105,16 @@ function playerStats(p, isMe, idx) {
   const calc = `得点山 ${p.score.length} − ${isMe ? '' : '判明している'}呪い ${sc.curses}×${CURSE_PENALTY}`;
   // スマホでは1行にまとめる（点数は、タップすると内訳が出る）
   if (isPhone()) return `<div class="pstats compact">
-    <span class="zone-tag">${isMe ? '🙂' : '👤'} ${p.name}</span>${roleBadge(p.first)}
-    <button class="pile-btn" data-pile="score:${idx}" title="得点山">🏆<b>${p.score.length}</b>▸</button>
+    <span class="zone-tag">${p.name}</span>${roleBadge(p.first)}
     <span class="mini" title="手札">🂠<b>${p.hand.length}</b>${picked ? `<small>(${p.hand.length - picked})</small>` : ''}</span>
     <div class="score-box mini" data-info="🧮 点数の内訳|${isMe ? '現在の点数' : '見えている点数（未判明の呪いは含まない）'}<br>${calc}"><span class="score-line"><span class="score-total">${sc.total}</span><span class="score-unit">点</span></span></div>
   </div>`;
   return `<div class="pstats">
     <div class="pstats-main">
-      <span class="zone-tag">${isMe ? '🙂' : '👤'} ${p.name}</span>
+      <span class="zone-tag">${p.name}</span>
       <span title="${roleHint(p.first)}">${roleBadge(p.first)}</span>
       ${isMe ? `<span class="role-hint">${roleHint(p.first)}</span>` : ''}
       <div class="pstats-sub">
-        <button class="pile-btn" data-pile="score:${idx}">🏆 得点山 <b>${p.score.length}</b>枚 ▸</button>
         <span class="stats">手札 ${p.hand.length}枚${picked ? `（ドラフトでは ${p.hand.length - picked}枚として数える）` : ''}</span>
       </div>
     </div>
@@ -1709,13 +2139,13 @@ function makeView(pi) {
     };
   };
   const F = G.field;
-  const hide = (cards, open) => cards.map(c => !c ? null : open ? c : { back: true });
+  const hide = (cards, open) => cards.map((c, i) => !c ? null : open[i] ? c : { back: true });
   return {
     phase: G.phase,
-    moves: G.moves, fx: G.fx, announce: G.announce && (G.announce.per ? { ...G.announce, ...G.announce.per[pi], per: null } : G.announce),
+    moves: G.moves, fx: G.fx, fxArt: G.fxArt, announce: G.announce && (G.announce.per ? { ...G.announce, ...G.announce.per[pi], per: null } : G.announce),
     me: pi, round: G.round, deck: G.deck.length, discard: G.discard, market: G.market, log: G.log, over: G.over,
     online: NET.mode !== 'cpu', result: G.result, ui: G.uis[pi], players: G.players.map(pub),
-    field: F && { ...F, battle: hide(F.battle, F.battleOpen), fuse: hide(F.fuse, F.fuseOpen) },
+    field: F && { ...F, battle: hide(F.battle, F.open.battle), fuse: hide(F.fuse, F.open.fuse) },
   };
 }
 
@@ -1735,6 +2165,44 @@ let placedMemo = { battle: null, fuse: null };  // 前回描いたときに場�
 // 商人の「拾う」・僧侶の「蘇らせる」で手に入れた札の別枠。次のドラフトでは手札の枚数に数えないので、ほかの手札と分けて見せる
 const pickedBox = cards => !cards.length ? '' : `<div class="picked-box" title="商人の「拾う」・僧侶の「蘇らせる」で手に入れた札。次のドラフトでは手札の枚数に数えない（ドラフトが終わると普通の手札に戻る）">
   <div class="picked-label">💰📿 拾った・蘇らせた札 <small>次のドラフトでは数えない</small></div><div class="picked-cards">${cards.join('')}</div></div>`;
+// 札入れ（袱紗）：手札を6枚分の枠のある布の上に並べ、ドラフトで取れる上限（6枚）を見えるようにする。
+// 「拾う」「蘇らせる」の札は枚数に数えないので、枠の外（別枠）に置く。count は枠に入っている札の枚数
+const fukusaLabel = (count, mine) => {
+  const full = count >= HAND_LIMIT;
+  return `<div class="fk-label">札入れ <b>${count}</b>／${HAND_LIMIT}${full ? `<span>満杯 ── ${mine ? '次のドラフトは休み' : '相手は次のドラフトを休む'}</span>` : ''}</div>`;
+};
+// 敷物の上の札の並び。枠の数（slots）より多いときは、敷物を伸ばさずに札を重ねて収める
+const matRow = (cards, slots, small, attrs = '') => {
+  const n = cards.length, extra = Math.max(0, n - slots);
+  const ov = extra ? ` style="--ov: calc((var(--cw) + var(--gap)) * -${(extra / (n - 1)).toFixed(3)})"` : '';
+  return `<div class="row mat-row" ${attrs}${ov}>${cards.join('')}${emptySlots(slots - n, small)}</div>`;
+};
+// 拾い札の敷物：商人の「拾う」・僧侶の「蘇らせる」で手に入れた札を、札入れとは別の萌黄の敷物に置く（次のドラフトでは数えない）
+const pickMatHTML = (cards, small) => `<div class="pick-mat" title="商人の「拾う」・僧侶の「蘇らせる」で手に入れた札。次のドラフトでは手札の枚数に数えない">
+  <div class="fk-label pm-label">拾い札 <span>次のドラフトで数えない</span></div>${matRow(cards, 2, small)}</div>`;
+const emptySlots = (n, small) => Array.from({ length: Math.max(0, n) }, () => `<div class="card empty hand-slot ${small ? 'small' : ''}"></div>`).join('');
+
+// 得点山。座卓の上に札の山として置き、一番上の札を表にして見せる。枚数が増えるほど山が高くなる。押すと中身が見られる
+function scorePileHTML(p, idx) {
+  const n = p.score.length, top = p.score[n - 1];
+  const layers = Math.min(n - 1, 7);  // 下に重なって見える札の数
+  const stack = Array.from({ length: layers }, (_, k) => `${(k + 1) * 2}px ${-(k + 1) * 2}px 0 0 #efe5cd, ${(k + 1) * 2}px ${-(k + 1) * 2}px 0 1px rgba(29,26,22,.55)`).join(', ');
+  return `<button class="score-pile" data-pile="score:${idx}" title="得点山（押すと中身が見られる）">
+    <div class="sp-stack" style="--up:${layers * 2}px">${n ? `<div class="sp-top" style="box-shadow:${stack || 'none'}">${cardHTML(top, { small: true })}</div>` : '<div class="sp-empty">まだ<br>なし</div>'}</div>
+    <div class="sp-label">得点山 <b>${n}</b></div></button>`;
+}
+
+// 捨て札。市場の端（山札の反対側）に札の山として置き、一番上の札（最後に捨てられた札）を表にして見せる。
+// 僧侶の「蘇らせる」で拾える札なので、何が捨てられたかが見えるようにする。押すと中身が見られる
+function discardPileHTML(cards) {
+  const n = cards.length, top = cards[n - 1];
+  const layers = Math.min(n - 1, 6);
+  const stack = Array.from({ length: layers }, (_, k) => `${(k + 1) * 2}px ${-(k + 1) * 2}px 0 0 #d8cdb4, ${(k + 1) * 2}px ${-(k + 1) * 2}px 0 1px rgba(29,26,22,.5)`).join(', ');
+  return `<button class="discard-pile" data-pile="discard" title="捨て札（押すと中身が見られる）">
+    <div class="sp-stack" style="--up:${layers * 2}px">${n ? `<div class="sp-top" style="box-shadow:${stack || 'none'}">${cardHTML(top, { small: true })}</div>` : '<div class="sp-empty">捨て札<br>なし</div>'}</div>
+    <div class="dp-label">捨て札 <b>${n}</b></div></button>`;
+}
+
 // 山札。尽きたラウンドでゲームが終わるので、残りが少なくなったら目立たせる
 // （ドラフトをパスすると補充されず減らないので、残りラウンド数は正確に見積もれない。目安の表示はしない）
 const deckLow = n => n <= 8;
@@ -1746,6 +2214,34 @@ function deckHTML(n) {
   </div>`;
 }
 
+// チュートリアルの吹き出し：見る場所の周りを暗くして照らし、近くに説明を出す。「わかった」で閉じる
+function showCoach(step) {
+  return new Promise(resolve => {
+    const target = document.querySelector(step.at);
+    if (target) target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    setTimeout(() => {
+      const wrap = document.createElement('div');
+      wrap.className = 'coach';
+      const r = target ? target.getBoundingClientRect() : null;
+      const pad = 6;
+      const hole = r ? `<div class="coach-hole" style="left:${r.left - pad}px;top:${r.top - pad}px;width:${r.width + pad * 2}px;height:${r.height + pad * 2}px"></div>` : '<div class="coach-dim"></div>';
+      wrap.innerHTML = `${hole}<div class="coach-box"><div class="coach-title">${step.title}</div><div class="coach-text">${step.text}</div>
+        <div class="coach-actions"><button class="coach-stop">教わるのをやめる</button><button class="primary coach-ok">わかった</button></div></div>`;
+      document.body.appendChild(wrap);
+      // 吹き出しは、照らした場所の下に入ればその下、入らなければ上（どちらも無理なら画面の下）に置く
+      const box = wrap.querySelector('.coach-box');
+      const h = box.offsetHeight, below = r ? r.bottom + 14 : 0, above = r ? r.top - 14 - h : 0;
+      box.style.top = (r && below + h < innerHeight - 8 ? below : r && above > 8 ? above : innerHeight - h - 12) + 'px';
+      const close = () => { wrap.remove(); resolve(); };
+      wrap.querySelector('.coach-ok').onclick = close;
+      wrap.querySelector('.coach-stop').onclick = () => { if (G) G.tutorial = false; close(); };
+    }, target ? 450 : 0);
+  });
+}
+
+// 中身が前と同じなら作り直さない（スマホで重くならないよう、描き直しを減らす）
+const setHTML = (el, html) => { if (el._html !== html) { el.innerHTML = html; el._html = html; } };
+
 function renderView(v) {
   const me = v.players[v.me], opp = v.players[1 - v.me];
   const ui = v.ui || {};
@@ -1753,29 +2249,31 @@ function renderView(v) {
   const marketRects = rememberMarketRects();
   const before = snapshotPlaces();
   const phone = isPhone();
-  document.getElementById('round').innerHTML = phone
-    ? `${v.online ? '🌐' : ''}R${v.round} <span class="deck-pill ${deckLow(v.deck) ? 'low' : ''}" title="山札">🂠<b>${v.deck}</b></span> <button class="pile-btn" data-pile="discard" title="捨て札">🗑<b>${v.discard.length}</b></button>`
-    : `${v.online ? '🌐 通信対戦　' : ''}ラウンド ${v.round}　<span class="deck-pill ${deckLow(v.deck) ? 'low' : ''}">🂠 山札 <b>${v.deck}</b>枚</span>　<button class="pile-btn" data-pile="discard">🗑 捨て札 <b>${v.discard.length}</b>枚 ▸</button>`;
-  document.getElementById('board').innerHTML = !v.round ? '' : phone ? `
+  setHTML(document.getElementById('round'), phone
+    ? `${v.online ? '🌐' : ''}R${v.round} <span class="deck-pill ${deckLow(v.deck) ? 'low' : ''}" title="山札">🂠<b>${v.deck}</b></span>`
+    : `${v.online ? '🌐 通信対戦　' : ''}ラウンド ${v.round}　<span class="deck-pill ${deckLow(v.deck) ? 'low' : ''}">🂠 山札 <b>${v.deck}</b>枚</span>`);
+  setHTML(document.getElementById('board'), !v.round ? '' : phone ? `
     <span class="board-side me">🙂<b>${scoreOf(me, true).total}</b></span><span class="board-vs">vs</span><span class="board-side opp"><b>${scoreOf(opp, false).total}</b>👤</span>` : `
     <span class="board-side me">🙂 ${me.name} ${roleBadge(me.first)} <b>${scoreOf(me, true).total}</b>点</span>
     <span class="board-vs">vs</span>
-    <span class="board-side opp"><b>${scoreOf(opp, false).total}</b>点 ${roleBadge(opp.first)} ${opp.name} 👤</span>`;
+    <span class="board-side opp"><b>${scoreOf(opp, false).total}</b>点 ${roleBadge(opp.first)} ${opp.name} 👤</span>`);
 
   // 相手
   // スマホでは、中身の見えない札は小さな裏向きの札にして、相手に知られた札と並べる
-  document.getElementById('opp').innerHTML = `<h2>${playerStats(opp, false, 1 - v.me)}</h2>
-    <div class="row" data-hand="${1 - v.me}">${opp.hand.filter(c => !c || !c.picked).map(c => c ? cardHTML(c, { small: true, known: true }) : cardHTML(null, { back: true, small: true })).join('')}
-      ${pickedBox(opp.hand.filter(c => c && c.picked).map(c => cardHTML(c, { small: true, known: true })))}</div>`;
+  const oppCount = opp.hand.filter(c => !c || !c.picked).length;
+  setHTML(document.getElementById('opp'), `<h2>${playerStats(opp, false, 1 - v.me)}</h2>
+    <div class="seat">${scorePileHTML(opp, 1 - v.me)}<div class="hand-area" data-hand="${1 - v.me}">
+      <div class="fukusa ${oppCount >= HAND_LIMIT ? 'full' : ''}">${fukusaLabel(oppCount, false)}${matRow(opp.hand.filter(c => !c || !c.picked).map(c => c ? cardHTML(c, { small: true, known: true }) : cardHTML(null, { back: true, small: true })), HAND_LIMIT, true)}</div>
+      ${pickMatHTML(opp.hand.filter(c => c && c.picked).map(c => cardHTML(c, { small: true, known: true })), true)}</div></div>`);
 
   // 市場
   const pickM = ui.type === 'pickMarket';
   const msec = document.getElementById('marketSec');
   msec.classList.toggle('pick-now', pickM);
-  msec.innerHTML = `<h2><span class="zone-tag">🛒 市場</span> ${pickM
+  setHTML(msec, `<h2><span class="zone-tag">市場</span> ${pickM
       ? `<span class="pick-banner">▼ ${ui.banner || 'ここから1枚選んでください'}</span>`
       : '<span class="pc-only">みんなで取り合うカード（強いカードには呪いが取り付く）</span>'}</h2>
-    <div class="row">${deckHTML(v.deck)}${v.market.map((s, i) => `<div class="slot ${!pickM ? '' : ui.allowed && !ui.allowed.includes(i) ? 'dim' : 'clickable'}" data-action="market" data-i="${i}">${cardHTML(s.card)}${s.curses.length ? `<div class="curse-tag">💀×${s.curses.length}</div>` : ''}</div>`).join('') || '<span class="info">（空）</span>'}</div>`;
+    <div class="row">${deckHTML(v.deck)}${v.market.map((s, i) => `<div class="slot ${!pickM ? '' : ui.allowed && !ui.allowed.includes(i) ? 'dim' : 'clickable'}" data-action="market" data-i="${i}">${cardHTML(s.card)}${s.curses.length ? `<div class="curse-tag">呪×${s.curses.length}</div>` : ''}</div>`).join('') || '<span class="info">（空）</span>'}${discardPileHTML(v.discard)}</div>`);
 
   // スマホでは、市場から選ぶ番になったら市場が見えるところまで動かす
   if (phone && pickM && scrolledPick !== ui.id) { scrolledPick = ui.id; msec.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
@@ -1788,13 +2286,13 @@ function renderView(v) {
   const fxOn = (pi, kind) => v.fx && v.fx.pi === pi && v.fx.kind === kind;
   const cell = (kind, label, inner, pi) => `<div class="fcell ${kind} ${fxOn(pi, kind) ? 'fx-on' : ''}" ${pi != null ? `data-slot="${pi}:${kind}"` : ''}>
     ${fxOn(pi, kind) ? `<div class="fx-label">${v.fx.label}</div>` : ''}<div class="lbl">${label}</div>${inner}</div>`;
-  // 伏せ札は、伏せ札にできる札（希望・絶望以外）が勝負札のほかにあるときだけ必要
+  // 伏せ札は、伏せ札にできる札（満月・月蝕以外）が勝負札のほかにあるときだけ必要
   const sel0 = ui.sel || {};
   const playOk = ui.type === 'play' && sel0.battle != null && (sel0.fuse != null || !me.hand.some(c => c.id !== sel0.battle && !isSpecial(c)));
   const board = (mine, theirs, center) => `<div class="board">
-    <div class="brow opp"><span class="lbl side-opp">👤 ${opp.name}</span>${theirs}</div>
+    <div class="brow opp"><span class="lbl side-opp">${opp.name}</span>${theirs}</div>
     <div class="vs">${center}</div>
-    <div class="brow me"><span class="lbl side-me">🙂 ${me.name}</span>${mine}</div>
+    <div class="brow me"><span class="lbl side-me">${me.name}</span>${mine}</div>
   </div>`;
   // 札が出ていない間も、空の枠を並べた勝負の場（緋毛氈）を出しておく
   const emptyRow = cell('', '勝負', cardHTML(null)) + cell('', '伏せ', cardHTML(null));
@@ -1815,7 +2313,7 @@ function renderView(v) {
       const c = F[kind][i];
       if (!c) return cardHTML(null);
       if (c.back) return cardHTML(null, { back: true });
-      if (F.flip !== kind) return cardHTML(c, { cls: (F.gone || []).includes(c.id) ? 'gone' : '' });
+      if (!F.flip || F.flip.kind !== kind || F.flip.pi !== i) return cardHTML(c, { cls: (F.gone || []).includes(c.id) ? 'gone' : '' });
       return `<div class="flip"><div class="flip-inner">${cardHTML(c)}<div class="flip-back">${cardHTML(null, { back: true })}</div></div></div>`;
     };
     const o = 1 - v.me, m = v.me;
@@ -1842,7 +2340,7 @@ function renderView(v) {
     go = `<div class="go-hint">${v.over ? '勝負あり' : turn.oppActing ? `${opp.name}、思案中……` : ui.type === 'pickMarket' ? '市場より選ばれよ' : ''}</div>`;
   }
   fieldHTML = `<div class="field-area">${fieldHTML}<div class="field-go">${go}</div></div>`;
-  sec.innerHTML = `<h2><span class="zone-tag">⚔️ 場</span> <span class="pc-only">このラウンド、あなたは ${roleBadge(me.first)}</span> <span id="roundScore" class="round-score"></span></h2>${fieldHTML}`;
+  setHTML(sec, `<h2><span class="zone-tag">勝負の場</span> <span class="pc-only">このラウンド、あなたは ${roleBadge(me.first)}</span> <span id="roundScore" class="round-score"></span></h2>${fieldHTML}`);
   sec.classList.toggle('waiting', ui.type === 'next');
   if (ui.type === 'next') sec.dataset.action = 'next'; else delete sec.dataset.action;
   // 場が見えるところまで動かす（クリックで進む場面。スマホでは、札を選ぶ場面と、場に札が出たときも）
@@ -1866,33 +2364,43 @@ function renderView(v) {
   };
   // 勝負札・伏せ札に選んだ札は、手札から場の枠へ移ったように見せる
   const inHand = me.hand.filter(c => ui.type !== 'play' || (c.id !== sel.battle && c.id !== sel.fuse));
-  const handHTML = inHand.filter(c => !c.picked).map(handCard).join('')
-    + pickedBox(inHand.filter(c => c.picked).map(handCard));
-  document.getElementById('me').innerHTML = `<h2>${playerStats(me, true, v.me)}</h2>
-    <div class="row" style="padding-top:10px" data-hand="${v.me}">${handHTML}
-      <div class="legend pc-only"><span class="seen open">👁 公開</span> 相手に見えている<br><span class="seen secret">🔒 秘密</span> 相手が知らない</div></div>`;
+  const myCount = me.hand.filter(c => !c.picked).length;  // 札入れの枚数（場に置きかけの札も、まだ手札として数える）
+  const shown = inHand.filter(c => !c.picked);
+  const picked = inHand.filter(c => c.picked).map(handCard);
+  setHTML(document.getElementById('me'), `<h2>${playerStats(me, true, v.me)}</h2>
+    <div class="seat">${scorePileHTML(me, v.me)}<div class="hand-area" data-hand="${v.me}">
+      <div class="fukusa ${myCount >= HAND_LIMIT ? 'full' : ''}">${fukusaLabel(myCount, true)}${matRow(shown.map(handCard), HAND_LIMIT, false)}</div>
+      ${pickMatHTML(picked, false)}</div>
+      <div class="legend pc-only"><span class="seen open">👁 公開</span> 相手に見えている<br><span class="seen secret">🔒 秘密</span> 相手が知らない</div></div>`);
 
   // プロンプト
   const pr = document.getElementById('prompt');
   const uiText = ui.text;
+  let prHTML;
   if (NET.dead) {
-    pr.innerHTML = '<div class="txt" style="color:var(--battle)">通信が切れました。ページを再読み込みして、部屋を作り直してください。</div>';
+    prHTML = '<div class="txt" style="color:var(--battle)">通信が切れました。ページを再読み込みして、部屋を作り直してください。</div>';
   } else if (ui.type === 'play') {
     const hasSpecial = me.hand.some(isSpecial);
     // 1行ずつ短くして、横幅があるときは折り返さずに見せる
-    pr.innerHTML = `<div class="txt play-txt"><div>手札より <span style="color:var(--battle)">勝負札</span> と <span style="color:var(--fuse)">伏せ札</span> を、一枚ずつ場へ</div>
-      <div class="prompt-role">${roleBadge(me.first)} ${me.first ? '伏せ札の職を、読まれぬように' : '先攻と同じ職を伏せれば、予言成就'}${hasSpecial ? '（希望・絶望は勝負札のみ）' : ''}</div></div>`;
+    prHTML = `<div class="txt play-txt"><div>手札より <span style="color:var(--battle)">勝負札</span> と <span style="color:var(--fuse)">伏せ札</span> を、一枚ずつ場へ</div>
+      <div class="prompt-role">${roleBadge(me.first)} ${me.first ? '伏せ札の職を、読まれぬように' : '先攻と同じ職を伏せれば、予言成就'}${hasSpecial ? '（満月・月蝕は勝負札のみ）' : ''}</div></div>`;
   } else if (ui.type) {
     // ボタンは勝負の場に出すので、ここは説明だけ
-    pr.innerHTML = `<div class="txt">${uiText}</div>`;
+    prHTML = `<div class="txt">${uiText}</div>`;
   } else {
-    pr.innerHTML = `<div class="txt" style="color:var(--muted)">${v.over ? '勝負あり' : turn.oppActing ? `👤 ${opp.name}、思案中……` : '……'}</div>`;
+    prHTML = `<div class="txt" style="color:var(--muted)">${v.over ? '勝負あり' : turn.oppActing ? `👤 ${opp.name}、思案中……` : '……'}</div>`;
   }
 
-  // ログ
+  setHTML(pr, prHTML);
+
+  // ログ：増えた分だけ書き足す（ゲームが進むほど長くなるので、毎回全部は作り直さない）
   const lg = document.getElementById('log');
-  lg.innerHTML = v.log.map(l => `<div class="${l.cls}">${l.text}</div>`).join('');
-  lg.scrollTop = lg.scrollHeight;
+  if (lg._src !== v.log || (lg._n || 0) > v.log.length) { lg.innerHTML = ''; lg._n = 0; lg._src = v.log; }
+  if (v.log.length > lg._n) {
+    lg.insertAdjacentHTML('beforeend', v.log.slice(lg._n).map(l => `<div class="${l.cls}">${l.text}</div>`).join(''));
+    lg._n = v.log.length;
+    lg.scrollTop = lg.scrollHeight;
+  }
   if (document.getElementById('logSheet').open) fillLogSheet();
 
   // 結果
@@ -1901,7 +2409,8 @@ function renderView(v) {
   if (!v.result && rd.open) rd.close();
 
   // 今の場面と手番
-  document.getElementById('phaseBar').innerHTML = phaseBarHTML(v, turn, opp);
+  setHTML(document.getElementById('phaseBar'), phaseBarHTML(v, turn, opp));
+  setHTML(document.getElementById('sideProg'), progHTML(v, turn, opp));
   document.getElementById('me').classList.toggle('turn-active', turn.mine);
   document.getElementById('opp').classList.toggle('turn-active', turn.oppActing);
   // 自分の番になった瞬間に、画面下のバーを光らせて知らせる
@@ -1923,9 +2432,10 @@ function renderView(v) {
   } else if (cd.open) cd.close();
 
   showScoreChanges(v, me, opp);
-  fitScreen();
+  if (!fitted) { fitScreen(); fitted = true; }
   flyFromMarket(marketRects);
   playMoves(v, before);
+  playArt(v.fxArt);
   showAnnounce(v.announce);
 }
 
@@ -1934,6 +2444,97 @@ function fillLogSheet() {
   const el = document.querySelector('#logSheet .sheet-log');
   el.innerHTML = V ? V.log.map(l => `<div class="${l.cls}">${l.text}</div>`).join('') : '';
   el.scrollTop = el.scrollHeight;
+}
+
+// ===== 効果の演出 =====
+// 墨の手（奪う・拾う）、呪いの煙（流す・送り込み）、光の柱（蘇らせる）を、効果の行き先へ飛ばす
+let artShown = 0;
+// ドット絵の手（16×16 のマス目）。開いた手（指を伸ばす）と、握った手（札をつかむ）。墨の縁取りに生成りの肌
+const HAND_PIX = {
+  open: { fill: [[3, 2, 2, 6], [6, 1, 2, 7], [9, 2, 2, 6], [12, 4, 2, 4], [3, 7, 11, 6], [1, 8, 2, 3], [5, 13, 7, 3]],
+          shade: [[11, 10, 3, 3], [10, 12, 2, 1]], line: [] },
+  fist: { fill: [[3, 4, 2, 1], [6, 4, 2, 1], [9, 4, 2, 1], [12, 4, 2, 1], [3, 5, 11, 8], [5, 13, 7, 3]],
+          shade: [[2, 8, 7, 2], [11, 10, 3, 3]], line: [[5, 4, 1, 3], [8, 4, 1, 3], [11, 4, 1, 3]] },
+};
+const handSVG = kind => {
+  const H = HAND_PIX[kind], r = ([x, y, w, h], c) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`;
+  return `<svg viewBox="-1 -1 18 18" width="100%" height="100%" shape-rendering="crispEdges">
+    ${H.fill.map(([x, y, w, h]) => r([x - 1, y - 1, w + 2, h + 2], '#1d1a16')).join('')}
+    ${H.fill.map(f => r(f, '#f3e2c4')).join('')}${H.shade.map(f => r(f, '#d6b98e')).join('')}${H.line.map(f => r(f, '#1d1a16')).join('')}</svg>`;
+};
+function playArt(a) {
+  if (!a || a.seq <= artShown) { if (!a) artShown = 0; return; }
+  artShown = a.seq;
+  const snap = snapshotPlaces();
+  const fr = placeRect(snap, a.from), tr = placeRect(snap, a.to);
+  if (!fr || !tr) return;
+  const c = r => [r.left + r.width / 2, r.top + r.height / 2];
+  const [x0, y0] = c(fr), [x1, y1] = c(tr);
+  const el = document.createElement('div');
+  el.className = `fx-art art-${a.kind}`;
+  document.body.appendChild(el);
+  const at = (x, y, extra = '') => `translate(${x}px, ${y}px) translate(-50%, -50%) ${extra}`;
+  let anim;
+  if (a.kind === 'steal') {
+    // 自分の得点山から開いた手が伸び、相手の得点山の一番上の札を握って持ち帰る
+    const deg = Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI + 90;
+    el.innerHTML = `<div class="hand-open">${handSVG('open')}</div><div class="hand-fist" hidden>${handSVG('fist')}</div>
+      <div class="hand-card" hidden>${a.card ? cardHTML(a.card, { small: true }) : ''}</div>`;
+    const T = STEAL_MS;
+    anim = el.animate([
+      { transform: at(x0, y0, `rotate(${deg}deg) scale(.5)`), opacity: 0 },
+      { transform: at(x0, y0, `rotate(${deg}deg) scale(1)`), opacity: 1, offset: .08 },
+      { transform: at(x1, y1, `rotate(${deg}deg) scale(1.1)`), opacity: 1, offset: .38 },
+      { transform: at(x1, y1, `rotate(${deg}deg) scale(1)`), opacity: 1, offset: .5 },
+      { transform: at(x0, y0, `rotate(${deg}deg) scale(1)`), opacity: 1, offset: .92 },
+      { transform: at(x0, y0, `rotate(${deg}deg) scale(.6)`), opacity: 0 },
+    ], { duration: T, easing: 'ease-in-out' });
+    // 届いたところで握り、相手の得点山の一番上の札を手に移す
+    setTimeout(() => {
+      el.querySelector('.hand-open').hidden = true;
+      el.querySelector('.hand-fist').hidden = false;
+      el.querySelector('.hand-card').hidden = false;
+      const top = document.querySelector(`[data-pile="score:${a.to.pi}"] .sp-top`);
+      if (top) top.style.visibility = 'hidden';
+    }, T * 0.4);
+    anim.onfinish = () => { el.remove(); pulsePlace(a.from); };
+    return;
+  } else if (a.kind === 'pick') {
+    // 手は行き先に指を向けて伸び、戻る
+    const deg = Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI + 90;
+    el.innerHTML = handSVG('open');
+    if (a.kind === 'pick') el.insertAdjacentHTML('beforeend', '<span class="sparkle">✦</span><span class="sparkle">✦</span><span class="sparkle">✦</span>');
+    anim = el.animate([
+      { transform: at(x0, y0, `rotate(${deg}deg) scale(.6)`), opacity: 0 },
+      { transform: at(x0, y0, `rotate(${deg}deg) scale(.9)`), opacity: 1, offset: .12 },
+      { transform: at(x1, y1, `rotate(${deg}deg) scale(1.05)`), opacity: 1, offset: .45 },
+      { transform: at(x1, y1, `rotate(${deg}deg) scale(.82)`), opacity: 1, offset: .58 },
+      { transform: at(x0, y0, `rotate(${deg}deg) scale(.8)`), opacity: .9, offset: .92 },
+      { transform: at(x0, y0, `rotate(${deg}deg) scale(.6)`), opacity: 0 },
+    ], { duration: ART_MS + FX_FLY_MS * 0.8, easing: 'ease-in-out' });
+  } else if (a.kind === 'curse') {
+    el.innerHTML = '<span>呪</span>';
+    anim = el.animate([
+      { transform: at(x0, y0, 'scale(.4)'), opacity: 0 },
+      { transform: at(x0, y0, 'scale(1)'), opacity: 1, offset: .2 },
+      { transform: at(x1, y1, 'scale(1.2)'), opacity: 1, offset: .75 },
+      { transform: at(x1, y1, 'scale(1.8)'), opacity: 0 },
+    ], { duration: ART_MS + 500, easing: 'ease-in-out' });
+  } else if (a.kind === 'moon' || a.kind === 'eclipse') {
+    // 満月：勝負札の上で満月がまばゆく輝き、光の筋が回る。月蝕：満月の上を、月蝕の札の側から黒い影が横切って覆い、光の輪だけが残る
+    const [cx, cy] = a.kind === 'moon' ? [x0, y0] : [x1, y1];
+    el.style.left = cx + 'px'; el.style.top = cy + 'px';
+    const dx = Math.max(-1, Math.min(1, (x0 - x1) / 100)) * 90, dy = (y0 - y1) > 0 ? 90 : -90;
+    el.innerHTML = `<div class="mn-rays"></div><div class="mn-disc"></div>${a.kind === 'eclipse' ? `<div class="mn-shadow" style="--sx:${dx}px;--sy:${dy}px"></div>` : ''}`;
+    anim = el.animate([{ opacity: 0 }, { opacity: 1, offset: .1 }, { opacity: 1, offset: .8 }, { opacity: 0 }], { duration: MOON_ART_MS + 400, easing: 'ease-out' });
+  } else if (a.kind === 'revive') {
+    // 捨て札から、画面の上まで届く金の光の柱。根元に光の輪が広がり、光の粒が立ちのぼる
+    el.style.left = x0 + 'px'; el.style.top = y0 + 'px';
+    el.innerHTML = `<div class="rv-beam"></div><div class="rv-ring"></div><div class="rv-ring r2"></div>`
+      + Array.from({ length: 14 }, (_, i) => `<span class="rv-dot" style="--dx:${Math.round((Math.random() - .5) * 120)}px;--d:${(i * 0.07).toFixed(2)}s;--h:${Math.round(160 + Math.random() * 260)}px">✦</span>`).join('');
+    anim = el.animate([{ opacity: 0 }, { opacity: 1, offset: .1 }, { opacity: 1, offset: .75 }, { opacity: 0 }], { duration: REVIVE_MS + 600, easing: 'ease-out' });
+  }
+  if (anim) anim.onfinish = () => el.remove(); else el.remove();
 }
 
 // 革命・革命返しなど、場全体のルールが変わる出来事を、画面の中央に大きく知らせる
@@ -1947,7 +2548,7 @@ function showAnnounce(a) {
   const el = document.createElement('div');
   el.className = 'announce' + (a.style ? ' ann-' + a.style : '');
   el.style.animationDuration = ms + 'ms';
-  el.innerHTML = `<div class="announce-title">${a.title}</div><div class="announce-text">${a.text}</div>`;
+  el.innerHTML = `<div class="announce-title">${a.title}</div><div class="announce-text">${a.text}</div>${a.html || ''}`;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), ms);
 }
@@ -1968,7 +2569,7 @@ function placeRect(snap, at) {
     case 'field': return snap.rect(`[data-slot="${at.pi}:${at.kind}"] .card`);
     case 'hand': return snap.rect(`[data-hand="${at.pi}"]`);
     case 'score': return snap.rect(`[data-pile="score:${at.pi}"]`);
-    case 'discard': return snap.rect('[data-pile="discard"]');
+    case 'discard': return snap.rect('.discard-pile');
     case 'deck': return snap.rect('.deck-stack');
     case 'market': return snap.rect('#marketSec .row');
   }
@@ -2013,7 +2614,7 @@ function flyGhost(card, from, to, { delay, dur, fit, shrink, onEnd }) {
 }
 // 得点山・捨て札などに札が入ったときに、その置き場所をぽんと光らせる
 function pulsePlace(at) {
-  const sel = at.z === 'score' ? `[data-pile="score:${at.pi}"]` : at.z === 'discard' ? '[data-pile="discard"]' : at.z === 'hand' ? `[data-hand="${at.pi}"]` : null;
+  const sel = at.z === 'score' ? `[data-pile="score:${at.pi}"]` : at.z === 'discard' ? '.discard-pile' : at.z === 'hand' ? `[data-hand="${at.pi}"]` : null;
   const el = sel && document.querySelector(sel);
   if (el) el.animate([{ boxShadow: '0 0 0 0 var(--accent)' }, { boxShadow: '0 0 0 6px var(--accent)' }, { boxShadow: '0 0 0 0 var(--accent)' }], { duration: 500 });
 }
@@ -2079,6 +2680,19 @@ function flyFromMarket(marketRects) {
 
 // ===== 今「誰が」「何を」している番か =====
 const STEPS = [['draft', 'ドラフト'], ['play', '伏せる'], ['battle', '勝負'], ['fuse', '伏せ札'], ['effect', '効果'], ['end', '終了']];
+// 場面ごとの、やることの一言（PC の右下の進行表に出す）
+const STEP_NOTES = { draft: '市場から1枚ずつ取る（先→後→後→先）', play: '勝負札と伏せ札を1枚ずつ伏せる', battle: '先攻から勝負札をめくる。大きい方の勝ち',
+                     fuse: '先攻から伏せ札をめくる。予言の判定', effect: '伏せ札の効果（後攻→先攻）', end: '先攻と後攻を入れ替える' };
+function progHTML(v, turn, opp) {
+  if (!v.round) return '';
+  const ph = v.phase || {};
+  const cur = STEPS.findIndex(([k]) => k === ph.step);
+  const me = v.players[v.me];
+  const who = v.over ? '勝負あり' : turn.mine ? '▶ あなたの番' : turn.oppActing ? `${opp.name}の番` : '……';
+  return `<h2>進み方</h2><div class="prog-head"><b>第${v.round}巡り</b><span>先攻：${me.first ? 'あなた' : opp.name}</span></div>
+    <ol class="prog">${STEPS.map(([k, name], i) => `<li class="${i < cur ? 'done' : i === cur ? 'now' : ''}"><b>${name}</b><small>${i === cur && ph.label ? ph.label : STEP_NOTES[k]}</small></li>`).join('')}</ol>
+    <div class="prog-who ${turn.mine ? 'mine' : ''}">${who}</div>`;
+}
 let flashedUi = null;
 
 // 自分が操作する番か、相手が操作している（考えている）番か
@@ -2111,6 +2725,7 @@ function showScoreChanges(v, me, opp) {
   if (v.round < scoreMemo.round) { scoreMemo.last = null; clearScoreDeltas(); }  // 新しいゲーム
   if (v.round !== scoreMemo.round) { scoreMemo.round = v.round; scoreMemo.start = totals.slice(); }
   const boxes = [document.querySelector('#me .score-box'), document.querySelector('#opp .score-box')];
+  boxes.forEach(b => { if (!b) return; b.classList.remove('score-up', 'score-down'); b.querySelectorAll('.score-delta').forEach(e => e.remove()); });
   totals.forEach((t, k) => {
     const d = scoreMemo.last ? t - scoreMemo.last[k] : 0;
     scoreMemo.pending[k] += d;
@@ -2132,6 +2747,7 @@ function showScoreChanges(v, me, opp) {
 
 // 画面の高さに収まる倍率を計算して、全体を縮小する。小さくしすぎると読めないので FIT_MIN までにし、それでも収まらなければスクロールにする
 const FIT_MIN = 0.6;
+let fitted = false;  // 拡大率を計算済みか（ウィンドウの大きさが変わったら計算し直す）
 function fitScreen() {
   const app = document.getElementById('app');
   // 市場と場が横に並ぶときは場を左（手札の真上）に、縦に並ぶときは市場を上・場を下（手札のすぐ上）にする
@@ -2174,15 +2790,39 @@ function openPile(kind) {
   d.showModal();
 }
 
+// ===== 戦績（CPU 対戦の勝ち負けを、強さごとにこのブラウザに覚えておく） =====
+const RECORD_KEY = 'noroi-ichi-record', LEVEL_KEY = 'noroi-ichi-cpu-level';
+const loadRecord = () => { try { return JSON.parse(localStorage.getItem(RECORD_KEY)) || {}; } catch (e) { return {}; } };
+function saveResult(level, outcome) {
+  const all = loadRecord();
+  const r = all[level] || (all[level] = { win: 0, lose: 0, draw: 0, streak: 0, best: 0 });
+  r[outcome]++;
+  r.streak = outcome === 'win' ? r.streak + 1 : outcome === 'lose' ? 0 : r.streak;
+  r.best = Math.max(r.best, r.streak);
+  try { localStorage.setItem(RECORD_KEY, JSON.stringify(all)); } catch (e) {}
+  return r;
+}
+function recordText(level) {
+  const r = loadRecord()[level];
+  const name = CPU_LEVELS[level].name;
+  if (!r || !(r.win + r.lose + r.draw)) return `${name}との戦績：まだなし`;
+  return `${name}との戦績：<b>${r.win}勝 ${r.lose}敗</b>${r.draw ? ` ${r.draw}分` : ''}　連勝 ${r.streak}（最高 ${r.best}）`;
+}
+
 function showResult(v) {
   const s = v.result.scores, P = v.players;
   const row = i => `<tr><td>${P[i].name}</td><td>${s[i].cards}</td><td>${s[i].curses}（−${s[i].curses * CURSE_PENALTY}）</td><td><b>${s[i].total}</b></td></tr>`;
   const mine = s[v.me].total, theirs = s[1 - v.me].total;
   const msg = mine > theirs ? 'あなたの勝ち！' : mine < theirs ? `${P[1 - v.me].name}の勝ち…` : '引き分け';
+  const res = mine > theirs ? ['win', '勝'] : mine < theirs ? ['lose', '負'] : ['draw', '分'];
+  // CPU 対戦（はじめての一局は除く）なら、戦績に記録する
+  const rec = NET.mode === 'cpu' && G && !G.tutorial && !G.headless ? (saveResult(G.cpuLevel, res[0]), recordText(G.cpuLevel)) : '';
   const again = NET.mode === 'guest' ? '<span class="info">ホストが「もう一度」を押すと、次のゲームが始まります　</span>'
                                      : '<button class="primary" id="btnAgain">もう一度</button>';
   const d = document.getElementById('result');
-  d.innerHTML = `<h3>${msg}</h3><table><tr><th></th><th>得点山</th><th>呪い</th><th>合計</th></tr>${row(0)}${row(1)}</table>
+  d.innerHTML = `<div class="res-head"><div class="stamp res-stamp ${res[0]} pop">${res[1]}</div><div><div class="res-sub">勝負あり</div><h3>${msg}</h3></div></div>
+    <table class="res-table"><tr><th></th><th>得点山</th><th>呪い</th><th>合計</th></tr>${row(0)}${row(1)}</table>
+    ${rec ? `<p class="res-record">${rec}</p>` : ''}
     <p style="text-align:right">${again} <button onclick="this.closest('dialog').close()">閉じる</button></p>`;
   if (!d.open) d.showModal();
   const b = document.getElementById('btnAgain');
@@ -2264,9 +2904,9 @@ async function hostRoom() {
 
 // 招待リンクを送る。スマホなら LINE などの送り先を選ぶ画面を出し、出せなければリンクをコピーする
 async function shareInvite(link, code) {
-  const text = `呪い市で対戦しよう！ リンクを開いて「この部屋に入る」を押してね（部屋コード ${code}）`;
+  const text = `宵の市で対戦しよう！ リンクを開いて「この部屋に入る」を押してね（部屋コード ${code}）`;
   if (navigator.share) {
-    try { await navigator.share({ title: '呪い市', text, url: link }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    try { await navigator.share({ title: '宵の市', text, url: link }); return; } catch (e) { if (e.name === 'AbortError') return; }
   }
   try {
     await navigator.clipboard.writeText(`${text}\n${link}`);
@@ -2363,7 +3003,7 @@ if (typeof document !== 'undefined') {
       const special = isSpecial(V.players[V.me].hand.find(c => c.id === id));
       if (s.battle === id) s.battle = null;
       else if (s.fuse === id) s.fuse = null;
-      else if (special) s.battle = id;  // 希望・絶望は勝負札にしか置けない
+      else if (special) s.battle = id;  // 満月・月蝕は勝負札にしか置けない
       else if (s.battle == null) s.battle = id;
       else if (s.fuse == null) s.fuse = id;
       renderView(V);
@@ -2458,6 +3098,7 @@ if (typeof document !== 'undefined') {
   // スマホとそれ以外の並べ方が切り替わったら、描き直す
   let wasPhone = isPhone();
   addEventListener('resize', () => {
+    fitted = false;
     placePrompt();
     if (isPhone() !== wasPhone) { wasPhone = isPhone(); if (V) renderView(V); }
     fitScreen();
@@ -2512,7 +3153,21 @@ if (typeof document !== 'undefined') {
     try { if (name) localStorage.setItem(NAME_KEY, name); } catch (e) {}
     return (name || fallback).slice(0, 10);
   };
-  document.getElementById('btnCpu').onclick = () => { nameOf(''); lobby.close(); newGame(); gameLoop(); };
+  // CPU の強さ（選んだものを覚えておく）と、強さごとの戦績
+  let cpuLevel = 'normal';
+  try { cpuLevel = localStorage.getItem(LEVEL_KEY) || 'normal'; } catch (e) {}
+  const showLevel = () => {
+    document.querySelectorAll('.cpu-level [data-level]').forEach(b => b.classList.toggle('on', b.dataset.level === cpuLevel));
+    document.getElementById('cpuRecord').innerHTML = recordText(cpuLevel);
+  };
+  document.querySelectorAll('.cpu-level [data-level]').forEach(b => b.onclick = () => {
+    cpuLevel = b.dataset.level;
+    try { localStorage.setItem(LEVEL_KEY, cpuLevel); } catch (e) {}
+    showLevel();
+  });
+  showLevel();
+  document.getElementById('btnCpu').onclick = () => { nameOf(''); lobby.close(); newGame({ cpuLevel }); gameLoop(); };
+  document.getElementById('btnTutorial').onclick = () => { nameOf(''); lobby.close(); newGame({ tutorial: true, cpuLevel: 'easy' }); gameLoop(); };
   document.getElementById('btnHost').onclick = () => { NET.myName = nameOf('ホスト'); hostRoom(); };
   document.getElementById('btnJoin').onclick = () => { NET.myName = nameOf('ゲスト'); joinRoom(document.getElementById('roomCode').value); };
 
